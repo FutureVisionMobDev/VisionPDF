@@ -1,7 +1,7 @@
 //! Decorative page shadows are app preferences, never PDF edits.
 
 use egui_kittest::{Harness, kittest::Queryable};
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_ui_egui::VisionPDFApp;
 
 #[test]
 fn viewer_shadows_follow_the_preference_without_moving_pages() {
@@ -138,7 +138,7 @@ fn checkbox_and_multiple_documents_do_not_edit_pdf_state() {
     let mut h = harness("light");
     h.state_mut().open_bytes("second.pdf", None, pdf()).unwrap();
     let ids: Vec<_> = h.state().views.iter().map(|v| v.id).collect();
-    h.state_mut().session.apply(ids[0], pdfcraft_engine::Edit::SetInfo { key: "Title".into(), value: "Keep existing edits".into() }).unwrap();
+    h.state_mut().session.apply(ids[0], visionpdf_engine::Edit::SetInfo { key: "Title".into(), value: "Keep existing edits".into() }).unwrap();
     assert!(h.state().session.get(ids[0]).unwrap().dirty);
     assert!(h.state().session.get(ids[0]).unwrap().can_undo().is_some());
     let saved: Vec<_> = ids.iter().map(|id| h.state_mut().session.save_bytes(*id).unwrap()).collect();
@@ -246,7 +246,7 @@ fn rendered_page_content_is_identical_with_and_without_decoration() {
         }
     }
     assert_ne!(enabled.as_raw(), disabled.as_raw(), "the decoration really changes the image");
-    if let Ok(directory) = std::env::var("PDFCRAFT_SHADOW_SCREENSHOTS") {
+    if let Ok(directory) = std::env::var("VISIONPDF_SHADOW_SCREENSHOTS") {
         enabled.save(format!("{directory}/page-shadows-enabled.png")).unwrap();
         disabled.save(format!("{directory}/page-shadows-disabled.png")).unwrap();
     }
@@ -269,7 +269,7 @@ fn harness(theme: &str) -> Harness<'static, VisionPDFApp> {
 }
 
 fn shadows(h: &Harness<'static, VisionPDFApp>, grid: bool) -> Vec<egui::Rect> {
-    let color = pdfcraft_ui_egui::theme::Tokens::for_kind(h.state().theme).page_shadow;
+    let color = visionpdf_ui_egui::theme::Tokens::for_kind(h.state().theme).page_shadow;
     fn collect(shape: &egui::Shape, color: egui::Color32, grid: bool, out: &mut Vec<egui::Rect>) {
         match shape {
             egui::Shape::Vec(shapes) => {

@@ -151,7 +151,7 @@ pub fn tab_strip(app: &mut VisionPDFApp, ui: &mut egui::Ui) {
                 let state = (app.active_ids().map(|(_, id)| id), app.views.len(), app.combine_showing());
                 let changed = ui.data_mut(|data| {
                     let id = ui.scope_id().with("active_tab");
-                    let changed = data.get_temp::<(Option<pdfcraft_engine::DocId>, usize, bool)>(id) != Some(state);
+                    let changed = data.get_temp::<(Option<visionpdf_engine::DocId>, usize, bool)>(id) != Some(state);
                     data.insert_temp(id, state);
                     changed
                 });
@@ -327,7 +327,7 @@ pub fn tab_strip(app: &mut VisionPDFApp, ui: &mut egui::Ui) {
                         app.dialog = Some(Dialog::Shortcuts);
                     }
                     // One click to the community, from anywhere in the app.
-                    if widgets::ghost_button_sized(ui, "code-xml", "GitHub", tab_h).on_hover_text(pdfcraft_engine::links::GITHUB).clicked() {
+                    if widgets::ghost_button_sized(ui, "code-xml", "GitHub", tab_h).on_hover_text(visionpdf_engine::links::GITHUB).clicked() {
                         app.execute("help.github");
                     }
                 });
@@ -772,7 +772,7 @@ pub fn mode_bar(app: &mut VisionPDFApp, ui: &mut egui::Ui) {
                     ui.add_enabled_ui(has_doc, |ui| {
                         let tip = crate::commands::command_tip(ui.ctx(), tl!("Print ({key})"), "print.dialog");
                         // A document that forbids printing says so here, before the dialog (#2669).
-                        let may_print = !has_doc || pdfcraft_engine::commands::command("print.dialog").is_some_and(|c| app.command_enabled(c));
+                        let may_print = !has_doc || visionpdf_engine::commands::command("print.dialog").is_some_and(|c| app.command_enabled(c));
                         let mut print = ui.add_enabled_ui(may_print, |ui| icons::button(ui, "printer", 32.0, false, &tip)).inner;
                         if !may_print {
                             print = print.on_disabled_hover_text(crate::print_refused());

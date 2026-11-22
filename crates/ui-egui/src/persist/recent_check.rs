@@ -65,7 +65,7 @@ impl VisionPDFApp {
             };
             if self.run_inline {
                 work();
-            } else if std::thread::Builder::new().name("pdfcraft-recent".into()).spawn(work).is_err() {
+            } else if std::thread::Builder::new().name("visionpdf-recent".into()).spawn(work).is_err() {
                 // No worker: the entries stay listed, as if the check hadn't reached them.
                 return;
             }
@@ -112,7 +112,7 @@ mod tests {
 
     #[test]
     fn only_a_path_known_to_be_missing_is_gone() {
-        let dir = std::env::temp_dir().join(format!("pdfcraft-recent-check-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("visionpdf-recent-check-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let here = dir.join("here.pdf");
         std::fs::write(&here, b"%PDF-1.7").unwrap();

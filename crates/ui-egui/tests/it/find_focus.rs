@@ -3,7 +3,7 @@
 //! with an IME leaves the composition alone (the find bar and the Search panel).
 
 use egui_kittest::Harness;
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_ui_egui::VisionPDFApp;
 
 fn harness() -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {

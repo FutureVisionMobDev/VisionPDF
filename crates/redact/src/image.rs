@@ -7,12 +7,12 @@
 //! image's. Images whose codec VisionPDF can't decode (DCT, JPX), and those, return `None`, and the
 //! caller removes the whole image instead; that is fail-closed.
 
-use pdfcraft_content::{Matrix, overlaps};
-use pdfcraft_cos::{Dict, Document, ImageBudget, Object, Stream};
+use visionpdf_content::{Matrix, overlaps};
+use visionpdf_cos::{Dict, Document, ImageBudget, Object, Stream};
 
 /// Most pixels an image may have to be cleared in place (larger ones are removed), or to be stored
 /// again without shared `/JBIG2Globals` (see [`crate::globals::without_dictionary`]).
-pub(crate) const MAX_PIXELS: u64 = pdfcraft_cos::MAX_REDACTED_IMAGE_PIXELS;
+pub(crate) const MAX_PIXELS: u64 = visionpdf_cos::MAX_REDACTED_IMAGE_PIXELS;
 
 /// The components of image `s`'s colour space, through any references (`None` when unknown).
 pub(crate) fn components(doc: &Document, s: &Stream) -> Option<usize> {
@@ -198,7 +198,7 @@ pub(crate) fn data_elsewhere(doc: &Document, s: &Stream) -> bool {
 pub(crate) fn smallest(dict: Dict, data: &[u8], w: usize, h: usize, bilevel: bool, jbig2: bool) -> Stream {
     let flate = Stream::flate(dict.clone(), data);
     let Some((columns, rows)) = u32::try_from(w).ok().zip(u32::try_from(h).ok()).filter(|_| bilevel) else { return flate };
-    let g4 = pdfcraft_filters::encode_g4(data, columns, rows).ok().map(|coded| {
+    let g4 = visionpdf_filters::encode_g4(data, columns, rows).ok().map(|coded| {
         let mut dict = dict.clone();
         let mut parms = Dict::new();
         parms.set(b"K".to_vec(), Object::Int(-1));
@@ -208,7 +208,7 @@ pub(crate) fn smallest(dict: Dict, data: &[u8], w: usize, h: usize, bilevel: boo
         dict.set(b"DecodeParms".to_vec(), Object::Dict(parms));
         Stream::from_raw(dict, coded)
     });
-    let jbig = jbig2.then(|| pdfcraft_filters::encode_jbig2(data, columns, rows).ok()).flatten().map(|coded| {
+    let jbig = jbig2.then(|| visionpdf_filters::encode_jbig2(data, columns, rows).ok()).flatten().map(|coded| {
         let mut dict = dict.clone();
         dict.set(b"Filter".to_vec(), Object::name("JBIG2Decode"));
         Stream::from_raw(dict, coded)
@@ -219,6 +219,6 @@ pub(crate) fn smallest(dict: Dict, data: &[u8], w: usize, h: usize, bilevel: boo
 /// The bytes stream `s` takes in a file: its data and its dictionary as written.
 fn stored_len(s: &Stream) -> usize {
     let mut dict = Vec::new();
-    pdfcraft_cos::serialize(&Object::Dict(s.dict.clone()), &mut dict);
+    visionpdf_cos::serialize(&Object::Dict(s.dict.clone()), &mut dict);
     dict.len().saturating_add(s.raw.len())
 }

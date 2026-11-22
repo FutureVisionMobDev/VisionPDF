@@ -66,7 +66,7 @@ fn open_prepare_keeps_control_and_existing_tabs_live_until_atomic_commit() {
     let (gate, started, release, finished) = open_worker::prepare_gate();
     harness.state_mut().open_prepare_gate = Some(gate);
 
-    let path = std::env::temp_dir().join(format!("pdfcraft-open-worker-{}.pdf", std::process::id()));
+    let path = std::env::temp_dir().join(format!("visionpdf-open-worker-{}.pdf", std::process::id()));
     std::fs::write(&path, fixture(2)).expect("write test PDF");
     let open_reply = request(&mut harness, &client, "ui.open", json!({ "path": path.to_string_lossy() }));
     assert_eq!(open_reply["pending"], true);
@@ -100,7 +100,7 @@ impl Drop for ToolOpenFile {
 
 #[allow(clippy::expect_used)]
 fn tool_open_file(case: &str, extension: &str, bytes: &[u8]) -> ToolOpenFile {
-    let path = std::env::temp_dir().join(format!("pdfcraft-open-tool-{}-{case}.{extension}", std::process::id()));
+    let path = std::env::temp_dir().join(format!("visionpdf-open-tool-{}-{case}.{extension}", std::process::id()));
     std::fs::write(&path, bytes).expect("write the synthetic tool input");
     ToolOpenFile(path)
 }
@@ -177,8 +177,8 @@ fn chosen_tool_runs_after_preparation(extension: &str, bytes: Vec<u8>) {
     } else {
         assert!(chosen.dirty && chosen.path.is_none(), "conversion produces a new unsaved PDF");
         assert_eq!(chosen.info.pages.len(), 1);
-        let mut renderer = pdfcraft_render::PageRenderer::new(chosen.bytes.clone(), Default::default());
-        let output = renderer.render(pdfcraft_render::RenderRequest { page: 0, kind: pdfcraft_render::RequestKind::Text, ..Default::default() });
+        let mut renderer = visionpdf_render::PageRenderer::new(chosen.bytes.clone(), Default::default());
+        let output = renderer.render(visionpdf_render::RenderRequest { page: 0, kind: visionpdf_render::RequestKind::Text, ..Default::default() });
         let text = output.text.expect("read the converted text").plain_text();
         assert_eq!(text.split_whitespace().collect::<Vec<_>>().join(" "), std::str::from_utf8(&bytes).expect("synthetic input is UTF-8"));
     }
@@ -198,10 +198,10 @@ fn a_chosen_tool_runs_on_converted_text_only_after_native_preparation_commits() 
 
 #[allow(clippy::expect_used)]
 fn encrypted_tool_fixture() -> Vec<u8> {
-    let mut session = pdfcraft_engine::Session::new();
+    let mut session = visionpdf_engine::Session::new();
     let id = session.open("secret.pdf", None, Arc::new(fixture(2)), None).expect("open the synthetic PDF");
     session
-        .apply(id, pdfcraft_engine::Edit::Protect(pdfcraft_engine::Protection { open_password: Some("tool-password".into()), ..Default::default() }))
+        .apply(id, visionpdf_engine::Edit::Protect(visionpdf_engine::Protection { open_password: Some("tool-password".into()), ..Default::default() }))
         .expect("encrypt the synthetic PDF");
     session.save_bytes(id).expect("write the encrypted synthetic PDF").as_ref().clone()
 }
@@ -359,7 +359,7 @@ fn assert_tool_runs_after_background_open(extension: &str, bytes: Vec<u8>, pages
     harness.state_mut().close_tab(0);
     let (gate, started, release, finished) = open_worker::prepare_gate();
     harness.state_mut().open_prepare_gate = Some(gate);
-    let path = std::env::temp_dir().join(format!("pdfcraft-tool-worker-{}.{extension}", std::process::id()));
+    let path = std::env::temp_dir().join(format!("visionpdf-tool-worker-{}.{extension}", std::process::id()));
     std::fs::write(&path, &bytes).expect("write picked document");
     harness.state_mut().pick_override = Some(vec![path.to_string_lossy().into_owned()]);
     harness.state_mut().run_command("export.text");
@@ -397,7 +397,7 @@ fn a_startup_document_waits_for_an_active_document_to_prepare() {
     harness.state_mut().close_tab(0);
     let (gate, started, release, finished) = open_worker::prepare_gate();
     harness.state_mut().open_prepare_gate = Some(gate);
-    let path = std::env::temp_dir().join(format!("pdfcraft-startup-worker-{}.pdf", std::process::id()));
+    let path = std::env::temp_dir().join(format!("visionpdf-startup-worker-{}.pdf", std::process::id()));
     std::fs::write(&path, fixture(2)).expect("write chosen document");
     harness.state_mut().open_path(&path.to_string_lossy());
     started.recv_timeout(Duration::from_secs(5)).expect("chosen document reached preparation");
@@ -583,7 +583,7 @@ struct PickerFiles<'a> {
     original_c: &'a [u8],
 }
 
-fn assert_picker_keeps_a_visible(harness: &mut Harness<'static, VisionPDFApp>, files: &PickerFiles<'_>) -> pdfcraft_engine::DocId {
+fn assert_picker_keeps_a_visible(harness: &mut Harness<'static, VisionPDFApp>, files: &PickerFiles<'_>) -> visionpdf_engine::DocId {
     // Poll admission separately from consuming the picker callback: this reproduces
     // the same ordering as a UI frame, with both worker replies already available.
     harness.state_mut().poll_pending_opens();
@@ -608,7 +608,7 @@ fn assert_picker_keeps_a_visible(harness: &mut Harness<'static, VisionPDFApp>, f
 
 fn assert_picker_completion_releases_b(
     harness: &mut Harness<'static, VisionPDFApp>,
-    a_id: pdfcraft_engine::DocId,
+    a_id: visionpdf_engine::DocId,
     cancel: bool,
     files: &PickerFiles<'_>,
 ) {
@@ -636,7 +636,7 @@ fn assert_picker_completion_releases_b(
     assert_picker_files_unchanged(files);
 }
 
-fn assert_document_a_after_picker(harness: &Harness<'static, VisionPDFApp>, a_id: pdfcraft_engine::DocId, cancel: bool) {
+fn assert_document_a_after_picker(harness: &Harness<'static, VisionPDFApp>, a_id: visionpdf_engine::DocId, cancel: bool) {
     let expected_pages = if cancel { 2 } else { 3 };
     let doc = harness.state().session.get(a_id);
     assert!(doc.is_some(), "A after picker completion");
@@ -658,7 +658,7 @@ fn assert_document_b_after_picker(harness: &Harness<'static, VisionPDFApp>, acti
     }
 }
 
-fn assert_a_saved_source(harness: &Harness<'static, VisionPDFApp>, a_id: pdfcraft_engine::DocId, original: &[u8]) {
+fn assert_a_saved_source(harness: &Harness<'static, VisionPDFApp>, a_id: visionpdf_engine::DocId, original: &[u8]) {
     let doc = harness.state().session.get(a_id);
     assert!(doc.is_some(), "A retains exactly one insertion or cancellation");
     if let Some(doc) = doc {
@@ -682,7 +682,7 @@ fn inline_tool_open_keeps_its_command_for_pdf_conversion_and_password_retry() {
     for (name, bytes, encrypted) in
         [("plain.pdf", fixture(1), false), ("converted.txt", b"Text to export".to_vec(), false), ("locked.pdf", encrypted_tool_fixture(), true)]
     {
-        let path = std::env::temp_dir().join(format!("pdfcraft-inline-tool-{}-{name}", std::process::id()));
+        let path = std::env::temp_dir().join(format!("visionpdf-inline-tool-{}-{name}", std::process::id()));
         std::fs::write(&path, bytes).expect("write selected file");
         let mut app = VisionPDFApp::new();
         app.set_option("language", "en").expect("language preference");
@@ -708,9 +708,9 @@ fn inline_tool_open_keeps_its_command_for_pdf_conversion_and_password_retry() {
 fn startup_files_wait_for_absolute_link_consent_and_preparation() {
     let (mut h, _) = harness();
     let source = h.state().views[0].id;
-    let path = std::env::temp_dir().join(format!("pdfcraft-open-consented-startup-{}.pdf", std::process::id()));
+    let path = std::env::temp_dir().join(format!("visionpdf-open-consented-startup-{}.pdf", std::process::id()));
     std::fs::write(&path, fixture(2)).expect("write linked PDF");
-    h.state_mut().open_remote_link(source, path.to_string_lossy().into_owned(), pdfcraft_render::RemoteDestination::Default);
+    h.state_mut().open_remote_link(source, path.to_string_lossy().into_owned(), visionpdf_render::RemoteDestination::Default);
     h.state().startup_inbox.lock().expect("startup queue").push(("startup.pdf".into(), fixture(1)));
     h.step();
     assert!(h.state().pending_remote_link.is_some());
@@ -831,7 +831,7 @@ fn launch_layout_failed_or_cancelled_opens_do_not_target_existing_documents() {
         app.set_launch_layout("single").unwrap();
         assert!(app.set_launch_layout("invalid").is_err());
         let kind = if cancel {
-            open_worker::ResultKind::Prepared { bytes: Arc::new(fixture(1)), result: Box::new(Err(pdfcraft_render::OpenError::NeedsPassword)) }
+            open_worker::ResultKind::Prepared { bytes: Arc::new(fixture(1)), result: Box::new(Err(visionpdf_render::OpenError::NeedsPassword)) }
         } else {
             open_worker::ResultKind::ReadFailed("synthetic read failure".into())
         };
@@ -888,7 +888,7 @@ fn a_new_file_from_the_os_brings_the_window_forward_before_it_is_prepared() {
     let (mut harness, _client) = harness();
     let (gate, started, release, finished) = open_worker::prepare_gate();
     harness.state_mut().open_prepare_gate = Some(gate);
-    let path = std::env::temp_dir().join(format!("pdfcraft-os-open-worker-{}.pdf", std::process::id()));
+    let path = std::env::temp_dir().join(format!("visionpdf-os-open-worker-{}.pdf", std::process::id()));
     std::fs::write(&path, fixture(2)).expect("write the handed-over PDF");
     let mut queue = vec![crate::OsEvent::Open(vec![path.to_string_lossy().into_owned()])];
     harness.state_mut().os_events = Some(Box::new(move || std::mem::take(&mut queue)));
@@ -935,7 +935,7 @@ fn password_retry_submits_with_priority_when_worker_queue_is_full() {
     let (gate, started, release, finished) = open_worker::prepare_gate();
     let worker = open_worker::OpenWorker::new(Some(gate)).expect("worker");
     let pdf = Arc::new(fixture(1));
-    let open_context = pdfcraft_engine::Session::new().open_context();
+    let open_context = visionpdf_engine::Session::new().open_context();
 
     // Fill the worker queue to its limit while the gate holds the worker on the first job.
     let _first =
@@ -1006,9 +1006,9 @@ fn a_password_prompt_keeps_a_place_in_the_open_queue_for_its_retry() {
 /// A Word document built from the synthetic fixture (VisionPDF's own Word export).
 #[allow(clippy::expect_used)]
 fn synthetic_docx() -> Vec<u8> {
-    let mut session = pdfcraft_engine::Session::new();
+    let mut session = visionpdf_engine::Session::new();
     let id = session.open("source.pdf", None, Arc::new(fixture(1)), None).expect("open the fixture");
-    session.get(id).expect("the fixture").export_office(pdfcraft_engine::compare::OfficeFormat::Docx)
+    session.get(id).expect("the fixture").export_office(visionpdf_engine::compare::OfficeFormat::Docx)
 }
 
 /// File ▸ Open of a Word document: LibreOffice runs on the open worker, never on the frame
@@ -1032,7 +1032,7 @@ fn file_open_converts_an_office_document_on_the_worker() {
     if let Some(view) = app.views.first() {
         let doc = app.session.get(view.id).expect("the converted document");
         // Named after the Word file: `<stem>.docx` opens as `<stem>.pdf`.
-        assert_eq!(doc.name, format!("pdfcraft-open-tool-{}-office.pdf", std::process::id()));
+        assert_eq!(doc.name, format!("visionpdf-open-tool-{}-office.pdf", std::process::id()));
         assert!(doc.path.is_none(), "the converted PDF is new and unsaved, not the .docx on disk");
     } else {
         let message = app.toast.as_ref().map(|(message, _)| message.clone()).unwrap_or_default();
@@ -1050,7 +1050,7 @@ fn the_open_picker_defaults_to_pdf_and_offers_images_office_text_and_all_files()
     assert_eq!(names, ["PDF", "Images", "Office documents", "Text"]);
     let extensions = |name: &str| filters.iter().find(|(n, _)| n == name).map(|(_, e)| e.clone()).unwrap_or_default();
     assert_eq!(extensions("PDF"), ["pdf"]);
-    assert_eq!(extensions("Images"), pdfcraft_engine::IMAGE_EXTENSIONS);
+    assert_eq!(extensions("Images"), visionpdf_engine::IMAGE_EXTENSIONS);
     assert!(["doc", "docx", "xls", "xlsx", "ppt", "pptx", "odt", "rtf"].iter().all(|e| extensions("Office documents").contains(e)));
-    assert_eq!(extensions("Text"), pdfcraft_engine::TEXT_EXTENSIONS);
+    assert_eq!(extensions("Text"), visionpdf_engine::TEXT_EXTENSIONS);
 }

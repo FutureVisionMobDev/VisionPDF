@@ -1,13 +1,13 @@
 //! Scan & OCR ▸ Enhance scanned file: the dialog (pages, background removal level, edge
 //! shadows, despeckle) and the background run with its progress card. The scans are cleaned
-//! on a worker thread ([`pdfcraft_engine::scan_clean`]); the result is applied as one undoable
+//! on a worker thread ([`visionpdf_engine::scan_clean`]); the result is applied as one undoable
 //! step when it is done, unless the document changed meanwhile.
 
 use std::sync::{Arc, Mutex};
 
 use egui::{Align, Layout};
-use pdfcraft_engine::scan_clean::{ScanCleanReport, ScanCleanSettings, ScanCleaned};
-use pdfcraft_engine::{DocId, EditError};
+use visionpdf_engine::scan_clean::{ScanCleanReport, ScanCleanSettings, ScanCleaned};
+use visionpdf_engine::{DocId, EditError};
 
 use crate::ocr_ui::OcrPages;
 use crate::theme::{self, Tokens};
@@ -78,7 +78,7 @@ pub(crate) fn body(ui: &mut egui::Ui, app: &mut VisionPDFApp, t: &Tokens) -> (bo
         ui.horizontal(|ui| {
             let label = ui.label(tl!("Background removal"));
             ui.spacing_mut().slider_width = 220.0;
-            ui.add(egui::Slider::new(&mut d.settings.level, 0..=pdfcraft_engine::camera_clean::MAX_LEVEL).trailing_fill(true))
+            ui.add(egui::Slider::new(&mut d.settings.level, 0..=visionpdf_engine::camera_clean::MAX_LEVEL).trailing_fill(true))
                 .labelled_by(label.id)
                 .on_hover_text(tl!("Evens out the paper so a grey or yellowed background turns white, and darkens faint strokes. 0 is off."));
         });
@@ -175,7 +175,7 @@ impl VisionPDFApp {
         #[cfg(not(target_arch = "wasm32"))]
         if self.run_inline {
             work();
-        } else if let Err(e) = std::thread::Builder::new().name("pdfcraft-scan-clean".into()).spawn(work) {
+        } else if let Err(e) = std::thread::Builder::new().name("visionpdf-scan-clean".into()).spawn(work) {
             // No worker: report the failure instead of waiting for a result that never comes.
             if let Ok(mut s) = progress.lock() {
                 s.result = Some(Err(EditError::Invalid(e.to_string())));
@@ -246,7 +246,7 @@ impl VisionPDFApp {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pdfcraft_engine::scan_clean::SkippedImage;
+    use visionpdf_engine::scan_clean::SkippedImage;
 
     #[test]
     fn the_summary_says_what_was_done_and_what_was_left() {

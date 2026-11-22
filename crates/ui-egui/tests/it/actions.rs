@@ -4,9 +4,9 @@
 use egui::accesskit::Role;
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_engine::Session;
-use pdfcraft_engine::actions::Step;
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_engine::Session;
+use visionpdf_engine::actions::Step;
+use visionpdf_ui_egui::VisionPDFApp;
 
 /// The Action Wizard's name, description and step-argument boxes are named by their labels.
 #[test]
@@ -27,7 +27,7 @@ fn action_editor_inputs_have_accessible_names() {
 
 #[test]
 fn run_and_create_actions() {
-    let dir = std::env::temp_dir().join(format!("pdfcraft-actions-ui-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-actions-ui-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(dir.join("out")).unwrap();
     let src = Session::new().create_from_text("t", "Draft report").unwrap();
@@ -78,7 +78,7 @@ fn run_and_create_actions() {
 
 #[test]
 fn desktop_actions_preserve_duplicate_names_and_results_from_earlier_runs() {
-    let dir = std::env::temp_dir().join(format!("pdfcraft-actions-collisions-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-actions-collisions-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(dir.join("first")).unwrap();
     std::fs::create_dir_all(dir.join("second")).unwrap();

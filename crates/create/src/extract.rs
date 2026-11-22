@@ -6,8 +6,8 @@
 
 use std::collections::HashSet;
 
-use pdfcraft_cos::{Dict, Document, ImageBudget, MAX_DECODED, ObjRef, Object, Stream};
-use pdfcraft_filters::FilterError;
+use visionpdf_cos::{Dict, Document, ImageBudget, MAX_DECODED, ObjRef, Object, Stream};
+use visionpdf_filters::FilterError;
 
 /// One image, ready to write.
 #[derive(Clone, Debug, PartialEq)]
@@ -51,7 +51,7 @@ pub fn extract_images(doc: &Document, pages: &[usize], min_side: u32) -> ImageEx
 /// [`extract_images`] within `budget`, and holding `max_bytes` of files. An image past either is
 /// left out, with the reason.
 pub(crate) fn extract_images_within(doc: &Document, pages: &[usize], min_side: u32, budget: &mut ImageBudget, max_bytes: usize) -> ImageExport {
-    let all = pdfcraft_model::pages(doc);
+    let all = visionpdf_model::pages(doc);
     let mut out = ImageExport::default();
     let mut seen = HashSet::new();
     let mut held = 0usize;
@@ -154,7 +154,7 @@ fn image(doc: &Document, s: &Stream, budget: &mut ImageBudget) -> Result<(&'stat
     let jpeg_data = if jpeg && f.len() > 1 {
         let direct = doc.with_direct_parms(s);
         let chain = direct.filters();
-        let Some(((pdfcraft_filters::Filter::Dct, _), prefix)) = chain.split_last() else {
+        let Some(((visionpdf_filters::Filter::Dct, _), prefix)) = chain.split_last() else {
             return Err("invalid JPEG filter chain".into());
         };
         std::borrow::Cow::Owned(budget.decode_chain(prefix, &s.raw, MAX_DECODED).map_err(|e| e.to_string())?)

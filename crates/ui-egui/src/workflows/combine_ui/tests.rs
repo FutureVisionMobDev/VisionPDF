@@ -39,9 +39,9 @@ fn locked() -> Vec<u8> {
         out.extend_from_slice(format!("{o:010} 00000 n \n").as_bytes());
     }
     out.extend_from_slice(format!("trailer\n<< /Size {} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n", objs.len() + 1).as_bytes());
-    let mut doc = pdfcraft_cos::Document::open(Arc::new(out)).unwrap();
-    doc.set_encryption(&pdfcraft_cos::NewEncryption {
-        algorithm: pdfcraft_cos::Algorithm::Aes256,
+    let mut doc = visionpdf_cos::Document::open(Arc::new(out)).unwrap();
+    doc.set_encryption(&visionpdf_cos::NewEncryption {
+        algorithm: visionpdf_cos::Algorithm::Aes256,
         user_password: "pw",
         owner_password: "owner",
         permissions: -1,
@@ -49,7 +49,7 @@ fn locked() -> Vec<u8> {
         seed: [4; 32],
     })
     .unwrap();
-    pdfcraft_cos::write_full(&doc, &Default::default()).unwrap()
+    visionpdf_cos::write_full(&doc, &Default::default()).unwrap()
 }
 
 #[test]
@@ -149,7 +149,7 @@ fn page_lists_become_the_shortest_range() {
     // Whatever comes out reads back as the same pages.
     for pages in [vec![0, 1, 2, 5, 4, 3, 3, 7], vec![9, 0, 9, 1], vec![2, 1, 0, 1, 2]] {
         let range = range_of(&pages, 10);
-        let back = pdfcraft_engine::print::select_pages(10, Some(&range), &[], pdfcraft_engine::print::Subset::All, false).unwrap();
+        let back = visionpdf_engine::print::select_pages(10, Some(&range), &[], visionpdf_engine::print::Subset::All, false).unwrap();
         assert_eq!(back, pages, "{range}");
     }
 }

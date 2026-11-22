@@ -7,8 +7,8 @@ use std::sync::Arc;
 use egui::{Pos2, Rect, pos2};
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_engine::SignatureStatus;
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_engine::SignatureStatus;
+use visionpdf_ui_egui::VisionPDFApp;
 
 use crate::gpu;
 
@@ -70,16 +70,16 @@ fn fixture_with(pages: usize) -> Vec<u8> {
 
 /// Sign the fixture's field without touching its appearance: reserve `/ByteRange` and
 /// `/Contents`, hash the ranges and embed a detached CMS.
-fn signed(id: &pdfcraft_engine::sign::pkcs12::DigitalId) -> Vec<u8> {
+fn signed(id: &visionpdf_engine::sign::pkcs12::DigitalId) -> Vec<u8> {
     sign(id, fixture(), |_| {})
 }
 
 /// [`signed`] for `file`, with `more` entries in the signature dictionary.
-fn sign(id: &pdfcraft_engine::sign::pkcs12::DigitalId, file: Vec<u8>, more: impl FnOnce(&mut pdfcraft_cos::Dict)) -> Vec<u8> {
-    use pdfcraft_cos::{Dict, ObjRef, Object, PdfString};
+fn sign(id: &visionpdf_engine::sign::pkcs12::DigitalId, file: Vec<u8>, more: impl FnOnce(&mut visionpdf_cos::Dict)) -> Vec<u8> {
+    use visionpdf_cos::{Dict, ObjRef, Object, PdfString};
     const MARK: &str = "0 1111111111 2222222222 3333333333";
     const RESERVE: usize = 8192;
-    let mut doc = pdfcraft_cos::Document::open(Arc::new(file)).unwrap();
+    let mut doc = visionpdf_cos::Document::open(Arc::new(file)).unwrap();
     let mut v = Dict::new();
     v.set(b"Type".to_vec(), Object::name("Sig"));
     v.set(b"SubFilter".to_vec(), Object::name("ETSI.CAdES.detached"));
@@ -97,8 +97,8 @@ fn sign(id: &pdfcraft_engine::sign::pkcs12::DigitalId, file: Vec<u8>, more: impl
         let root = doc.root().unwrap();
         doc.update_dict(root, |c| c.set(b"Perms".to_vec(), Object::Dict(perms))).unwrap();
     }
-    let save = pdfcraft_cos::SaveOptions { object_streams: false, ..Default::default() };
-    let mut out = pdfcraft_cos::write_incremental(&doc, &save).unwrap();
+    let save = visionpdf_cos::SaveOptions { object_streams: false, ..Default::default() };
+    let mut out = visionpdf_cos::write_incremental(&doc, &save).unwrap();
     let br = out.windows(MARK.len()).position(|w| w == MARK.as_bytes()).unwrap();
     let cstart = br + out[br..].windows(8).position(|w| w == b"<0000000").unwrap();
     let cend = cstart + RESERVE * 2 + 2;
@@ -107,7 +107,7 @@ fn sign(id: &pdfcraft_engine::sign::pkcs12::DigitalId, file: Vec<u8>, more: impl
     out[br..br + MARK.len()].copy_from_slice(&range);
     let alg = id.key.preferred_digest();
     let digest = alg.digest(&[&out[..cstart], &out[cend..]]);
-    let cms = pdfcraft_engine::sign::cms::sign_detached(&id.key, &id.certificate, &id.chain, alg, &digest).unwrap();
+    let cms = visionpdf_engine::sign::cms::sign_detached(&id.key, &id.certificate, &id.chain, alg, &digest).unwrap();
     let hex: Vec<u8> = cms.iter().flat_map(|b| format!("{b:02X}").into_bytes()).collect();
     out[cstart + 1..cstart + 1 + hex.len()].copy_from_slice(&hex);
     out
@@ -155,7 +155,7 @@ fn caption_strip(h: &mut Harness<'static, VisionPDFApp>) -> Vec<u8> {
 
 /// Redraw the open document with `captions`, invalidate every view's page cache, and return the
 /// caption's rendered pixels.
-fn redraw_captions(h: &mut Harness<'static, VisionPDFApp>, captions: pdfcraft_engine::sign::StatusCaptions) -> Vec<u8> {
+fn redraw_captions(h: &mut Harness<'static, VisionPDFApp>, captions: visionpdf_engine::sign::StatusCaptions) -> Vec<u8> {
     let app = h.state_mut();
     app.session.set_signature_captions(captions);
     for view in &mut app.views {
@@ -195,7 +195,7 @@ fn harness(bytes: Vec<u8>, lang: &'static str) -> Harness<'static, VisionPDFApp>
 fn named_layers_follow_trust_and_language_and_keep_the_badge() {
     let _gpu = gpu();
     let p12 = std::fs::read(concat!(env!("CARGO_MANIFEST_DIR"), "/../sign/tests/data/ec-p256.p12")).unwrap();
-    let id = pdfcraft_engine::sign::pkcs12::open(&p12, "test").unwrap();
+    let id = visionpdf_engine::sign::pkcs12::open(&p12, "test").unwrap();
     let anchor = id.chain.first().cloned().unwrap_or_else(|| id.certificate.clone());
     let mut h = harness(signed(&id), "en");
     let (amber, green) = ([0xE6, 0x86, 0x19], [0x2D, 0x9D, 0x78]);
@@ -227,8 +227,8 @@ fn named_layers_follow_trust_and_language_and_keep_the_badge() {
     settle(&mut h);
     // Compared whole, not with assert_ne!: a failure would print both strips, byte by byte.
     assert!(caption_strip(&mut h) != english, "the page redraws the caption");
-    let text = pdfcraft_engine::export::Exporter::new(h.state().session.get(doc_id).unwrap()).text_of(&[0]).unwrap();
-    let de = pdfcraft_ui_egui::i18n::tr(pdfcraft_ui_egui::i18n::Lang::from_code("de").unwrap(), "Signature valid");
+    let text = visionpdf_engine::export::Exporter::new(h.state().session.get(doc_id).unwrap()).text_of(&[0]).unwrap();
+    let de = visionpdf_ui_egui::i18n::tr(visionpdf_ui_egui::i18n::Lang::from_code("de").unwrap(), "Signature valid");
     assert!(text.contains(de), "{text:?}");
 }
 
@@ -236,9 +236,9 @@ fn named_layers_follow_trust_and_language_and_keep_the_badge() {
 fn a_badge_tip_stays_hidden_while_a_dialog_covers_the_page() {
     // Tips are drawn above windows, so one over a dialog would show through it.
     let p12 = std::fs::read(concat!(env!("CARGO_MANIFEST_DIR"), "/../sign/tests/data/ec-p256.p12")).unwrap();
-    let id = pdfcraft_engine::sign::pkcs12::open(&p12, "test").unwrap();
+    let id = visionpdf_engine::sign::pkcs12::open(&p12, "test").unwrap();
     let mut h = harness(signed(&id), "en");
-    h.state_mut().dialog = Some(pdfcraft_ui_egui::Dialog::About);
+    h.state_mut().dialog = Some(visionpdf_ui_egui::Dialog::About);
     h.run_steps(2);
     let label = "Signature validity is unknown";
     assert_eq!(hovered(&mut h, label), h.query_all_by_label(label).count(), "no badge tip over a dialog");
@@ -247,11 +247,11 @@ fn a_badge_tip_stays_hidden_while_a_dialog_covers_the_page() {
 #[test]
 fn a_badge_tip_stays_off_where_a_comment_tip_would() {
     // Fill & Sign keeps its placement clear, and a freehand stroke isn't covered as it is drawn.
-    use pdfcraft_ui_egui::QuickTool;
-    use pdfcraft_ui_egui::comments::CommentTool;
-    use pdfcraft_ui_egui::fill_sign::FillTool;
+    use visionpdf_ui_egui::QuickTool;
+    use visionpdf_ui_egui::comments::CommentTool;
+    use visionpdf_ui_egui::fill_sign::FillTool;
     let p12 = std::fs::read(concat!(env!("CARGO_MANIFEST_DIR"), "/../sign/tests/data/ec-p256.p12")).unwrap();
-    let id = pdfcraft_engine::sign::pkcs12::open(&p12, "test").unwrap();
+    let id = visionpdf_engine::sign::pkcs12::open(&p12, "test").unwrap();
     let mut h = harness(signed(&id), "en");
     let label = "Signature validity is unknown";
     for (tool, tip) in [(QuickTool::Select, true), (QuickTool::Fill(FillTool::Text), false), (QuickTool::Comment(CommentTool::Ink), false)] {
@@ -264,7 +264,7 @@ fn a_badge_tip_stays_off_where_a_comment_tip_would() {
 #[test]
 fn arabic_caption_keeps_logical_word_order_on_page_and_in_extracted_text() {
     let _gpu = gpu();
-    if pdfcraft_fonts::document_arabic_font().is_none() {
+    if visionpdf_fonts::document_arabic_font().is_none() {
         eprintln!("skipping Arabic status-caption rendering: build without a craft-fonts Arab face");
         return;
     }
@@ -272,21 +272,21 @@ fn arabic_caption_keeps_logical_word_order_on_page_and_in_extracted_text() {
         return;
     }
     let p12 = std::fs::read(concat!(env!("CARGO_MANIFEST_DIR"), "/../sign/tests/data/ec-p256.p12")).unwrap();
-    let id = pdfcraft_engine::sign::pkcs12::open(&p12, "test").unwrap();
+    let id = visionpdf_engine::sign::pkcs12::open(&p12, "test").unwrap();
     let anchor = id.chain.first().cloned().unwrap_or_else(|| id.certificate.clone());
     let mut h = harness(signed(&id), "ar");
     h.state_mut().apply_trusted_certificates(vec![anchor]);
     settle(&mut h);
 
     let from_interface = caption_strip(&mut h);
-    let logical = pdfcraft_engine::sign::StatusCaptions {
+    let logical = visionpdf_engine::sign::StatusCaptions {
         valid: "التوقيع صالح".into(),
         unknown: "الصلاحية غير معروفة".into(),
         invalid: "التوقيع غير صالح".into(),
     };
     // The same words in display order, as a catalogue preordered for the screen would hold them.
     let reversed = |s: &str| s.split(' ').rev().collect::<Vec<_>>().join(" ");
-    let display_order = pdfcraft_engine::sign::StatusCaptions {
+    let display_order = visionpdf_engine::sign::StatusCaptions {
         valid: reversed(&logical.valid),
         unknown: reversed(&logical.unknown),
         invalid: reversed(&logical.invalid),
@@ -295,7 +295,7 @@ fn arabic_caption_keeps_logical_word_order_on_page_and_in_extracted_text() {
     let doc_id = h.state().views[0].id;
     let doc = h.state().session.get(doc_id).unwrap();
     // The caption is drawn as outlines; text extraction reads it from its /ActualText.
-    let text = pdfcraft_engine::export::Exporter::new(doc).text_of(&[0]).unwrap();
+    let text = visionpdf_engine::export::Exporter::new(doc).text_of(&[0]).unwrap();
     assert!(text.contains(&logical.valid), "text extraction reads the caption in logical order: {text:?}");
     assert!(!text.contains(&display_order.valid), "{text:?}");
 
@@ -312,11 +312,11 @@ fn an_edit_on_another_page_that_changes_the_verdict_redraws_the_signature() {
     // A certification that allows no changes, on page 1. A comment on page 2 invalidates it, so
     // page 1 has to redraw although the edit was elsewhere.
     let p12 = std::fs::read(concat!(env!("CARGO_MANIFEST_DIR"), "/../sign/tests/data/ec-p256.p12")).unwrap();
-    let id = pdfcraft_engine::sign::pkcs12::open(&p12, "test").unwrap();
+    let id = visionpdf_engine::sign::pkcs12::open(&p12, "test").unwrap();
     let anchor = id.chain.first().cloned().unwrap_or_else(|| id.certificate.clone());
     let bytes = sign(&id, fixture_with(2), |v| {
         let reference = b"[<< /Type /SigRef /TransformMethod /DocMDP /TransformParams << /Type /TransformParams /P 1 /V /1.2 >> >>]";
-        v.set(b"Reference".to_vec(), pdfcraft_cos::Lexer::new(reference, 0).object().unwrap());
+        v.set(b"Reference".to_vec(), visionpdf_cos::Lexer::new(reference, 0).object().unwrap());
     });
     let mut h = harness(bytes, "en");
     h.state_mut().apply_trusted_certificates(vec![anchor]);
@@ -327,15 +327,15 @@ fn an_edit_on_another_page_that_changes_the_verdict_redraws_the_signature() {
     let valid = in_n1_square(&mut h, green);
     assert!(valid > 100, "page 1 draws the valid state: {valid} green pixels");
 
-    let shape = pdfcraft_engine::Shape::Rectangle { rect: [10.0, 10.0, 50.0, 50.0] };
-    let note = pdfcraft_engine::NewAnnotation {
+    let shape = visionpdf_engine::Shape::Rectangle { rect: [10.0, 10.0, 50.0, 50.0] };
+    let note = visionpdf_engine::NewAnnotation {
         page: 1,
-        style: pdfcraft_engine::Style::default_for(&shape),
+        style: visionpdf_engine::Style::default_for(&shape),
         shape,
         contents: String::new(),
         author: "Tester".into(),
     };
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::AddAnnotation(note)));
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::AddAnnotation(note)));
     settle(&mut h);
     assert_eq!(h.state().session.get(doc_id).unwrap().signatures[0].status, SignatureStatus::Invalid);
     let (invalid, valid) = (in_n1_square(&mut h, red), in_n1_square(&mut h, green));
@@ -347,8 +347,8 @@ const NAME_FIELD: &[u8] = b"<< /FT /Tx /T (name) /Type /Annot /Subtype /Widget /
 
 /// `file` with `fields`, each one widget on page 1, added to its form.
 fn with_fields(file: Vec<u8>, fields: &[&[u8]]) -> Vec<u8> {
-    use pdfcraft_cos::{Lexer, ObjRef, Object};
-    let mut doc = pdfcraft_cos::Document::open(Arc::new(file)).unwrap();
+    use visionpdf_cos::{Lexer, ObjRef, Object};
+    let mut doc = visionpdf_cos::Document::open(Arc::new(file)).unwrap();
     for field in fields {
         let field = doc.add(Lexer::new(field, 0).object().unwrap());
         for (owner, key) in [(ObjRef::new(5, 0), &b"Fields"[..]), (ObjRef::new(3, 0), b"Annots")] {
@@ -360,7 +360,7 @@ fn with_fields(file: Vec<u8>, fields: &[&[u8]]) -> Vec<u8> {
             .unwrap();
         }
     }
-    pdfcraft_cos::write_incremental(&doc, &pdfcraft_cos::SaveOptions::default()).unwrap()
+    visionpdf_cos::write_incremental(&doc, &visionpdf_cos::SaveOptions::default()).unwrap()
 }
 
 #[test]
@@ -368,11 +368,11 @@ fn a_value_typed_against_a_certification_shows_while_every_page_redraws() {
     // A certification that allows no changes: filling a field breaks it, so every page redraws,
     // the field's own included. Until that page's raster arrives, the value typed is drawn over it.
     let p12 = std::fs::read(concat!(env!("CARGO_MANIFEST_DIR"), "/../sign/tests/data/ec-p256.p12")).unwrap();
-    let id = pdfcraft_engine::sign::pkcs12::open(&p12, "test").unwrap();
+    let id = visionpdf_engine::sign::pkcs12::open(&p12, "test").unwrap();
     let anchor = id.chain.first().cloned().unwrap_or_else(|| id.certificate.clone());
     let bytes = sign(&id, with_fields(fixture(), &[NAME_FIELD]), |v| {
         let reference = b"[<< /Type /SigRef /TransformMethod /DocMDP /TransformParams << /Type /TransformParams /P 1 /V /1.2 >> >>]";
-        v.set(b"Reference".to_vec(), pdfcraft_cos::Lexer::new(reference, 0).object().unwrap());
+        v.set(b"Reference".to_vec(), visionpdf_cos::Lexer::new(reference, 0).object().unwrap());
     });
     let mut h = harness(bytes, "en");
     h.state_mut().apply_trusted_certificates(vec![anchor]);
@@ -380,8 +380,8 @@ fn a_value_typed_against_a_certification_shows_while_every_page_redraws() {
     let doc_id = h.state().views[0].id;
     assert_eq!(h.state().session.get(doc_id).unwrap().signatures[0].status, SignatureStatus::Valid);
 
-    let value = pdfcraft_engine::FieldValue::Text("Ada".into());
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::SetFieldValue { name: "name".into(), value }));
+    let value = visionpdf_engine::FieldValue::Text("Ada".into());
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::SetFieldValue { name: "name".into(), value }));
     assert_eq!(h.state().session.get(doc_id).unwrap().signatures[0].status, SignatureStatus::Invalid);
     assert!(h.state().views[0].forms.unbaked.contains(&("name".to_string(), 0)), "the value typed is pending until page 1 redraws");
 }
@@ -393,16 +393,16 @@ fn values_still_waiting_on_their_page_stay_pending_when_a_later_edit_redraws_eve
     // certification with a comment, so every page redraws; neither moves a page, so the value typed
     // first stays pending, drawn over page 1's old raster until the new one arrives.
     let p12 = std::fs::read(concat!(env!("CARGO_MANIFEST_DIR"), "/../sign/tests/data/ec-p256.p12")).unwrap();
-    let id = pdfcraft_engine::sign::pkcs12::open(&p12, "test").unwrap();
+    let id = visionpdf_engine::sign::pkcs12::open(&p12, "test").unwrap();
     let anchor = id.chain.first().cloned().unwrap_or_else(|| id.certificate.clone());
     let unsigned: &[u8] = b"<< /FT /Sig /T (Signature2) /Type /Annot /Subtype /Widget /Rect [100 230 300 280] /P 3 0 R >>";
-    let shape = pdfcraft_engine::Shape::Rectangle { rect: [320.0, 20.0, 380.0, 80.0] };
-    let style = pdfcraft_engine::Style::default_for(&shape);
-    let comment = pdfcraft_engine::NewAnnotation { page: 0, style, shape, contents: String::new(), author: "Tester".into() };
-    for second in [pdfcraft_engine::Edit::DeleteField { name: "Signature2".into() }, pdfcraft_engine::Edit::AddAnnotation(comment)] {
+    let shape = visionpdf_engine::Shape::Rectangle { rect: [320.0, 20.0, 380.0, 80.0] };
+    let style = visionpdf_engine::Style::default_for(&shape);
+    let comment = visionpdf_engine::NewAnnotation { page: 0, style, shape, contents: String::new(), author: "Tester".into() };
+    for second in [visionpdf_engine::Edit::DeleteField { name: "Signature2".into() }, visionpdf_engine::Edit::AddAnnotation(comment)] {
         let bytes = sign(&id, with_fields(fixture(), &[NAME_FIELD, unsigned]), |v| {
             let reference = b"[<< /Type /SigRef /TransformMethod /DocMDP /TransformParams << /Type /TransformParams /P 2 /V /1.2 >> >>]";
-            v.set(b"Reference".to_vec(), pdfcraft_cos::Lexer::new(reference, 0).object().unwrap());
+            v.set(b"Reference".to_vec(), visionpdf_cos::Lexer::new(reference, 0).object().unwrap());
         });
         let mut h = harness(bytes, "en");
         h.state_mut().apply_trusted_certificates(vec![anchor.clone()]);
@@ -412,8 +412,8 @@ fn values_still_waiting_on_their_page_stay_pending_when_a_later_edit_redraws_eve
             h.state().session.get(doc_id).unwrap().signatures.iter().map(|s| (s.field.clone(), s.status, s.verdict_shown)).collect::<Vec<_>>()
         };
         let before = states(&h);
-        let value = pdfcraft_engine::FieldValue::Text("Ada".into());
-        assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::SetFieldValue { name: "name".into(), value }));
+        let value = visionpdf_engine::FieldValue::Text("Ada".into());
+        assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::SetFieldValue { name: "name".into(), value }));
         assert_eq!(states(&h), before, "the certification allows filling in a field");
         assert!(h.state().views[0].forms.unbaked.contains(&("name".to_string(), 0)));
 
@@ -432,11 +432,11 @@ fn a_file_opened_before_the_first_frame_is_drawn_in_the_interface_language() {
         return;
     }
     let p12 = std::fs::read(concat!(env!("CARGO_MANIFEST_DIR"), "/../sign/tests/data/ec-p256.p12")).unwrap();
-    let id = pdfcraft_engine::sign::pkcs12::open(&p12, "test").unwrap();
+    let id = visionpdf_engine::sign::pkcs12::open(&p12, "test").unwrap();
     let mut app = VisionPDFApp::new();
     app.set_option("language", "de").unwrap();
     app.open_bytes("named.pdf", None, signed(&id)).expect("opens");
     let doc = app.session.get(app.views[0].id).unwrap();
-    let text = pdfcraft_engine::export::Exporter::new(doc).text_of(&[0]).unwrap();
+    let text = visionpdf_engine::export::Exporter::new(doc).text_of(&[0]).unwrap();
     assert!(text.contains("Gültigkeit unbekannt"), "{text:?}");
 }

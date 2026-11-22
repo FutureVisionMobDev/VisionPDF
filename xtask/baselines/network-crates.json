@@ -1,74 +1,74 @@
 [
   {
-    "crate": "pdfcraft-cli",
+    "crate": "visionpdf-cli",
     "name": "hyper",
     "reachable": true,
-    "path": "pdfcraft-cli -> pdfcraft-engine -> pdfcraft-print -> craft-print -> winprint -> reqwest -> hyper"
+    "path": "visionpdf-cli -> visionpdf-engine -> visionpdf-print -> craft-print -> winprint -> reqwest -> hyper"
   },
   {
-    "crate": "pdfcraft-cli",
+    "crate": "visionpdf-cli",
     "name": "reqwest",
     "reachable": true,
-    "path": "pdfcraft-cli -> pdfcraft-engine -> pdfcraft-print -> craft-print -> winprint -> reqwest"
+    "path": "visionpdf-cli -> visionpdf-engine -> visionpdf-print -> craft-print -> winprint -> reqwest"
   },
   {
-    "crate": "pdfcraft-cli",
+    "crate": "visionpdf-cli",
     "name": "socket2",
     "reachable": true,
-    "path": "pdfcraft-cli -> pdfcraft-engine -> pdfcraft-print -> craft-print -> winprint -> reqwest -> hyper-util -> socket2"
+    "path": "visionpdf-cli -> visionpdf-engine -> visionpdf-print -> craft-print -> winprint -> reqwest -> hyper-util -> socket2"
   },
   {
-    "crate": "pdfcraft-cli",
+    "crate": "visionpdf-cli",
     "name": "tokio",
     "reachable": true,
-    "path": "pdfcraft-cli -> pdfcraft-engine -> pdfcraft-print -> craft-print -> winprint -> reqwest -> tokio"
+    "path": "visionpdf-cli -> visionpdf-engine -> visionpdf-print -> craft-print -> winprint -> reqwest -> tokio"
   },
   {
-    "crate": "pdfcraft-automation",
+    "crate": "visionpdf-automation",
     "name": "hyper",
     "reachable": true,
-    "path": "pdfcraft-automation -> pdfcraft-engine -> pdfcraft-print -> craft-print -> winprint -> reqwest -> hyper"
+    "path": "visionpdf-automation -> visionpdf-engine -> visionpdf-print -> craft-print -> winprint -> reqwest -> hyper"
   },
   {
-    "crate": "pdfcraft-automation",
+    "crate": "visionpdf-automation",
     "name": "reqwest",
     "reachable": true,
-    "path": "pdfcraft-automation -> pdfcraft-engine -> pdfcraft-print -> craft-print -> winprint -> reqwest"
+    "path": "visionpdf-automation -> visionpdf-engine -> visionpdf-print -> craft-print -> winprint -> reqwest"
   },
   {
-    "crate": "pdfcraft-automation",
+    "crate": "visionpdf-automation",
     "name": "socket2",
     "reachable": true,
-    "path": "pdfcraft-automation -> pdfcraft-engine -> pdfcraft-print -> craft-print -> winprint -> reqwest -> hyper-util -> socket2"
+    "path": "visionpdf-automation -> visionpdf-engine -> visionpdf-print -> craft-print -> winprint -> reqwest -> hyper-util -> socket2"
   },
   {
-    "crate": "pdfcraft-automation",
+    "crate": "visionpdf-automation",
     "name": "tokio",
     "reachable": true,
-    "path": "pdfcraft-automation -> pdfcraft-engine -> pdfcraft-print -> craft-print -> winprint -> reqwest -> tokio"
+    "path": "visionpdf-automation -> visionpdf-engine -> visionpdf-print -> craft-print -> winprint -> reqwest -> tokio"
   },
   {
-    "crate": "pdfcraft-engine",
+    "crate": "visionpdf-engine",
     "name": "hyper",
     "reachable": true,
-    "path": "pdfcraft-engine -> pdfcraft-print -> craft-print -> winprint -> reqwest -> hyper"
+    "path": "visionpdf-engine -> visionpdf-print -> craft-print -> winprint -> reqwest -> hyper"
   },
   {
-    "crate": "pdfcraft-engine",
+    "crate": "visionpdf-engine",
     "name": "reqwest",
     "reachable": true,
-    "path": "pdfcraft-engine -> pdfcraft-print -> craft-print -> winprint -> reqwest"
+    "path": "visionpdf-engine -> visionpdf-print -> craft-print -> winprint -> reqwest"
   },
   {
-    "crate": "pdfcraft-engine",
+    "crate": "visionpdf-engine",
     "name": "socket2",
     "reachable": true,
-    "path": "pdfcraft-engine -> pdfcraft-print -> craft-print -> winprint -> reqwest -> hyper-util -> socket2"
+    "path": "visionpdf-engine -> visionpdf-print -> craft-print -> winprint -> reqwest -> hyper-util -> socket2"
   },
   {
-    "crate": "pdfcraft-engine",
+    "crate": "visionpdf-engine",
     "name": "tokio",
     "reachable": true,
-    "path": "pdfcraft-engine -> pdfcraft-print -> craft-print -> winprint -> reqwest -> tokio"
+    "path": "visionpdf-engine -> visionpdf-print -> craft-print -> winprint -> reqwest -> tokio"
   }
 ]

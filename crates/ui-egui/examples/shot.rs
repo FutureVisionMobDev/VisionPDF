@@ -1,7 +1,7 @@
 //! Headless screenshot of the real VisionPDF shell (egui_kittest + wgpu, no window needed).
 //!
 //! ```text
-//! cargo run -p pdfcraft-ui-egui --example shot -- out.png [file.pdf] [--size 1440x900] [--scale 2] [--page 3 --panel pages …]
+//! cargo run -p visionpdf-ui-egui --example shot -- out.png [file.pdf] [--size 1440x900] [--scale 2] [--page 3 --panel pages …]
 //! ```
 //! `--width N` downscales the image to N pixels wide (README screenshots). Any other
 //! `--key value` pair is passed to `VisionPDFApp::set_option`
@@ -13,9 +13,9 @@
 use std::time::{Duration, Instant};
 
 use egui_kittest::Harness;
-use pdfcraft_engine::ocr::{MergeStrategy, OcrSettings};
-use pdfcraft_engine::{Session, export};
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_engine::ocr::{MergeStrategy, OcrSettings};
+use visionpdf_engine::{Session, export};
+use visionpdf_ui_egui::VisionPDFApp;
 
 /// Build a one-page PDF that is only a picture of a sentence (as a scanner would produce),
 /// recognize it with the engines named in `settings` and open the OCR Verify screen on the
@@ -43,7 +43,7 @@ fn load_ocr_verify(app: &mut VisionPDFApp) -> Result<(), String> {
         .map_err(|e| e.to_string())?;
     let scan = s.create_from_images(&[("scan.png".into(), scan_png)]).map_err(|e| e.to_string())?.to_vec();
     let settings =
-        OcrSettings { engine: pdfcraft_engine::ocr::EngineChoice::Auto, strategy: MergeStrategy::ConfidenceWeighted, ..OcrSettings::default() };
+        OcrSettings { engine: visionpdf_engine::ocr::EngineChoice::Auto, strategy: MergeStrategy::ConfidenceWeighted, ..OcrSettings::default() };
     app.ocr_draft.engine = settings.engine;
     app.ocr_draft.strategy = settings.strategy;
     app.open_bytes("scan.pdf", None, scan).map_err(|e| e.to_string())?;
@@ -53,7 +53,7 @@ fn load_ocr_verify(app: &mut VisionPDFApp) -> Result<(), String> {
     }
     let Some((_, id)) = app.active_ids() else { return Err("no open document".into()) };
     let job = app.session.ocr_job(id, &[], settings.clone()).ok_or("the OCR job could not be captured")?;
-    let recognizers = pdfcraft_engine::ocr::recognizers(&settings)?;
+    let recognizers = visionpdf_engine::ocr::recognizers(&settings)?;
     let guard = job.guard.clone();
     let pages = job.run(&recognizers, |_, _| true);
     app.ocr_verify.load(id, guard, pages);

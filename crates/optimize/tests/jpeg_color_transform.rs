@@ -8,8 +8,8 @@
 
 use std::sync::Arc;
 
-use pdfcraft_cos::{Dict, Document, ObjRef, Object, SaveOptions, Stream, write_full};
-use pdfcraft_optimize::{OptimizeError, Settings, Stage, optimize, optimize_with_progress};
+use visionpdf_cos::{Dict, Document, ObjRef, Object, SaveOptions, Stream, write_full};
+use visionpdf_optimize::{OptimizeError, Settings, Stage, optimize, optimize_with_progress};
 
 /// A photo-like RGB picture: colourful gradients with a little texture, so the colour transform
 /// matters everywhere and a medium-quality JPEG is smaller than a maximum-quality one.
@@ -216,8 +216,8 @@ fn stream(doc: &Document, r: ObjRef) -> Stream {
 /// The page as VisionPDF's renderer draws it, `scale` device pixels per point: RGB rows.
 fn render(doc: &Document, scale: f32) -> (u32, u32, Vec<u8>) {
     let bytes = write_full(doc, &SaveOptions::default()).unwrap();
-    let mut r = pdfcraft_render::PageRenderer::new(Arc::new(bytes), pdfcraft_render::RenderConfig::default());
-    let out = r.render(pdfcraft_render::RenderRequest { page: 0, scale, ..Default::default() });
+    let mut r = visionpdf_render::PageRenderer::new(Arc::new(bytes), visionpdf_render::RenderConfig::default());
+    let out = r.render(visionpdf_render::RenderRequest { page: 0, scale, ..Default::default() });
     assert!(out.error.is_none(), "{:?}", out.error);
     (out.width, out.height, out.rgba.chunks(4).flat_map(|p| [p[0], p[1], p[2]]).collect())
 }

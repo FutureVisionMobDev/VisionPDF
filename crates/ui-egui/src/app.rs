@@ -129,7 +129,7 @@ impl VisionPDFApp {
             fill_text_color: [0.0; 3],
             fill_text_border: 0.0,
             fill_text_border_color: None,
-            fill_text_border_shape: pdfcraft_engine::BorderShape::Rectangle,
+            fill_text_border_shape: visionpdf_engine::BorderShape::Rectangle,
             fill_text_default: fill_sign::TextBorder::NONE,
             dialog: None,
             updates: updates::Updates::default(),
@@ -362,7 +362,7 @@ impl VisionPDFApp {
             link_draft: None,
             text_style: content_ui::default_style(),
             replace_draft: None,
-            number_draft: NumberDraft { from: 1, to: 1, style: pdfcraft_engine::LabelStyle::Decimal, prefix: String::new(), start: 1 },
+            number_draft: NumberDraft { from: 1, to: 1, style: visionpdf_engine::LabelStyle::Decimal, prefix: String::new(), start: 1 },
             word_count_draft: word_count_ui::Draft::default(),
             printer_marks_draft: Default::default(),
             convert_colours_draft: Default::default(),
@@ -501,12 +501,12 @@ impl VisionPDFApp {
 
     /// Pin a tool group to Home. Returns true if newly pinned.
     pub fn pin_tool(&mut self, id: &str) -> bool {
-        if pdfcraft_engine::catalog::group(id).is_none() {
+        if visionpdf_engine::catalog::group(id).is_none() {
             return false;
         }
         if !self.is_tool_pinned(id) {
             self.pinned_tools.push(id.to_string());
-            if let Some(g) = pdfcraft_engine::catalog::group(id) {
+            if let Some(g) = visionpdf_engine::catalog::group(id) {
                 self.notify_fmt("Pinned {tool} to Home", &[("tool", tl!(g.label))]);
             }
             return true;
@@ -518,7 +518,7 @@ impl VisionPDFApp {
     pub fn unpin_tool(&mut self, id: &str) {
         if let Some(pos) = self.pinned_tools.iter().position(|t| t == id) {
             self.pinned_tools.remove(pos);
-            if let Some(g) = pdfcraft_engine::catalog::group(id) {
+            if let Some(g) = visionpdf_engine::catalog::group(id) {
                 self.notify_fmt("Unpinned {tool} from Home", &[("tool", tl!(g.label))]);
             }
         }
@@ -563,7 +563,7 @@ impl eframe::App for VisionPDFApp {
             let minimized = self.ctx.as_ref().is_some_and(|c| c.input(|i| i.viewport().minimized == Some(true)));
             self.window_state.keep(storage, minimized);
         }
-        storage.set_string("pdfcraft", self.persist());
+        storage.set_string("visionpdf", self.persist());
     }
 
     /// Starts an update that waits for the exit. On macOS the process ends before the app is dropped.
@@ -607,7 +607,7 @@ impl VisionPDFApp {
         self.apply_status_captions(lang);
         // Form date fields name months in the date language (Preferences ▸ Date format), which
         // follows the interface language until one is picked (#5303).
-        pdfcraft_engine::dates::use_form_date_language(self.session.date_language().unwrap_or(lang.code()));
+        visionpdf_engine::dates::use_form_date_language(self.session.date_language().unwrap_or(lang.code()));
         #[cfg(not(target_arch = "wasm32"))]
         {
             if let Some(worker) = &self.open_worker {

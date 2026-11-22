@@ -101,8 +101,8 @@ impl VisionPDFApp {
     /// An Office document blocks while LibreOffice runs: File ▸ Open converts it on the open
     /// worker instead ([`Self::open_converted_pdf`]), leaving this for startup and inline opens.
     pub(crate) fn open_converted(&mut self, name: &str, bytes: &[u8]) -> Option<Result<(), String>> {
-        use pdfcraft_engine::SourceKind;
-        if !matches!(pdfcraft_engine::source_kind(name, bytes), Some(SourceKind::Image | SourceKind::Text | SourceKind::Office)) {
+        use visionpdf_engine::SourceKind;
+        if !matches!(visionpdf_engine::source_kind(name, bytes), Some(SourceKind::Image | SourceKind::Text | SourceKind::Office)) {
             return None;
         }
         let created = self.session.convert_to_pdf(name, &Arc::new(bytes.to_vec())).map(|(_, pdf)| pdf);
@@ -195,7 +195,7 @@ impl VisionPDFApp {
 
     /// One new document from images (tests and automation call this directly).
     pub fn create_from_images(&mut self, images: Vec<(String, Vec<u8>)>) {
-        self.create_from_images_with_resolution(images, pdfcraft_engine::ImageResolution::Embedded);
+        self.create_from_images_with_resolution(images, visionpdf_engine::ImageResolution::Embedded);
     }
 
     /// Stage selected images for the DPI chooser; no document is created until confirmed.
@@ -226,15 +226,15 @@ impl VisionPDFApp {
     pub(crate) fn finish_image_import(&mut self) {
         let Some(draft) = self.image_import.take() else { return };
         let resolution = match draft.choice {
-            ResolutionChoice::Image => pdfcraft_engine::ImageResolution::Embedded,
-            ResolutionChoice::Default72 => pdfcraft_engine::ImageResolution::Dpi(72.0),
-            ResolutionChoice::Custom => pdfcraft_engine::ImageResolution::Dpi(draft.dpi),
+            ResolutionChoice::Image => visionpdf_engine::ImageResolution::Embedded,
+            ResolutionChoice::Default72 => visionpdf_engine::ImageResolution::Dpi(72.0),
+            ResolutionChoice::Custom => visionpdf_engine::ImageResolution::Dpi(draft.dpi),
         };
         self.create_from_images_with_resolution(draft.images, resolution);
     }
 
     /// Create directly at the requested resolution (also used by UI tests).
-    pub fn create_from_images_with_resolution(&mut self, images: Vec<(String, Vec<u8>)>, resolution: pdfcraft_engine::ImageResolution) {
+    pub fn create_from_images_with_resolution(&mut self, images: Vec<(String, Vec<u8>)>, resolution: visionpdf_engine::ImageResolution) {
         if images.is_empty() {
             return;
         }
@@ -251,7 +251,7 @@ impl VisionPDFApp {
     /// the background with a progress bar, like the PDF Optimizer.
     pub(crate) fn reduce_file_size(&mut self) {
         use crate::optimize_ui::OptimizeKind::Reduce;
-        let settings = pdfcraft_engine::optimize::Settings::default();
+        let settings = visionpdf_engine::optimize::Settings::default();
         #[cfg(target_arch = "wasm32")]
         self.start_optimize(Reduce, &settings, &[]);
         #[cfg(not(target_arch = "wasm32"))]
@@ -286,9 +286,9 @@ impl VisionPDFApp {
     /// (#490).
     pub(crate) fn save_optimized(
         &mut self,
-        id: pdfcraft_engine::DocId,
+        id: visionpdf_engine::DocId,
         kind: crate::optimize_ui::OptimizeKind,
-        result: Result<(Arc<Vec<u8>>, String), pdfcraft_engine::EditError>,
+        result: Result<(Arc<Vec<u8>>, String), visionpdf_engine::EditError>,
         destination: Option<String>,
     ) {
         let Some(doc) = self.session.get(id) else { return };

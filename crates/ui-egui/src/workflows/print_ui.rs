@@ -6,7 +6,7 @@
 #[cfg(not(target_arch = "wasm32"))]
 use crate::file_filter::AddFilterAnyCase as _;
 use egui::{Color32, Pos2, Rect, Stroke, pos2, vec2};
-use pdfcraft_engine::print::{self, Binding, BookletSubset, Content, Layout, Orientation, PageOrder, SizeMode, Subset, spool};
+use visionpdf_engine::print::{self, Binding, BookletSubset, Content, Layout, Orientation, PageOrder, SizeMode, Subset, spool};
 
 use crate::theme::{self, Tokens};
 use crate::{VisionPDFApp, widgets};
@@ -264,7 +264,7 @@ impl VisionPDFApp {
     /// Label printing: find each printed page's printed area (a quick low-resolution render, as
     /// Fit Visible does) and which way its text runs. Only the pages being printed are read, at
     /// most [`LABEL_CROP_PAGES`] of them (the rest print whole); read again when they change.
-    pub(crate) fn read_label_crops(&mut self, id: pdfcraft_engine::DocId) {
+    pub(crate) fn read_label_crops(&mut self, id: visionpdf_engine::DocId) {
         let Some(doc) = self.session.get(id) else { return };
         let labels: Vec<String> = doc.info.pages.iter().map(|p| p.label.clone()).collect();
         let mut pages = self.print_draft.settings(doc.info.pages.len(), &labels).map(|s| s.pages).unwrap_or_default();
@@ -275,8 +275,8 @@ impl VisionPDFApp {
             return;
         }
         let up = self.session.print_text_up(id, &pages);
-        let config = pdfcraft_render::RenderConfig { password: doc.password.as_deref().map(std::sync::Arc::from), ..Default::default() };
-        let mut r = pdfcraft_render::PageRenderer::new(doc.bytes.clone(), config);
+        let config = visionpdf_render::RenderConfig { password: doc.password.as_deref().map(std::sync::Arc::from), ..Default::default() };
+        let mut r = visionpdf_render::PageRenderer::new(doc.bytes.clone(), config);
         self.print_draft.crops = doc
             .info
             .pages
@@ -287,9 +287,9 @@ impl VisionPDFApp {
                 if pages.binary_search(&page).is_err() || w <= 0.0 || h <= 0.0 {
                     return None;
                 }
-                let out = r.render(pdfcraft_render::RenderRequest {
+                let out = r.render(visionpdf_render::RenderRequest {
                     page,
-                    kind: pdfcraft_render::RequestKind::Pixels,
+                    kind: visionpdf_render::RequestKind::Pixels,
                     tile: None,
                     scale: (1000.0 / w.max(h) as f32).clamp(0.1, 4.0),
                     tag: 0,
@@ -636,7 +636,7 @@ impl VisionPDFApp {
         // A form's Will Print script runs first: what it changes is printed.
         if self.session.get(id).is_some_and(|d| d.allows_printing()) {
             let before = self.session.get(id).map(|d| d.edit_generation());
-            self.run_document_actions(id, pdfcraft_engine::js::DocumentScriptEvent::WillPrint);
+            self.run_document_actions(id, visionpdf_engine::js::DocumentScriptEvent::WillPrint);
             // What it showed may lie outside the printed areas Label printing found: find them again.
             if self.session.get(id).map(|d| d.edit_generation()) != before && self.print_draft.handling == Handling::Label {
                 self.print_draft.crop_pages = None;
@@ -712,7 +712,7 @@ impl VisionPDFApp {
             // A GDI (v3) driver gets transparent sheets flattened (#6155, #5838, #5940); XPS (v4)
             // drivers print them as they are.
             let flatten = job.printer.as_deref().is_some_and(spool::gdi_driver);
-            let bytes = pdfcraft_engine::spooler::spooler_copy(bytes, &mut job, flatten);
+            let bytes = visionpdf_engine::spooler::spooler_copy(bytes, &mut job, flatten);
             // The receiver may be gone (the app quit): nothing to report to then.
             let result = match &spooler {
                 Some(submit) => submit(&bytes, &job),

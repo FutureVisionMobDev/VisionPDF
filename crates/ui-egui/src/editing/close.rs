@@ -6,7 +6,7 @@ use super::save::SaveTarget;
 pub enum CloseRequest {
     /// Close this document's tab. By id, not tab index: tabs can close and shift while a save
     /// panel is open.
-    Tab(pdfcraft_engine::DocId),
+    Tab(visionpdf_engine::DocId),
     /// Quit the application once every dirty document is resolved.
     Quit,
     /// File ▸ Close all: like Quit, but the application stays open.
@@ -168,7 +168,7 @@ impl VisionPDFApp {
 
     /// The tab a close question about document `id` is about: the active one when it shows `id`
     /// (in split view two tabs can), else the document's first.
-    pub(crate) fn asking_tab(&self, id: pdfcraft_engine::DocId) -> Option<usize> {
+    pub(crate) fn asking_tab(&self, id: visionpdf_engine::DocId) -> Option<usize> {
         self.active.filter(|&a| self.views.get(a).is_some_and(|v| v.id == id)).or_else(|| self.views.iter().position(|v| v.id == id))
     }
 

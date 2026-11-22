@@ -1,5 +1,5 @@
 [package]
-name = "pdfcraft-testkit"
+name = "visionpdf-testkit"
 description = "Synthetic PDF fixtures for VisionPDF's tests: one way to write the bytes, so the tests differ only where they mean to"
 version.workspace = true
 edition.workspace = true

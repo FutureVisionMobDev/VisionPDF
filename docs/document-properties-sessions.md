@@ -48,9 +48,9 @@ From this repository, with Python 3.10+ and Rust 1.99.1:
 ```sh
 git clone https://github.com/PerchAnton/interaction-check ../interaction-check
 git -C ../interaction-check checkout 7722d66c0ede7855ff58d1df3d1632fd4e5e66a5
-cargo build --locked -j 2 -p pdfcraft-ui-egui --example properties_scenarios
+cargo build --locked -j 2 -p visionpdf-ui-egui --example properties_scenarios
 mkdir -p log/properties-interactions
-PDFCRAFT_SYSTEM_FONTS=0 PDFCRAFT_LOCALE=en-US \
+VISIONPDF_SYSTEM_FONTS=0 VISIONPDF_LOCALE=en-US \
   python3 ../interaction-check/interaction_check.py --timeout 30 \
   --report log/properties-interactions/report.json \
   --junit log/properties-interactions/junit.xml \
@@ -75,7 +75,7 @@ the freshness check immediately before commit without an intervening UI frame.
 
 For optional local screenshots and `saved.pdf`, append `--artifacts DIR` after the
 adapter executable while running **one** scenario. This requires an available GPU or
-software renderer. Keep `PDFCRAFT_SYSTEM_FONTS=0`; generated artifacts stay under ignored
+software renderer. Keep `VISIONPDF_SYSTEM_FONTS=0`; generated artifacts stay under ignored
 `log/`. The headless UI proves widget/engine behavior, not native OS input or PDF fidelity
 in a separate reader. Existing renderer and interoperability tests remain necessary.
 

@@ -3,8 +3,8 @@
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_engine::{Edit, NewAnnotation, NoteIcon, Session, Shape, Style};
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_engine::{Edit, NewAnnotation, NoteIcon, Session, Shape, Style};
+use visionpdf_ui_egui::VisionPDFApp;
 
 /// A two-page PDF: page 1 a grey scan with a darker gutter and text bars (and a sticky note),
 /// page 2 the same scan again.
@@ -65,7 +65,7 @@ fn enhance_scanned_file_cleans_the_chosen_pages_and_says_what_it_did() {
 fn nothing_to_enhance_is_said_not_done() {
     let mut h = harness();
     let id = h.state().active_ids().unwrap().1;
-    h.state_mut().scan_clean_draft.settings = pdfcraft_engine::scan_clean::ScanCleanSettings { level: 0, edge_shadows: false, despeckle: false };
+    h.state_mut().scan_clean_draft.settings = visionpdf_engine::scan_clean::ScanCleanSettings { level: 0, edge_shadows: false, despeckle: false };
     assert!(h.state_mut().execute("ocr.enhance"));
     h.run_steps(2);
     // With every filter off the button is disabled; starting anyway changes nothing.

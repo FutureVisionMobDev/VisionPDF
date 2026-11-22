@@ -9,8 +9,8 @@
 use std::collections::HashSet;
 use std::fmt::Write as _;
 
-use pdfcraft_cos::{Dict, Document, ImageBudget, Object, Stream};
-use pdfcraft_filters::Filter;
+use visionpdf_cos::{Dict, Document, ImageBudget, Object, Stream};
+use visionpdf_filters::Filter;
 
 use crate::images::{self, MAX_PIXELS};
 

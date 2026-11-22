@@ -8,9 +8,9 @@
 use std::sync::{Arc, Mutex};
 
 use egui::{Align, Layout, RichText};
-use pdfcraft_engine::optimize::{Compatibility, Compression, ImageSettings, MonoCompression, MonoSettings, Preset, QUALITIES, Settings};
-use pdfcraft_engine::optimizer::{OptimizeStage, Optimized};
-use pdfcraft_engine::{DocId, EditError, Hidden, OptimizeReport};
+use visionpdf_engine::optimize::{Compatibility, Compression, ImageSettings, MonoCompression, MonoSettings, Preset, QUALITIES, Settings};
+use visionpdf_engine::optimizer::{OptimizeStage, Optimized};
+use visionpdf_engine::{DocId, EditError, Hidden, OptimizeReport};
 
 use crate::theme::{self, Tokens};
 use crate::{VisionPDFApp, widgets};
@@ -303,7 +303,7 @@ pub(crate) fn body(ui: &mut egui::Ui, d: &mut OptimizeDraft, t: &Tokens) -> (boo
 
 /// Audit Space Usage: how the file's bytes are spent now, by kind of content (not what
 /// optimizing would save).
-pub(crate) fn audit_body(ui: &mut egui::Ui, rows: &[pdfcraft_engine::optimize::SpaceUse], t: &Tokens) -> bool {
+pub(crate) fn audit_body(ui: &mut egui::Ui, rows: &[visionpdf_engine::optimize::SpaceUse], t: &Tokens) -> bool {
     ui.label(RichText::new(tl!("Space Audit")).font(crate::theme::semibold(18.0)));
     ui.add_space(4.0);
     audit_table(ui, rows, t);
@@ -315,7 +315,7 @@ pub(crate) fn audit_body(ui: &mut egui::Ui, rows: &[pdfcraft_engine::optimize::S
 
 /// The audit's explanation and its table: bytes and share of the file per kind of content.
 /// Shared by the Optimizer's Audit Space Usage and Properties ▸ Space Audit.
-pub(crate) fn audit_table(ui: &mut egui::Ui, rows: &[pdfcraft_engine::optimize::SpaceUse], t: &Tokens) {
+pub(crate) fn audit_table(ui: &mut egui::Ui, rows: &[visionpdf_engine::optimize::SpaceUse], t: &Tokens) {
     use egui::{TextWrapMode, WidgetText};
     ui.label(RichText::new(tl!("What takes up the space in this file, by kind of content.")).color(t.text_muted));
     ui.add_space(8.0);
@@ -328,7 +328,7 @@ pub(crate) fn audit_table(ui: &mut egui::Ui, rows: &[pdfcraft_engine::optimize::
     for r in rows.iter().filter(|r| r.bytes > 0) {
         // "Patterns" also names the redaction search patterns ("模式"); the audit's PDF
         // graphics objects need their own key.
-        let category = if r.category == pdfcraft_engine::optimize::SpaceCategory::Patterns {
+        let category = if r.category == visionpdf_engine::optimize::SpaceCategory::Patterns {
             tl!("Patterns (graphics objects)")
         } else {
             tl!(r.category.label())
@@ -426,8 +426,8 @@ impl VisionPDFApp {
         #[cfg(not(target_arch = "wasm32"))]
         if self.run_inline {
             work();
-        } else if let Err(e) = std::thread::Builder::new().name("pdfcraft-optimize".into()).spawn(move || {
-            pdfcraft_engine::optimize::give_way_to_other_programs();
+        } else if let Err(e) = std::thread::Builder::new().name("visionpdf-optimize".into()).spawn(move || {
+            visionpdf_engine::optimize::give_way_to_other_programs();
             work();
         }) {
             // No worker: report the failure instead of waiting for a result that never comes.
@@ -510,7 +510,7 @@ mod tests {
         });
         // 1.5 s (kittest steps a quarter second): the bar has eased in, the toast still shows.
         h.run_steps(6);
-        if let Ok(path) = std::env::var("PDFCRAFT_OPTIMIZE_PROGRESS_SHOT") {
+        if let Ok(path) = std::env::var("VISIONPDF_OPTIMIZE_PROGRESS_SHOT") {
             h.render().unwrap().save(path).unwrap();
         }
         h.get_by_label("Optimizing… image 4 of 10");

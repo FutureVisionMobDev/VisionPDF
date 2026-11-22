@@ -5,9 +5,9 @@
 use std::collections::BTreeSet;
 
 use egui::{Align, Layout};
-use pdfcraft_cos::ObjRef;
-use pdfcraft_engine::DocId;
-use pdfcraft_engine::a11y::{Category, Options, Report, Rule, Status};
+use visionpdf_cos::ObjRef;
+use visionpdf_engine::DocId;
+use visionpdf_engine::a11y::{Category, Options, Report, Rule, Status};
 
 use crate::theme::{self, Tokens};
 use crate::{Dialog, VisionPDFApp, PropsTab, RightPanel, icons, widgets};
@@ -433,7 +433,7 @@ impl VisionPDFApp {
         let (y, m, d) = self.session.today();
         // The saved report reads the way the interface reads, down to its `lang` attribute.
         let lang = crate::i18n::current();
-        let html = pdfcraft_engine::a11y::report_html(report, &doc.name, &format!("{y}-{m:02}-{d:02}"), lang.code(), &crate::i18n::words);
+        let html = visionpdf_engine::a11y::report_html(report, &doc.name, &format!("{y}-{m:02}-{d:02}"), lang.code(), &crate::i18n::words);
         let stem = doc.name.trim_end_matches(".pdf").trim_end_matches(".PDF").to_string();
         let title = tl!("Save the accessibility report").to_string();
         self.write_files(&[(format!("{stem} Accessibility Report.html"), std::sync::Arc::new(html.into_bytes()))], &title);
@@ -513,7 +513,7 @@ impl VisionPDFApp {
 #[derive(Clone, Default)]
 pub struct AltDraft {
     pub doc: Option<DocId>,
-    pub figures: Vec<pdfcraft_engine::a11y::Figure>,
+    pub figures: Vec<visionpdf_engine::a11y::Figure>,
     pub index: usize,
     pub texts: Vec<String>,
     pub decorative: Vec<bool>,
@@ -528,7 +528,7 @@ impl std::fmt::Debug for AltDraft {
 }
 
 /// Render a figure's area for the dialog, at the preview pane's device resolution.
-fn figure_picture(ctx: &egui::Context, doc: &pdfcraft_engine::Document, f: &pdfcraft_engine::a11y::Figure) -> Option<egui::TextureHandle> {
+fn figure_picture(ctx: &egui::Context, doc: &visionpdf_engine::Document, f: &visionpdf_engine::a11y::Figure) -> Option<egui::TextureHandle> {
     let (page, b) = (f.page?, f.bbox?);
     let info = doc.info.pages.get(page)?;
     let (u, v) = (info.user_to_view(b[0] as f32, b[1] as f32), info.user_to_view(b[2] as f32, b[3] as f32));
@@ -536,7 +536,7 @@ fn figure_picture(ctx: &egui::Context, doc: &pdfcraft_engine::Document, f: &pdfc
     let (w, h) = ((x1 - x0).max(1.0), (y1 - y0).max(1.0));
     let ppp = ctx.pixels_per_point().max(1.0);
     let scale = ((380.0 * ppp) / w).min((220.0 * ppp) / h).clamp(0.05, 32.0);
-    let tile = pdfcraft_render::Tile {
+    let tile = visionpdf_render::Tile {
         x: (x0 * scale).floor().max(0.0) as u32,
         y: (y0 * scale).floor().max(0.0) as u32,
         w: (w * scale).ceil().max(1.0) as u32,
@@ -544,11 +544,11 @@ fn figure_picture(ctx: &egui::Context, doc: &pdfcraft_engine::Document, f: &pdfc
     };
     // The picture is only shown in the panel, so it draws like the viewer (installed CJK faces
     // for fonts the PDF doesn't embed); nothing is saved from it (docs/development.md "Fonts and attribution").
-    let config = pdfcraft_render::RenderConfig { password: doc.password.as_deref().map(std::sync::Arc::from), ..Default::default() }.on_screen();
-    let mut r = pdfcraft_render::PageRenderer::new(doc.bytes.clone(), config);
-    let out = r.render(pdfcraft_render::RenderRequest {
+    let config = visionpdf_render::RenderConfig { password: doc.password.as_deref().map(std::sync::Arc::from), ..Default::default() }.on_screen();
+    let mut r = visionpdf_render::PageRenderer::new(doc.bytes.clone(), config);
+    let out = r.render(visionpdf_render::RenderRequest {
         page,
-        kind: pdfcraft_render::RequestKind::Pixels,
+        kind: visionpdf_render::RequestKind::Pixels,
         tile: Some(tile),
         scale,
         tag: 0,
@@ -633,7 +633,7 @@ pub(crate) fn alt_body(ui: &mut egui::Ui, app: &mut VisionPDFApp, t: &Tokens) ->
 impl VisionPDFApp {
     /// Prepare for accessibility ▸ Tag form fields.
     pub(crate) fn autotag_form_fields(&mut self) {
-        self.apply_edit(pdfcraft_engine::Edit::AutoTagFormFields);
+        self.apply_edit(visionpdf_engine::Edit::AutoTagFormFields);
         self.choose_right_panel(Some(RightPanel::Tags));
     }
 
@@ -659,13 +659,13 @@ impl VisionPDFApp {
         let mut edits = Vec::new();
         for (k, f) in d.figures.iter().enumerate() {
             if d.decorative[k] {
-                edits.push(pdfcraft_engine::Edit::MarkDecorative { figure: f.obj.num });
+                edits.push(visionpdf_engine::Edit::MarkDecorative { figure: f.obj.num });
             } else if d.texts[k].trim() != f.alt.as_deref().unwrap_or("").trim() {
-                edits.push(pdfcraft_engine::Edit::SetAltText { figure: f.obj.num, alt: Some(d.texts[k].clone()) });
+                edits.push(visionpdf_engine::Edit::SetAltText { figure: f.obj.num, alt: Some(d.texts[k].clone()) });
             }
         }
         if !edits.is_empty() {
-            self.apply_edit(pdfcraft_engine::Edit::Batch { label: "Set alternate text".into(), edits });
+            self.apply_edit(visionpdf_engine::Edit::Batch { label: "Set alternate text".into(), edits });
         }
     }
 }

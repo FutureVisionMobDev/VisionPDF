@@ -1,4 +1,4 @@
-# pdfcraft-print
+# visionpdf-print
 
 Layer L4: printing (execution plan M10.5).
 
@@ -112,7 +112,7 @@ The desktop UI discovers printers and submits jobs on workers, so neither operat
 the dialog; the Windows backend starts without a console window. Physical printer output
 still needs hardware validation.
 
-In a browser there is no spooler: the app (`pdfcraft-ui-egui`'s `web_print`) draws the print-ready
+In a browser there is no spooler: the app (`visionpdf-ui-egui`'s `web_print`) draws the print-ready
 PDF's sheets with VisionPDF's renderer and prints them through the browser's print dialog, which
 sets copies, two-sided printing and colour. This crate stays free of web APIs.
 

@@ -1,6 +1,6 @@
-<p align="center">
-  <img src="assets/app-icon/hicolor/256x256/apps/com.futurevision.visionpdf.png" width="128" height="128" alt="VisionPDF document icon">
-</p>
+<table align="center" bgcolor="#ffffff"><tr><td>
+  <img src="assets/app-icon/visionpdf-logo.png" width="480" alt="VisionPDF logo">
+</td></tr></table>
 
 <h1 align="center">VisionPDF</h1>
 
@@ -31,7 +31,7 @@
 <br>
 
 <p align="center">
-  <img src="docs/images/pdfcraft-viewer.png" alt="VisionPDF with the VisionPDF Showcase cover page open, the All tools panel on the left and 20 threaded comments on the right" width="100%">
+  <img src="docs/images/visionpdf-viewer.png" alt="VisionPDF with the VisionPDF Showcase cover page open, the All tools panel on the left and 20 threaded comments on the right" width="100%">
   <br>
   <sub>The VisionPDF Showcase, a 13-page specimen PDF, open with the All tools panel and threaded comments.</sub>
 </p>
@@ -93,7 +93,7 @@ No account, no telemetry, no cloud. It works offline and opens instantly. The en
 VisionPDF renders PDFs with care for the details that make a page feel right: kerning and ligatures, right-to-left and complex scripts, vertical CJK, colour emoji, shadings, blend modes, soft masks and optional content.
 
 <p align="center">
-  <img src="docs/images/pdfcraft-scripts.png" alt="The Scripts of the World page: Arabic, Hebrew, Devanagari, Thai, Greek, Cyrillic, Chinese, Korean, IPA, Armenian, Georgian and Tamil samples, with vertical Japanese in the right margin" width="100%">
+  <img src="docs/images/visionpdf-scripts.png" alt="The Scripts of the World page: Arabic, Hebrew, Devanagari, Thai, Greek, Cyrillic, Chinese, Korean, IPA, Armenian, Georgian and Tamil samples, with vertical Japanese in the right margin" width="100%">
   <br>
   <sub>Twelve writing systems on one page, plus vertical Japanese, at 125%.</sub>
 </p>
@@ -105,8 +105,8 @@ VisionPDF renders PDFs with care for the details that make a page feel right: ke
 
 <table>
 <tr>
-<td width="50%"><img src="docs/images/pdfcraft-twoup.png" alt="Two facing pages in Read mode with the dark theme: the Foreword and the Setting Text chapter with its drop cap and pull quote"></td>
-<td width="50%"><img src="docs/images/pdfcraft-dark.png" alt="The dark theme showing the Code and Images chapter, a syntax-coloured listing and a fractal image, with the comments panel open"></td>
+<td width="50%"><img src="docs/images/visionpdf-twoup.png" alt="Two facing pages in Read mode with the dark theme: the Foreword and the Setting Text chapter with its drop cap and pull quote"></td>
+<td width="50%"><img src="docs/images/visionpdf-dark.png" alt="The dark theme showing the Code and Images chapter, a syntax-coloured listing and a fractal image, with the comments panel open"></td>
 </tr>
 <tr>
 <td align="center"><sub>Two-up Read mode, ready for long reading</sub></td>
@@ -120,7 +120,7 @@ Search the whole document as you type, step through matches with <kbd>⌘G</kbd>
 
 ## Navigate long documents
 
-Launch with `pdfcraft --two-paged file.pdf` (or `pdfcraft file.pdf --two-paged`) to open each command-line PDF in noncontinuous two-page view. This optional launch override does not change saved default-layout preferences or PDFs restored from the previous session. An explicit `--layout` option takes precedence on the active document regardless of argument order; `--default-layout` retains its existing behavior for subsequently opened documents.
+Launch with `visionpdf --two-paged file.pdf` (or `visionpdf file.pdf --two-paged`) to open each command-line PDF in noncontinuous two-page view. This optional launch override does not change saved default-layout preferences or PDFs restored from the previous session. An explicit `--layout` option takes precedence on the active document regardless of argument order; `--default-layout` retains its existing behavior for subsequently opened documents.
 
 Right-click a PDF tab to close it, reopen the last closed file-backed tab, or reveal its file. Closing still asks about unsaved changes. Reopening reads the saved file from disk; it does not restore discarded edits. Reveal selects the file in Explorer or Finder. On Linux and FreeBSD it requests `org.freedesktop.FileManager1.ShowItems`, falling back to opening the containing directory with `xdg-open` when that service is unavailable. Reopen and Reveal are unavailable on the web; Reveal is also unavailable for pathless documents.
 
@@ -130,8 +130,8 @@ In **Inspector > Pages**, use **Thumbnail size** and the smaller/larger buttons 
 
 <table>
 <tr>
-<td width="50%"><img src="docs/images/pdfcraft-find.png" alt="The find bar showing match 10 of 16 for the word 'type', highlighted in the Expressive Type chapter heading"></td>
-<td width="50%"><img src="docs/images/pdfcraft-bookmarks.png" alt="The Bookmarks panel showing the nested outline of the showcase, with page labels such as Cover, i and ii, next to the Scripts of the World page"></td>
+<td width="50%"><img src="docs/images/visionpdf-find.png" alt="The find bar showing match 10 of 16 for the word 'type', highlighted in the Expressive Type chapter heading"></td>
+<td width="50%"><img src="docs/images/visionpdf-bookmarks.png" alt="The Bookmarks panel showing the nested outline of the showcase, with page labels such as Cover, i and ii, next to the Scripts of the World page"></td>
 </tr>
 <tr>
 <td align="center"><sub>Find as you type: match 10 of 16</sub></td>
@@ -149,7 +149,7 @@ Open **Organize pages** to see every page at once:
 - **Undo anything:** <kbd>⌘Z</kbd>, then save.
 
 <p align="center">
-  <img src="docs/images/pdfcraft-organize.png" alt="The Organize pages grid with the showcase's pages as thumbnails, three of them selected, and the page toolbar above" width="100%">
+  <img src="docs/images/visionpdf-organize.png" alt="The Organize pages grid with the showcase's pages as thumbnails, three of them selected, and the page toolbar above" width="100%">
   <br>
   <sub>Organize pages with three pages selected and the page tools in the toolbar above.</sub>
 </p>
@@ -170,7 +170,7 @@ When open documents exceed the window width, scroll over the tab strip with the 
 Unsaved documents carry a dot on their tab, and closing or quitting asks before anything is lost. Changes are autosaved every minute. If VisionPDF ever quits unexpectedly, it offers to recover your work the next time it opens. Encrypted documents stay encrypted on disk.
 
 </td>
-<td width="50%" valign="top"><img src="docs/images/pdfcraft-split.png" alt="The Split document dialog over the organize view, set to one page per file and reporting that it creates 13 files from 13 pages"><br><sub>Split document: one page per file makes 13 files.</sub></td>
+<td width="50%" valign="top"><img src="docs/images/visionpdf-split.png" alt="The Split document dialog over the organize view, set to one page per file and reporting that it creates 13 files from 13 pages"><br><sub>Split document: one page per file makes 13 files.</sub></td>
 </tr>
 </table>
 
@@ -189,9 +189,9 @@ Nothing quietly disappears along the way:
 Every page of a combined document renders pixel-identical to its source.
 
 ```sh
-pdfcraft-cli combine report.pdf appendix.pdf --out combined.pdf
-pdfcraft-cli extract report.pdf --pages 1,3,5-8 --out highlights.pdf
-pdfcraft-cli split   report.pdf --every 10 --out-dir parts/
+visionpdf-cli combine report.pdf appendix.pdf --out combined.pdf
+visionpdf-cli extract report.pdf --pages 1,3,5-8 --out highlights.pdf
+visionpdf-cli split   report.pdf --every 10 --out-dir parts/
 ```
 
 ---
@@ -207,7 +207,7 @@ Documents restricted by their author show a clear notice, and VisionPDF honours 
 
 <table>
 <tr>
-<td width="50%" valign="top"><img src="docs/images/pdfcraft-properties.png" alt="The Document Properties dialog on its Description tab, with editable title, author, subject and keywords, and tabs for Security, Fonts and Advanced"><br><sub>Document Properties, Description tab</sub></td>
+<td width="50%" valign="top"><img src="docs/images/visionpdf-properties.png" alt="The Document Properties dialog on its Description tab, with editable title, author, subject and keywords, and tabs for Security, Fonts and Advanced"><br><sub>Document Properties, Description tab</sub></td>
 <td width="50%" valign="top">
 
 **Document Properties** shows:
@@ -224,8 +224,8 @@ Documents restricted by their author show a clear notice, and VisionPDF honours 
 
 <table>
 <tr>
-<td width="50%"><img src="docs/images/pdfcraft-forms.png" alt="The Interactive Form page with highlighted text fields, checkboxes, radio buttons, a list and a signature field, and the Fields panel listing all 13 fields and their values"></td>
-<td width="50%"><img src="docs/images/pdfcraft-layers.png" alt="The Review and Markup page with highlights, shapes, ink and an APPROVED stamp under a DRAFT watermark, and the Layers panel with Draft watermark and Print-only notes"></td>
+<td width="50%"><img src="docs/images/visionpdf-forms.png" alt="The Interactive Form page with highlighted text fields, checkboxes, radio buttons, a list and a signature field, and the Fields panel listing all 13 fields and their values"></td>
+<td width="50%"><img src="docs/images/visionpdf-layers.png" alt="The Review and Markup page with highlights, shapes, ink and an APPROVED stamp under a DRAFT watermark, and the Layers panel with Draft watermark and Print-only notes"></td>
 </tr>
 <tr>
 <td valign="top"><b>Forms</b>: every field with its current value, field highlighting, and checkboxes, radio buttons, lists and signatures drawn the way their author designed them.</td>
@@ -238,7 +238,7 @@ Documents restricted by their author show a clear notice, and VisionPDF honours 
 **Scan & OCR ▸ Recognize text** turns a scan into searchable text — the current page, a range, or a folder of files written as searchable copies — with optional cleanup before reading (auto-rotate, deskew, denoise, binarize; word boxes map back to the original scan) and a second engine: an installed Tesseract joins the built-in one, merged per your strategy. A searchable result applies as one undoable step; the **Editable text** output opens the **OCR Verify screen** instead, where each word carries the engine's confidence as a colour, suspects are one keypress away, and corrections, a user dictionary and Re-OCR of a region or a page happen before Accept writes the new document. **Scan & OCR ▸ Correct recognized text** reviews any recognition there before it is applied.
 
 <p align="center">
-  <img src="docs/images/pdfcraft-ocr-verify.png" alt="The OCR Verify screen: a scanned note with each recognized word boxed in its confidence colour, the info strip reporting a 95% average confidence and one low-confidence word, and the confidence legend with its thresholds below" width="100%">
+  <img src="docs/images/visionpdf-ocr-verify.png" alt="The OCR Verify screen: a scanned note with each recognized word boxed in its confidence colour, the info strip reporting a 95% average confidence and one low-confidence word, and the confidence legend with its thresholds below" width="100%">
   <br>
   <sub>The OCR Verify screen: words coloured by confidence — the legend spells the thresholds out — reviewed and corrected before anything is applied.</sub>
 </p>
@@ -251,7 +251,7 @@ Press <kbd>⌘K</kbd> to search every tool and command, or browse the **All tool
 
 <table>
 <tr>
-<td width="50%"><img src="docs/images/pdfcraft-palette.png" alt="The command palette searching for 'page', listing Page grid, Page labels, Rotate pages, Insert pages, Delete pages, Extract pages and more, each with the tool it belongs to"></td>
+<td width="50%"><img src="docs/images/visionpdf-palette.png" alt="The command palette searching for 'page', listing Page grid, Page labels, Rotate pages, Insert pages, Delete pages, Extract pages and more, each with the tool it belongs to"></td>
 </tr>
 <tr>
 <td align="center"><sub>The <kbd>⌘K</kbd> command palette</sub></td>
@@ -265,12 +265,12 @@ Press <kbd>⌘K</kbd> to search every tool and command, or browse the **All tool
 - **Native on macOS, Windows, Linux and FreeBSD**, and **in the browser** through WebAssembly, from the same Rust codebase. Windows builds come for x64, x86 and ARM64 (Windows on ARM, no emulation); every ARM64 change is tested on ARM64 hardware in CI.
 - **Private by design.** Documents never leave your machine. There's no account, no telemetry and no cloud processing.
 - **Engine first.** Parsing, rendering and editing live in reusable library crates. The interface is one swappable layer on top.
-- **Scriptable.** The `pdfcraft-cli` tool (see [Built for agents, too](#built-for-agents-too)) covers inspecting, rendering, extracting text, editing, combining, extracting pages and splitting. Robustness sweeps run on the same engine as the app.
+- **Scriptable.** The `visionpdf-cli` tool (see [Built for agents, too](#built-for-agents-too)) covers inspecting, rendering, extracting text, editing, combining, extracting pages and splitting. Robustness sweeps run on the same engine as the app.
 
 ```sh
-pdfcraft-cli info  form.pdf                                  # structure as JSON
-pdfcraft-cli text  paper.pdf --page 3                        # reading-order text
-pdfcraft-cli edit  in.pdf --rotate 1,2:90 --delete 5 --title "Q3" --out out.pdf
+visionpdf-cli info  form.pdf                                  # structure as JSON
+visionpdf-cli text  paper.pdf --page 3                        # reading-order text
+visionpdf-cli edit  in.pdf --rotate 1,2:90 --delete 5 --title "Q3" --out out.pdf
 ```
 
 ---
@@ -279,49 +279,49 @@ pdfcraft-cli edit  in.pdf --rotate 1,2:90 --delete 5 --title "Q3" --out out.pdf
 
 Every engine feature is reachable without the GUI, through one table of JSON-Schema-described tools: open, inspect, render pages to PNG, extract and find text, rotate, delete, move and insert pages, edit bookmarks and page labels, add, reply to, restyle and delete comments (highlight a phrase just by naming it), list and fill in form fields, protect with passwords, set metadata, undo and redo, save, combine, extract and split. Three front doors share it:
 
-- **`pdfcraft-cli run`**, for one-off calls and JSON scripts:
+- **`visionpdf-cli run`**, for one-off calls and JSON scripts:
 
   ```sh
-  pdfcraft-cli tools                                        # every tool and its JSON Schema
-  pdfcraft-cli run text_find doc=1 query=invoice            # key=value; values parse as JSON
-  pdfcraft-cli run --script review.json                     # e.g. comment_add {"type": "highlight", "find": "total due"}
-  pdfcraft-cli run --script steps.json --root ./work        # several steps in one session
-  pdfcraft-cli run --script steps.json --report             # one JSON document: per step its number, tool, status, result or error
+  visionpdf-cli tools                                        # every tool and its JSON Schema
+  visionpdf-cli run text_find doc=1 query=invoice            # key=value; values parse as JSON
+  visionpdf-cli run --script review.json                     # e.g. comment_add {"type": "highlight", "find": "total due"}
+  visionpdf-cli run --script steps.json --root ./work        # several steps in one session
+  visionpdf-cli run --script steps.json --report             # one JSON document: per step its number, tool, status, result or error
   ```
 
   With `--root`, every file the script's steps read or write stays in that directory, including the PNG a step saves with `"out"` (the script itself is read from wherever you name it).
 
-- **An MCP server**, for AI agents such as Claude. **It is opt-in:** VisionPDF never starts it on its own, and it opens no network port. It runs only while an agent launches `pdfcraft-cli mcp`, talks over stdin/stdout, and stops when the agent disconnects. To enable it, add it to your agent's MCP configuration:
+- **An MCP server**, for AI agents such as Claude. **It is opt-in:** VisionPDF never starts it on its own, and it opens no network port. It runs only while an agent launches `visionpdf-cli mcp`, talks over stdin/stdout, and stops when the agent disconnects. To enable it, add it to your agent's MCP configuration:
 
   ```json
-  { "mcpServers": { "pdfcraft": { "command": "pdfcraft-cli", "args": ["mcp", "--root", "/path/to/your/pdfs"] } } }
+  { "mcpServers": { "visionpdf": { "command": "visionpdf-cli", "args": ["mcp", "--root", "/path/to/your/pdfs"] } } }
   ```
 
   `--compact` shrinks the tool list the agent has to read: `tools/list` returns about ten core tools plus `tool_search` and `tool_call`, which find and run every other tool, so the list costs far fewer tokens. Every tool still works.
 
-  `--root` confines every file the agent can read or write to one directory. Builds that should not include the server at all can use `cargo build -p pdfcraft-cli --no-default-features`.
+  `--root` confines every file the agent can read or write to one directory. Builds that should not include the server at all can use `cargo build -p visionpdf-cli --no-default-features`.
 
-- **The Rust API** (`pdfcraft_automation::Automation::call`), for embedding.
+- **The Rust API** (`visionpdf_automation::Automation::call`), for embedding.
 
 Edits stay in memory, undoable, until `doc_save`. Saving to the same file appends an incremental update, so the original bytes are preserved, and the write is atomic. Unsaved changes are never discarded silently.
 
 ### Driving the app itself
 
-Start the desktop app with `pdfcraft --control ~/.pdfcraft-control.json` and an agent can see and operate the real interface: the widget tree with labels and positions (from the accessibility tree), clicks, typing, keys, commands, view options and screenshots. This is also off by default. It listens only on loopback, and every connection must present the random token written to that file, which only you can read.
+Start the desktop app with `visionpdf --control ~/.visionpdf-control.json` and an agent can see and operate the real interface: the widget tree with labels and positions (from the accessibility tree), clicks, typing, keys, commands, view options and screenshots. This is also off by default. It listens only on loopback, and every connection must present the random token written to that file, which only you can read.
 
-Keep the control file in a folder only you can write, not a shared one such as `/tmp`: another user could create the file there first and receive your commands. `pdfcraft-cli ui` refuses a control file that is a symbolic link, or one that another user owns, or that another user or a group such as Administrators can read or write: on macOS, Linux and FreeBSD by its owner and mode (the app writes it with mode 600), on Windows by its owner and access list (the app gives it one with only you and SYSTEM on it). The app doesn't start if it can't write the file. On Windows, cmd.exe doesn't expand `~`: use `%USERPROFILE%\.pdfcraft-control.json` there.
+Keep the control file in a folder only you can write, not a shared one such as `/tmp`: another user could create the file there first and receive your commands. `visionpdf-cli ui` refuses a control file that is a symbolic link, or one that another user owns, or that another user or a group such as Administrators can read or write: on macOS, Linux and FreeBSD by its owner and mode (the app writes it with mode 600), on Windows by its owner and access list (the app gives it one with only you and SYSTEM on it). The app doesn't start if it can't write the file. On Windows, cmd.exe doesn't expand `~`: use `%USERPROFILE%\.visionpdf-control.json` there.
 
 ```sh
-pdfcraft-cli ui --control ~/.pdfcraft-control.json inspect query=rotate      # find widgets
-pdfcraft-cli ui --control ~/.pdfcraft-control.json click label="Organize pages"
-pdfcraft-cli ui --control ~/.pdfcraft-control.json key key=K modifiers='["command"]'
-pdfcraft-cli ui --control ~/.pdfcraft-control.json command id=comment.square   # pick a tool, then draw:
-pdfcraft-cli ui --control ~/.pdfcraft-control.json drag from='[400,300]' to='[600,420]'
-pdfcraft-cli ui --control ~/.pdfcraft-control.json screenshot --out window.png
-pdfcraft-cli ui --control ~/.pdfcraft-control.json resize width=1200 height=800
-pdfcraft-cli ui --control ~/.pdfcraft-control.json focus label="Read"
-pdfcraft-cli ui --control ~/.pdfcraft-control.json inspect focused=true
-pdfcraft-cli ui --control ~/.pdfcraft-control.json quit
+visionpdf-cli ui --control ~/.visionpdf-control.json inspect query=rotate      # find widgets
+visionpdf-cli ui --control ~/.visionpdf-control.json click label="Organize pages"
+visionpdf-cli ui --control ~/.visionpdf-control.json key key=K modifiers='["command"]'
+visionpdf-cli ui --control ~/.visionpdf-control.json command id=comment.square   # pick a tool, then draw:
+visionpdf-cli ui --control ~/.visionpdf-control.json drag from='[400,300]' to='[600,420]'
+visionpdf-cli ui --control ~/.visionpdf-control.json screenshot --out window.png
+visionpdf-cli ui --control ~/.visionpdf-control.json resize width=1200 height=800
+visionpdf-cli ui --control ~/.visionpdf-control.json focus label="Read"
+visionpdf-cli ui --control ~/.visionpdf-control.json inspect focused=true
+visionpdf-cli ui --control ~/.visionpdf-control.json quit
 ```
 
 `ui.panel` opens, closes or sizes a side panel: `{"panel":"tools"|"side","open":true|false,"width":320}`.
@@ -343,17 +343,17 @@ VisionPDF is a Cargo workspace of focused crates, layered so the core never depe
 
 | Crate | What it does |
 |---|---|
-| `pdfcraft-filters` | Every PDF stream filter (Flate, LZW, ASCII85, RunLength, predictors), encode and decode, property-tested |
-| `pdfcraft-crypt` | The standard security handler: RC4, AES-128/256, revisions 2–6, permissions |
-| `pdfcraft-cos` | The PDF object layer: tolerant parsing, repair, copy-on-write edits, incremental and full writing |
-| `pdfcraft-organize` | Page operations, combine / extract / split, bookmarks, page labels, document information |
-| `pdfcraft-fonts` | Font metrics and encodings for generated appearances |
-| `pdfcraft-annot` | Comments: builders and appearance streams for notes, text markup, shapes, ink and text boxes; replies, status, edits |
-| `pdfcraft-forms` | Interactive forms: the field model, filling with regenerated appearances, Clear form |
-| `pdfcraft-render` | Rendering, inspection and text extraction with reading order |
-| `pdfcraft-engine` | The façade every frontend uses: sessions, edits, undo, saving, the tool catalogue |
-| `pdfcraft-automation` | Agent control: the headless tool table, `pdfcraft-cli run`, and the opt-in MCP server |
-| `pdfcraft-ui-egui` | The desktop and web interface |
+| `visionpdf-filters` | Every PDF stream filter (Flate, LZW, ASCII85, RunLength, predictors), encode and decode, property-tested |
+| `visionpdf-crypt` | The standard security handler: RC4, AES-128/256, revisions 2–6, permissions |
+| `visionpdf-cos` | The PDF object layer: tolerant parsing, repair, copy-on-write edits, incremental and full writing |
+| `visionpdf-organize` | Page operations, combine / extract / split, bookmarks, page labels, document information |
+| `visionpdf-fonts` | Font metrics and encodings for generated appearances |
+| `visionpdf-annot` | Comments: builders and appearance streams for notes, text markup, shapes, ink and text boxes; replies, status, edits |
+| `visionpdf-forms` | Interactive forms: the field model, filling with regenerated appearances, Clear form |
+| `visionpdf-render` | Rendering, inspection and text extraction with reading order |
+| `visionpdf-engine` | The façade every frontend uses: sessions, edits, undo, saving, the tool catalogue |
+| `visionpdf-automation` | Agent control: the headless tool table, `visionpdf-cli run`, and the opt-in MCP server |
+| `visionpdf-ui-egui` | The desktop and web interface |
 
 **Quality gates.** Every change passes the same automated checks:
 - formatting, and Clippy with warnings as errors;
@@ -376,9 +376,9 @@ Building needs Rust 1.95 or later.
 
 ```sh
 git clone https://github.com/FutureVisionMobDev/VisionPDF
-cd pdfcraft
+cd visionpdf
 cargo xtask models                                # fetch the OCR models Scan & OCR needs (release builds include them)
-cargo run --release -p pdfcraft -- some.pdf     # desktop app
+cargo run --release -p visionpdf -- some.pdf     # desktop app
 cargo xtask demo-pdf                              # build the showcase PDF used in these screenshots
 cargo xtask screenshots                           # regenerate every screenshot in this README
 ```
@@ -396,20 +396,20 @@ edited PDFs):
 
 ```sh
 git clone https://github.com/storytold/craft-fonts ../craft-fonts
-CRAFT_FONTS_DIR=../craft-fonts cargo run --release -p pdfcraft -- some.pdf
+CRAFT_FONTS_DIR=../craft-fonts cargo run --release -p visionpdf -- some.pdf
 ```
 
 Each [GitHub release](https://github.com/FutureVisionMobDev/VisionPDF/releases) has ready-made builds for macOS,
 Windows, Linux (AppImage, Flatpak, `.deb`, `.rpm` and a tarball), FreeBSD and the web; see
 [Downloads](#downloads). On Gentoo, the community [::snakebyte
 overlay](https://github.com/switch87/snakebyte-overlay) packages the Linux release as
-`app-text/pdfcraft-bin` (not maintained by the VisionPDF team):
+`app-text/visionpdf-bin` (not maintained by the VisionPDF team):
 
 ```sh
 eselect repository add snakebyte git https://github.com/switch87/snakebyte-overlay.git
 emaint sync -r snakebyte
-echo 'app-text/pdfcraft-bin ~amd64' >> /etc/portage/package.accept_keywords/pdfcraft
-emerge --ask app-text/pdfcraft-bin
+echo 'app-text/visionpdf-bin ~amd64' >> /etc/portage/package.accept_keywords/visionpdf
+emerge --ask app-text/visionpdf-bin
 ```
 
 Logs, environment variables and other development notes are in [docs/development.md](docs/development.md).
@@ -441,14 +441,14 @@ The summary is in **[ROADMAP.md](ROADMAP.md)**; the full assessment by dimension
 
 | Build | Installer | Portable |
 |---|---|---|
-| x64 (64-bit Intel/AMD) | `pdfcraft-<ver>-windows-x64.msi` | `pdfcraft-<ver>-windows-x64-portable.zip` |
-| arm64 (Snapdragon and other ARM PCs) | `pdfcraft-<ver>-windows-arm64.msi` | `pdfcraft-<ver>-windows-arm64-portable.zip` |
-| x86 (32-bit) | `pdfcraft-<ver>-windows-x86.msi` | `pdfcraft-<ver>-windows-x86-portable.zip` |
+| x64 (64-bit Intel/AMD) | `visionpdf-<ver>-windows-x64.msi` | `visionpdf-<ver>-windows-x64-portable.zip` |
+| arm64 (Snapdragon and other ARM PCs) | `visionpdf-<ver>-windows-arm64.msi` | `visionpdf-<ver>-windows-arm64-portable.zip` |
+| x86 (32-bit) | `visionpdf-<ver>-windows-x86.msi` | `visionpdf-<ver>-windows-x86-portable.zip` |
 
 Installers and executables are code-signed.
 
 The portable zip runs from any folder, a USB stick included. Its `portable.txt` keeps the settings,
-logs and crash recovery in a `VisionPDFData` folder next to `pdfcraft.exe`, so nothing is written to
+logs and crash recovery in a `VisionPDFData` folder next to `visionpdf.exe`, so nothing is written to
 `%APPDATA%`; delete that file to use the normal per-user folders.
 Windows doesn't offer the portable copy as a default PDF app on its own, since it registers nothing;
 `portable.txt` has the PowerShell lines that register it for your user only, and how to undo them.
@@ -463,7 +463,7 @@ images (.png .jpg .jpeg .tif .tiff .gif .bmp .jp2 .j2k .jpx) in File Explorer (o
 without a desktop shortcut (add `ALLUSERS=1`, from an elevated terminal, for an all-users install):
 
 ```powershell
-msiexec /i "pdfcraft-<ver>-windows-x64.msi" /qn /norestart INSTALLDESKTOPSHORTCUT=0
+msiexec /i "visionpdf-<ver>-windows-x64.msi" /qn /norestart INSTALLDESKTOPSHORTCUT=0
 ```
 
 | Property | `=0` leaves out |
@@ -502,21 +502,21 @@ notarized. The MSI's manufacturer, shown as the publisher in Installed apps, is
 
 | Build | File | Notes |
 |---|---|---|
-| App, universal (Apple silicon + Intel) | `pdfcraft-<ver>-macos-universal.dmg` | Signed and notarized |
-| Command-line tool, universal | `pdfcraft-cli-<ver>-macos-universal.zip` | Signed and notarized |
+| App, universal (Apple silicon + Intel) | `visionpdf-<ver>-macos-universal.dmg` | Signed and notarized |
+| Command-line tool, universal | `visionpdf-cli-<ver>-macos-universal.zip` | Signed and notarized |
 
 ### Linux
 
 | Format | x86_64 | aarch64 (ARM64) | Notes |
 |---|---|---|---|
-| AppImage | `pdfcraft-<ver>-linux-x86_64.AppImage` | `pdfcraft-<ver>-linux-aarch64.AppImage` | Runs anywhere; updates itself with [AppImageUpdate](https://github.com/AppImageCommunity/AppImageUpdate) (`.zsync` files) |
-| Flatpak | `pdfcraft-<ver>-linux-x86_64.flatpak` | `pdfcraft-<ver>-linux-aarch64.flatpak` | Sandboxed; `flatpak install --user <file>` |
-| Debian/Ubuntu | `pdfcraft-<ver>-linux-x86_64.deb` | `pdfcraft-<ver>-linux-aarch64.deb` | |
-| Fedora/RHEL/openSUSE | `pdfcraft-<ver>-linux-x86_64.rpm` | `pdfcraft-<ver>-linux-aarch64.rpm` | |
-| Tarball | `pdfcraft-<ver>-linux-x86_64.tar.gz` | `pdfcraft-<ver>-linux-aarch64.tar.gz` | Unpack anywhere |
-| Command-line tool | `pdfcraft-cli-<ver>-linux-x86_64.tar.gz` | `pdfcraft-cli-<ver>-linux-aarch64.tar.gz` | `pdfcraft-cli` alone (and its opt-in MCP server), for servers, CI and agents |
+| AppImage | `visionpdf-<ver>-linux-x86_64.AppImage` | `visionpdf-<ver>-linux-aarch64.AppImage` | Runs anywhere; updates itself with [AppImageUpdate](https://github.com/AppImageCommunity/AppImageUpdate) (`.zsync` files) |
+| Flatpak | `visionpdf-<ver>-linux-x86_64.flatpak` | `visionpdf-<ver>-linux-aarch64.flatpak` | Sandboxed; `flatpak install --user <file>` |
+| Debian/Ubuntu | `visionpdf-<ver>-linux-x86_64.deb` | `visionpdf-<ver>-linux-aarch64.deb` | |
+| Fedora/RHEL/openSUSE | `visionpdf-<ver>-linux-x86_64.rpm` | `visionpdf-<ver>-linux-aarch64.rpm` | |
+| Tarball | `visionpdf-<ver>-linux-x86_64.tar.gz` | `visionpdf-<ver>-linux-aarch64.tar.gz` | Unpack anywhere |
+| Command-line tool | `visionpdf-cli-<ver>-linux-x86_64.tar.gz` | `visionpdf-cli-<ver>-linux-aarch64.tar.gz` | `visionpdf-cli` alone (and its opt-in MCP server), for servers, CI and agents |
 
-RISC-V (riscv64) builds come as tarballs only: `pdfcraft-<ver>-linux-riscv64.tar.gz` and `pdfcraft-cli-<ver>-linux-riscv64.tar.gz`. They are cross-compiled and need glibc 2.39 or newer (Ubuntu 24.04+, Debian 13+).
+RISC-V (riscv64) builds come as tarballs only: `visionpdf-<ver>-linux-riscv64.tar.gz` and `visionpdf-cli-<ver>-linux-riscv64.tar.gz`. They are cross-compiled and need glibc 2.39 or newer (Ubuntu 24.04+, Debian 13+).
 
 Every other Linux build needs glibc 2.35 or newer (Ubuntu 22.04+, Debian 12+, Fedora 36+, RHEL 10).
 
@@ -524,20 +524,20 @@ Every other Linux build needs glibc 2.35 or newer (Ubuntu 22.04+, Debian 12+, Fe
 
 | Build | File |
 |---|---|
-| x86_64 | `pdfcraft-<ver>-freebsd-x86_64.tar.gz` |
+| x86_64 | `visionpdf-<ver>-freebsd-x86_64.tar.gz` |
 
 ### Web (WebAssembly)
 
 | Build | File | Notes |
 |---|---|---|
-| Static site | `pdfcraft-web-<ver>.zip` | Runs in a modern browser; host it on any static server |
+| Static site | `visionpdf-web-<ver>.zip` | Runs in a modern browser; host it on any static server |
 
 ---
 
 ## License and credits
 
 VisionPDF is dual-licensed under [MIT](LICENSE-MIT) or [Apache-2.0](LICENSE-APACHE), at your option.
-Copyright (c) 2026 ArtCraft Team and the PdfCraft contributors. Required notices are in [NOTICE](NOTICE). VisionPDF fork contributions retain their authorship and are distributed under the same license.
+Copyright (c) 2026 ArtCraft Team and the VisionPDF contributors. Required notices are in [NOTICE](NOTICE). VisionPDF fork contributions retain their authorship and are distributed under the same license.
 
 Bundled fonts, icons, images and other assets keep their own open licenses; each one is listed
 with its author, source and license in [ATTRIBUTION.md](ATTRIBUTION.md). Release builds also embed

@@ -222,9 +222,9 @@ impl Edit {
             Edit::NumberPages { .. } => Label::of("Number pages"),
             // What was measured is part of the wording too, for the same reason.
             Edit::AddMeasurement(m) => Label::of(match m.kind {
-                pdfcraft_measure::Kind::Distance => "Measure distance",
-                pdfcraft_measure::Kind::Perimeter => "Measure perimeter",
-                pdfcraft_measure::Kind::Area => "Measure area",
+                visionpdf_measure::Kind::Distance => "Measure distance",
+                visionpdf_measure::Kind::Perimeter => "Measure perimeter",
+                visionpdf_measure::Kind::Area => "Measure area",
             }),
             Edit::SetMeasurementScale { .. } => Label::of("Set measurement scale"),
             Edit::AddAnnotation(a) => Label::of(add_annotation(&a.shape)),
@@ -307,10 +307,10 @@ impl Edit {
                 ImageEdit::Replace { .. } => "Replace image",
                 ImageEdit::Delete => "Delete image",
                 ImageEdit::Arrange(ord) => match ord {
-                    pdfcraft_edit::ArrangeOrder::BringToFront => "Bring to front",
-                    pdfcraft_edit::ArrangeOrder::BringForward => "Bring forward",
-                    pdfcraft_edit::ArrangeOrder::SendBackward => "Send backward",
-                    pdfcraft_edit::ArrangeOrder::SendToBack => "Send to back",
+                    visionpdf_edit::ArrangeOrder::BringToFront => "Bring to front",
+                    visionpdf_edit::ArrangeOrder::BringForward => "Bring forward",
+                    visionpdf_edit::ArrangeOrder::SendBackward => "Send backward",
+                    visionpdf_edit::ArrangeOrder::SendToBack => "Send to back",
                 },
                 ImageEdit::RemoveCrop => "Remove crop",
                 ImageEdit::Ungroup => "Ungroup artwork",

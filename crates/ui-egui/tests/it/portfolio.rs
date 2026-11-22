@@ -3,7 +3,7 @@
 //! portfolio's tab shows its file list even with the right panel closed.
 
 use egui_kittest::Harness;
-use pdfcraft_ui_egui::{VisionPDFApp, RightPanel};
+use visionpdf_ui_egui::{VisionPDFApp, RightPanel};
 
 /// A one-page PDF.
 const PAGE: &[u8] = b"%PDF-1.7
@@ -24,9 +24,9 @@ trailer << /Root 1 0 R >>
 
 /// [`PAGE`] encrypted, opening with the password `pw`.
 fn locked() -> Vec<u8> {
-    let mut doc = pdfcraft_cos::Document::open(std::sync::Arc::new(PAGE.to_vec())).unwrap();
-    doc.set_encryption(&pdfcraft_cos::NewEncryption {
-        algorithm: pdfcraft_cos::Algorithm::Aes256,
+    let mut doc = visionpdf_cos::Document::open(std::sync::Arc::new(PAGE.to_vec())).unwrap();
+    doc.set_encryption(&visionpdf_cos::NewEncryption {
+        algorithm: visionpdf_cos::Algorithm::Aes256,
         user_password: "pw",
         owner_password: "owner",
         permissions: -1,
@@ -34,7 +34,7 @@ fn locked() -> Vec<u8> {
         seed: [4; 32],
     })
     .unwrap();
-    pdfcraft_cos::write_full(&doc, &Default::default()).unwrap()
+    visionpdf_cos::write_full(&doc, &Default::default()).unwrap()
 }
 
 /// A one-page portfolio of `files` (name, bytes), with `catalog` (its `/Collection` and any other
@@ -196,7 +196,7 @@ fn a_deleted_attachment_doesnt_change_which_document_opens() {
         app
     });
     h.run_steps(4);
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::DeleteAttachment { key: "intro.pdf".into() }));
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::DeleteAttachment { key: "intro.pdf".into() }));
     h.state_mut().submit_password(None);
     h.run_steps(4);
     assert_eq!(tabs(&h), (vec!["portfolio.pdf".into(), "form.pdf".into()], Some("form.pdf".into())));

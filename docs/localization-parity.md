@@ -83,7 +83,7 @@ help/docs polish: their script work is done, and each catalog lacks 46 strings o
 | Kazakh | `kk` | 2,609 (90.1%) | partial | no |
 | Polish | `pl` | 2,681 (92.5%) | partial | yes |
 | Slovenian | `sl` | 2,618 (90.4%) | partial | no |
-| Bosnian | `bs` | 2,495 entries (craft-i18n `locales/bs/pdfcraft.tsv`; not in the `14ae839a` report, which predates it) | partial; AI-assisted (storytold/craft-i18n#72, #141), not yet reviewed by a native speaker | no |
+| Bosnian | `bs` | 2,495 entries (craft-i18n `locales/bs/visionpdf.tsv`; not in the `14ae839a` report, which predates it) | partial; AI-assisted (storytold/craft-i18n#72, #141), not yet reviewed by a native speaker | no |
 | Greek | `el` | 2,615 (90.3%) | partial | no |
 | Turkish | `tr` | 2,895 (99.9%) | partial; AI-assisted, judgement calls reviewed by a native speaker, full proofreading pending | yes |
 | Lithuanian | `lt` | 2,851 (98.4%) | partial; community native-speaker review ([#1401](https://github.com/FutureVisionMobDev/VisionPDF/pull/1401)) | no |

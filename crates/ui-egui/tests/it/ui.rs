@@ -4,7 +4,7 @@ use crate::support;
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::{By, NodeT, Queryable};
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_ui_egui::VisionPDFApp;
 
 /// A tiny PDF with two pages, two bookmarks and one sticky note.
 const FIXTURE: &[u8] = b"%PDF-1.7
@@ -41,7 +41,7 @@ fn home_shows_welcome_and_tools() {
 
 #[test]
 fn tools_panel_side_preference_moves_and_persists() {
-    use pdfcraft_ui_egui::Dialog;
+    use visionpdf_ui_egui::Dialog;
 
     let mut h = harness(|_| {});
     h.state_mut().dialog = Some(Dialog::Preferences);
@@ -78,7 +78,7 @@ fn long_recent_names_and_paths_are_cut_before_the_page_count() {
     let path = format!("/{}/{name}", "A folder with a long name".repeat(8));
     let h = harness({
         let (name, path) = (name.clone(), path.clone());
-        move |app| app.recent.push(pdfcraft_ui_egui::RecentFile { name, path, pages: 7, size: 2048 })
+        move |app| app.recent.push(visionpdf_ui_egui::RecentFile { name, path, pages: 7, size: 2048 })
     });
     let text = painted_text(&h);
     let detail = text.iter().find(|(s, ..)| s.starts_with("7 pages")).expect("the row shows its page count").2;
@@ -96,7 +96,7 @@ fn home_removes_one_recent_file_or_clears_them_all() {
         let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         for name in ["first.pdf", "second.pdf", "third.pdf"] {
-            app.recent.push(pdfcraft_ui_egui::RecentFile { name: name.into(), path: format!("/nowhere/{name}"), pages: 1, size: 0 });
+            app.recent.push(visionpdf_ui_egui::RecentFile { name: name.into(), path: format!("/nowhere/{name}"), pages: 1, size: 0 });
         }
         app
     });
@@ -120,7 +120,7 @@ fn every_catalog_tool_is_listed_after_view_more() {
     let mut h = harness(|_| {});
     h.get_by_label("View more").click();
     h.run_steps(3);
-    for g in pdfcraft_engine::catalog::TOOL_GROUPS {
+    for g in visionpdf_engine::catalog::TOOL_GROUPS {
         assert!(h.query_all_by_label(g.label).count() >= 1, "tool {} missing from All tools", g.label);
     }
 }
@@ -131,10 +131,10 @@ fn expanded_all_tools_lists_every_tool_by_category_and_searches() {
     h.get_by_label("Expand all tools").click();
     h.run_steps(3);
     assert!(h.state().all_tools_full);
-    for c in pdfcraft_engine::catalog::TOOL_CATEGORIES {
+    for c in visionpdf_engine::catalog::TOOL_CATEGORIES {
         h.get_by_label(c.label);
     }
-    for g in pdfcraft_engine::catalog::TOOL_GROUPS {
+    for g in visionpdf_engine::catalog::TOOL_GROUPS {
         assert!(h.query_all_by_label(g.label).count() >= 1, "tool {} missing from the expanded view", g.label);
     }
     // An item name finds its tool; the other categories drop out.
@@ -151,7 +151,7 @@ fn expanded_all_tools_lists_every_tool_by_category_and_searches() {
     h.get_by_label("Organize pages").click();
     h.run_steps(3);
     assert!(!h.state().all_tools_full);
-    assert_eq!(h.state().left, pdfcraft_ui_egui::LeftPanel::Tool("organize"));
+    assert_eq!(h.state().left, visionpdf_ui_egui::LeftPanel::Tool("organize"));
     h.get_by_label("Back to all tools");
 }
 
@@ -172,7 +172,7 @@ fn collapse_and_escape_close_the_expanded_all_tools() {
 #[test]
 fn escape_in_a_dialog_over_the_expanded_all_tools_leaves_the_view_open() {
     let mut h = harness(|app| app.set_option("tools", "full").unwrap());
-    h.state_mut().dialog = Some(pdfcraft_ui_egui::Dialog::About);
+    h.state_mut().dialog = Some(visionpdf_ui_egui::Dialog::About);
     h.run_steps(3);
     h.key_press(egui::Key::Escape);
     h.run_steps(3);
@@ -203,7 +203,7 @@ fn another_workspace_from_the_mode_option_puts_the_expanded_all_tools_away() {
 
 #[test]
 fn opening_a_document_puts_the_expanded_all_tools_away() {
-    use pdfcraft_ui_egui::Mode;
+    use visionpdf_ui_egui::Mode;
     // All tools as the default workspace: no workspace change, but the document must show.
     let mut app = VisionPDFApp::new();
     app.set_option("tools", "full").unwrap();
@@ -220,7 +220,7 @@ fn opening_a_document_puts_the_expanded_all_tools_away() {
 
 #[test]
 fn choosing_a_tool_puts_the_expanded_all_tools_away() {
-    use pdfcraft_ui_egui::LeftPanel;
+    use visionpdf_ui_egui::LeftPanel;
     let mut h = harness(|app| app.set_option("tools", "full").unwrap());
     h.state_mut().set_option("tool", "organize").unwrap();
     h.run_steps(3);
@@ -263,7 +263,7 @@ fn going_home_with_no_document_puts_the_expanded_all_tools_away() {
 
 #[test]
 fn expanding_all_tools_from_read_mode_restores_the_right_panel() {
-    use pdfcraft_ui_egui::{Mode, RightPanel};
+    use visionpdf_ui_egui::{Mode, RightPanel};
     let mut h = harness(|app| app.open_bytes("fixture.pdf", None, FIXTURE.to_vec()).expect("fixture opens"));
     h.state_mut().right = Some(RightPanel::Bookmarks);
     h.state_mut().execute("view.read_mode");
@@ -277,7 +277,7 @@ fn expanding_all_tools_from_read_mode_restores_the_right_panel() {
 
 #[test]
 fn expanding_all_tools_from_edit_puts_edit_text_down() {
-    use pdfcraft_ui_egui::{LeftPanel, Mode, QuickTool};
+    use visionpdf_ui_egui::{LeftPanel, Mode, QuickTool};
     let mut h = harness(|app| app.open_bytes("fixture.pdf", None, FIXTURE.to_vec()).expect("fixture opens"));
     support::outside_menus(&h, "Edit").click();
     h.run_steps(3);
@@ -304,7 +304,7 @@ fn opening_a_pdf_shows_comments_and_bookmarks() {
 /// even one with comments and bookmarks, which would otherwise open on the Comments panel.
 #[test]
 fn closed_side_panes_stay_closed_after_a_restart_and_opening_a_pdf() {
-    use pdfcraft_ui_egui::RightPanel;
+    use visionpdf_ui_egui::RightPanel;
     let mut h = harness(|app| app.open_bytes("fixture.pdf", None, FIXTURE.to_vec()).expect("fixture opens"));
     assert_eq!(h.state().right, Some(RightPanel::Comments));
     assert!(h.state().left_open);
@@ -330,7 +330,7 @@ fn closed_side_panes_stay_closed_after_a_restart_and_opening_a_pdf() {
 /// (`/PageMode /UseOutlines`), within a session and after a restart.
 #[test]
 fn closed_right_panel_stays_closed_for_a_document_asking_for_its_outline() {
-    use pdfcraft_ui_egui::RightPanel;
+    use visionpdf_ui_egui::RightPanel;
     let pdf = || String::from_utf8(FIXTURE.to_vec()).unwrap().replace("/Outlines 6 0 R", "/Outlines 6 0 R /PageMode /UseOutlines").into_bytes();
     let mut h = harness(|app| app.open_bytes("fixture.pdf", None, FIXTURE.to_vec()).expect("fixture opens"));
     assert_eq!(h.state().right, Some(RightPanel::Comments));
@@ -348,33 +348,33 @@ fn closed_right_panel_stays_closed_for_a_document_asking_for_its_outline() {
 
 #[test]
 fn navigation_rail_toggles_between_right_and_left_and_persists() {
-    use pdfcraft_ui_egui::Dialog;
+    use visionpdf_ui_egui::Dialog;
 
     let mut h = harness(|app| app.open_bytes("fixture.pdf", None, FIXTURE.to_vec()).expect("fixture opens"));
-    assert_eq!(h.state().side_panels.rail_side, pdfcraft_ui_egui::side_panels::ToolsSide::Right);
+    assert_eq!(h.state().side_panels.rail_side, visionpdf_ui_egui::side_panels::ToolsSide::Right);
     h.get_by_label("Dock navigation rail on Left").click();
     h.run_steps(3);
-    assert_eq!(h.state().side_panels.rail_side, pdfcraft_ui_egui::side_panels::ToolsSide::Left);
+    assert_eq!(h.state().side_panels.rail_side, visionpdf_ui_egui::side_panels::ToolsSide::Left);
     let saved = h.state().persist();
     let mut h2 = harness(move |app| {
         app.restore(&saved);
     });
-    assert_eq!(h2.state().side_panels.rail_side, pdfcraft_ui_egui::side_panels::ToolsSide::Left);
+    assert_eq!(h2.state().side_panels.rail_side, visionpdf_ui_egui::side_panels::ToolsSide::Left);
     h2.state_mut().dialog = Some(Dialog::Preferences);
     h2.run_steps(3);
     h2.get_by_label("Navigation rail side: Right").click();
     h2.run_steps(3);
-    assert_eq!(h2.state().side_panels.rail_side, pdfcraft_ui_egui::side_panels::ToolsSide::Right);
+    assert_eq!(h2.state().side_panels.rail_side, visionpdf_ui_egui::side_panels::ToolsSide::Right);
     h2.get_by_label("Navigation rail side: Left").click();
     h2.run_steps(3);
-    assert_eq!(h2.state().side_panels.rail_side, pdfcraft_ui_egui::side_panels::ToolsSide::Left);
+    assert_eq!(h2.state().side_panels.rail_side, visionpdf_ui_egui::side_panels::ToolsSide::Left);
 }
 
 /// Read mode hides the tools, not the navigation panes: the rail's Bookmarks button opens the
 /// bookmarks when Read is the default workspace (#932), and the left tool pane stays hidden.
 #[test]
 fn read_mode_rail_buttons_open_their_panels() {
-    use pdfcraft_ui_egui::{Mode, RightPanel};
+    use visionpdf_ui_egui::{Mode, RightPanel};
     let mut h = harness(|app| {
         app.default_mode = Mode::Read;
         app.open_bytes("fixture.pdf", None, FIXTURE.to_vec()).expect("fixture opens");
@@ -406,7 +406,7 @@ fn read_mode_rail_buttons_open_their_panels() {
 /// mode is still a View command.
 #[test]
 fn the_mode_bar_has_no_read_tab() {
-    use pdfcraft_ui_egui::Mode;
+    use visionpdf_ui_egui::Mode;
     let mut h = harness(|app| app.open_bytes("fixture.pdf", None, FIXTURE.to_vec()).expect("fixture opens"));
     for label in ["All tools", "Edit", "Convert", "E-Sign"] {
         assert!(h.query_all_by_label(label).next().is_some(), "the {label} tab is there");
@@ -449,7 +449,7 @@ fn a_document_asking_for_full_screen_is_asked_about_first() {
 /// Switching to Read mode closes the open pane, and switching back reopens it.
 #[test]
 fn read_mode_closes_the_panes_and_leaving_it_brings_them_back() {
-    use pdfcraft_ui_egui::{Mode, RightPanel};
+    use visionpdf_ui_egui::{Mode, RightPanel};
     let mut h = harness(|app| app.open_bytes("fixture.pdf", None, FIXTURE.to_vec()).expect("fixture opens"));
     assert_eq!(h.state().right, Some(RightPanel::Comments));
     h.state_mut().run_command("view.read_mode");
@@ -474,7 +474,7 @@ fn read_mode_closes_the_panes_and_leaving_it_brings_them_back() {
 /// Read mode hides the quick toolbar too, and puts down the tool that was in use (#2646).
 #[test]
 fn read_mode_hides_the_quick_toolbar() {
-    use pdfcraft_ui_egui::{Mode, QuickTool};
+    use visionpdf_ui_egui::{Mode, QuickTool};
     let mut h = harness(|app| app.open_bytes("fixture.pdf", None, FIXTURE.to_vec()).expect("fixture opens"));
     h.get_by_label("Hand (H)").click();
     h.run_steps(2);
@@ -493,7 +493,7 @@ fn read_mode_hides_the_quick_toolbar() {
 /// is editable without clicking Edit again. Another tool from there puts editing down.
 #[test]
 fn edit_a_pdf_from_all_tools_turns_on_editing() {
-    use pdfcraft_ui_egui::{Mode, QuickTool};
+    use visionpdf_ui_egui::{Mode, QuickTool};
     let mut h = harness(|app| app.open_bytes("fixture.pdf", None, FIXTURE.to_vec()).expect("fixture opens"));
     assert_eq!(h.state().mode, Mode::AllTools);
     assert_eq!(h.state().quick_tool, QuickTool::Select);
@@ -526,7 +526,7 @@ fn edit_a_pdf_from_all_tools_turns_on_editing() {
 /// mode from the mode bar does: the hidden toolbar would leave no way to see or change it.
 #[test]
 fn opening_into_read_mode_puts_the_tool_down() {
-    use pdfcraft_ui_egui::{Mode, QuickTool};
+    use visionpdf_ui_egui::{Mode, QuickTool};
     let mut h = harness(|app| app.open_bytes("fixture.pdf", None, FIXTURE.to_vec()).expect("fixture opens"));
     assert_eq!(h.state().mode, Mode::AllTools);
     h.state_mut().set_option("quick", "hand").unwrap();
@@ -541,7 +541,7 @@ fn opening_into_read_mode_puts_the_tool_down() {
 /// pane saved on the way in, and closing Comments keeps its close preference.
 #[test]
 fn a_pane_closed_in_read_mode_stays_closed_when_leaving_it() {
-    use pdfcraft_ui_egui::{Mode, RightPanel};
+    use visionpdf_ui_egui::{Mode, RightPanel};
     let mut h = harness(|app| app.open_bytes("fixture.pdf", None, FIXTURE.to_vec()).expect("fixture opens"));
     assert_eq!(h.state().right, Some(RightPanel::Comments));
     h.state_mut().run_command("view.read_mode");
@@ -604,7 +604,7 @@ fn a_middle_click_closes_the_tab() {
     assert_eq!(app.views.len(), 1);
     assert_eq!(app.session.get(app.views[0].id).unwrap().name, "second.pdf");
     assert!(app.close_request.is_none(), "a clean document closes without asking");
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::RotatePages { pages: vec![0], degrees: 90 });
+    h.state_mut().apply_edit(visionpdf_engine::Edit::RotatePages { pages: vec![0], degrees: 90 });
     h.run_steps(2);
     h.get_by_label("second.pdf (edited)").click_button(egui::PointerButton::Middle);
     h.run_steps(3);
@@ -617,12 +617,12 @@ fn a_link_prompt_above_a_save_prompt_owns_its_keys() {
     for key in [egui::Key::Escape, egui::Key::Enter] {
         let mut h = harness(|app| {
             app.open_bytes("first.pdf", None, FIXTURE.to_vec()).unwrap();
-            app.apply_edit(pdfcraft_engine::Edit::RotatePages { pages: vec![0], degrees: 90 });
-            app.close_request = Some(pdfcraft_ui_egui::CloseRequest::Tab(app.views[0].id));
+            app.apply_edit(visionpdf_engine::Edit::RotatePages { pages: vec![0], degrees: 90 });
+            app.close_request = Some(visionpdf_ui_egui::CloseRequest::Tab(app.views[0].id));
         });
         h.run_steps(3);
         h.state_mut().pending_link =
-            Some(pdfcraft_ui_egui::PendingLink { url: "https://example.org".to_owned(), origin: pdfcraft_ui_egui::LinkOrigin::Link });
+            Some(visionpdf_ui_egui::PendingLink { url: "https://example.org".to_owned(), origin: visionpdf_ui_egui::LinkOrigin::Link });
         h.run_steps(3);
         h.key_press(key);
         h.run_steps(3);
@@ -671,7 +671,7 @@ fn overflowing_tabs_can_be_reached_by_scrolling() {
     h.run_steps(4);
     assert_eq!(h.state().views.len(), 19);
     assert!(h.state().active.is_some_and(|i| i < 19));
-    if let Ok(dir) = std::env::var("PDFCRAFT_TAB_SHOTS") {
+    if let Ok(dir) = std::env::var("VISIONPDF_TAB_SHOTS") {
         let _gpu = crate::gpu();
         crate::support::settle(&mut h);
         h.render().unwrap().save(format!("{dir}/overflow-tabs.png")).unwrap();
@@ -893,7 +893,7 @@ fn narrow_tab_strips_accept_vertical_wheel_scrolling() {
         h.run_steps(4);
         assert_eq!(h.state().active, Some(11));
         assert!(h.get_by_label_contains("Display theme:").rect().right() <= width);
-        if let Ok(dir) = std::env::var("PDFCRAFT_TAB_SHOTS") {
+        if let Ok(dir) = std::env::var("VISIONPDF_TAB_SHOTS") {
             let _gpu = crate::gpu();
             crate::support::settle(&mut h);
             h.render().unwrap().save(format!("{dir}/tabs-{width}.png")).unwrap();
@@ -999,17 +999,17 @@ fn persistence_round_trips_and_tolerates_garbage() {
     let mut b = VisionPDFApp::new();
     b.set_option("language", "en").unwrap();
     b.restore(&json);
-    assert_eq!(b.theme, pdfcraft_ui_egui::theme::ThemeKind::Dark);
+    assert_eq!(b.theme, visionpdf_ui_egui::theme::ThemeKind::Dark);
     b.restore("{not json");
     b.restore("{\"recent\": 5, \"theme\": \"Purple\"}");
-    assert_eq!(b.theme, pdfcraft_ui_egui::theme::ThemeKind::Dark);
+    assert_eq!(b.theme, visionpdf_ui_egui::theme::ThemeKind::Dark);
 }
 
 /// A tool's saved "no fill" (`"fill": null`) clears a fill it had as its default; a missing or
 /// malformed fill keeps it (#340).
 #[test]
 fn a_saved_no_fill_clears_a_comment_tool_default_fill() {
-    use pdfcraft_ui_egui::comments::CommentTool;
+    use visionpdf_ui_egui::comments::CommentTool;
     let filled = |a: &mut VisionPDFApp| {
         let mut s = a.comment_prefs.style(CommentTool::Rectangle);
         s.fill = Some([0.2, 0.4, 0.6]);
@@ -1033,7 +1033,7 @@ fn a_saved_no_fill_clears_a_comment_tool_default_fill() {
 /// colour it had; a missing or malformed one keeps it.
 #[test]
 fn a_saved_same_as_text_clears_a_comment_tool_border_colour() {
-    use pdfcraft_ui_egui::comments::CommentTool;
+    use visionpdf_ui_egui::comments::CommentTool;
     let red = Some([0.89, 0.13, 0.13]);
     let mut a = VisionPDFApp::new();
     a.comment_prefs.set_border_color(CommentTool::TextBox, red);
@@ -1051,7 +1051,7 @@ fn a_saved_same_as_text_clears_a_comment_tool_border_colour() {
 /// values are clamped or ignored, never trusted (#340).
 #[test]
 fn comment_style_settings_clamp_and_refuse_hostile_values() {
-    use pdfcraft_ui_egui::comments::CommentTool;
+    use visionpdf_ui_egui::comments::CommentTool;
     let mut a = VisionPDFApp::new();
     a.restore(
         r#"{"comment_styles":[
@@ -1073,7 +1073,7 @@ fn comment_style_settings_clamp_and_refuse_hostile_values() {
 /// text keeps none, and the quick bar's Opacity (the whole comment's) clears them.
 #[test]
 fn part_opacity_defaults_persist_and_clamp() {
-    use pdfcraft_ui_egui::comments::CommentTool;
+    use visionpdf_ui_egui::comments::CommentTool;
     let mut a = VisionPDFApp::new();
     a.comment_prefs.set_part_opacity(CommentTool::Rectangle, Some(0.3), None);
     a.comment_prefs.set_part_opacity(CommentTool::TextBox, Some(0.2), Some(1.0));
@@ -1198,7 +1198,7 @@ fn dropping_a_pdf_on_the_window_opens_it() {
 
 #[test]
 fn dropping_an_open_pdf_again_focuses_its_tab() {
-    let dir = std::env::temp_dir().join(format!("pdfcraft-drop-dedup-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-drop-dedup-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let path = dir.join("dropped.pdf");
@@ -1224,7 +1224,7 @@ fn dropping_an_open_pdf_again_focuses_its_tab() {
 fn a_file_dropped_on_the_page_grid_is_read_from_disk_and_inserted() {
     // The grid's drop reads a file from its path when its turn to be inserted comes, and inserts it
     // at the end when the pointer doesn't say where it went (about a second).
-    let dir = std::env::temp_dir().join(format!("pdfcraft-grid-drop-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-grid-drop-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let path = dir.join("dropped.pdf");
     let setup = VisionPDFApp::new();
@@ -1269,7 +1269,7 @@ fn pdfs_dropped_on_the_combine_tab_join_its_list() {
     h.state_mut().execute("page.combine");
     h.run_steps(2);
     // An absolute path is read from disk, with its modified time.
-    let path = std::env::temp_dir().join(format!("pdfcraft-combine-drop-{}.pdf", std::process::id()));
+    let path = std::env::temp_dir().join(format!("visionpdf-combine-drop-{}.pdf", std::process::id()));
     std::fs::write(&path, FIXTURE).unwrap();
     let on_disk: egui::DroppedFileHandle = std::sync::Arc::new(Dropped { path: path.clone(), bytes: Vec::new() });
     let in_memory: egui::DroppedFileHandle = std::sync::Arc::new(Dropped { path: "second.pdf".into(), bytes: FIXTURE.to_vec() });
@@ -1285,7 +1285,7 @@ fn pdfs_dropped_on_the_combine_tab_join_its_list() {
 
 #[test]
 fn a_folder_dropped_on_the_combine_tab_adds_its_pdfs() {
-    let dir = std::env::temp_dir().join(format!("pdfcraft-combine-drop-dir-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-combine-drop-dir-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(dir.join("inner")).unwrap();
     std::fs::write(dir.join("one.pdf"), FIXTURE).unwrap();
@@ -1316,7 +1316,7 @@ fn combine_tab_with_one_file() -> Harness<'static, VisionPDFApp> {
     h.run_steps(3);
     h.state_mut().set_option("combine-view", "list").unwrap();
     h.state_mut().execute("page.combine");
-    h.state_mut().use_files(pdfcraft_ui_egui::FilePurpose::Combine, vec![("first.pdf".into(), FIXTURE.to_vec())]);
+    h.state_mut().use_files(visionpdf_ui_egui::FilePurpose::Combine, vec![("first.pdf".into(), FIXTURE.to_vec())]);
     h.run_steps(2);
     h
 }
@@ -1328,7 +1328,7 @@ fn combine_names(h: &Harness<'_, VisionPDFApp>) -> Vec<String> {
 #[test]
 fn files_dropped_on_the_combine_tab_join_the_end_of_its_list_in_the_order_dropped() {
     let mut h = combine_tab_with_one_file();
-    let dir = std::env::temp_dir().join(format!("pdfcraft-combine-drop-order-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-combine-drop-order-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     // Files on disk come with their path (and no bytes); browsers hand over only a name and bytes.
@@ -1357,7 +1357,7 @@ fn files_dropped_on_the_combine_tab_join_the_end_of_its_list_in_the_order_droppe
 #[test]
 fn a_file_combine_does_not_take_is_left_out_of_a_drop_and_named() {
     let mut h = combine_tab_with_one_file();
-    let path = std::env::temp_dir().join(format!("pdfcraft-combine-drop-{}.zip", std::process::id()));
+    let path = std::env::temp_dir().join(format!("visionpdf-combine-drop-{}.zip", std::process::id()));
     std::fs::write(&path, b"PK\x03\x04").unwrap();
     let dropped: [egui::DroppedFileHandle; 4] = [
         std::sync::Arc::new(Dropped { path: "report.docx".into(), bytes: b"PK\x03\x04".to_vec() }),
@@ -1389,8 +1389,8 @@ fn a_pdf_dropped_on_a_document_opens_while_the_combine_tab_waits_behind_it() {
 #[test]
 fn files_and_quit_from_the_operating_system() {
     // #73: macOS hands Finder double-clicks, Open With and Dock drops over as Apple events.
-    use pdfcraft_ui_egui::OsEvent;
-    let name = format!("pdfcraft-os-open-{}.pdf", std::process::id());
+    use visionpdf_ui_egui::OsEvent;
+    let name = format!("visionpdf-os-open-{}.pdf", std::process::id());
     let path = std::env::temp_dir().join(&name);
     std::fs::write(&path, FIXTURE).unwrap();
     let queue = std::rc::Rc::new(std::cell::RefCell::new(vec![OsEvent::Open(vec![path.to_string_lossy().into_owned()])]));
@@ -1422,8 +1422,8 @@ fn files_and_quit_from_the_operating_system() {
 /// running VisionPDF collects them (an `OsEvent::Combine` each) into its Combine files tab.
 #[test]
 fn files_to_combine_from_the_operating_system() {
-    use pdfcraft_ui_egui::OsEvent;
-    let dir = std::env::temp_dir().join(format!("pdfcraft-os-combine-{}", std::process::id()));
+    use visionpdf_ui_egui::OsEvent;
+    let dir = std::env::temp_dir().join(format!("visionpdf-os-combine-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let paths: Vec<String> = ["one.pdf", "two.pdf"]
         .iter()
@@ -1450,8 +1450,8 @@ fn files_to_combine_from_the_operating_system() {
 /// instead of hiding it; an Open that comes after Combine still shows its document.
 #[test]
 fn an_open_finishing_after_combine_keeps_the_combine_tab() {
-    use pdfcraft_ui_egui::OsEvent;
-    let dir = std::env::temp_dir().join(format!("pdfcraft-os-combine-pending-{}", std::process::id()));
+    use visionpdf_ui_egui::OsEvent;
+    let dir = std::env::temp_dir().join(format!("visionpdf-os-combine-pending-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let paths: Vec<String> = ["opening.pdf", "combined.pdf", "later.pdf"]
         .iter()
@@ -1491,7 +1491,7 @@ fn an_open_finishing_after_combine_keeps_the_combine_tab() {
 
 #[test]
 fn default_workspace_mode_persists_and_tolerates_invalid_settings() {
-    use pdfcraft_ui_egui::Mode;
+    use visionpdf_ui_egui::Mode;
     for mode in [Mode::AllTools, Mode::Read, Mode::Edit, Mode::Convert, Mode::Sign] {
         let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
@@ -1516,7 +1516,7 @@ fn default_workspace_mode_persists_and_tolerates_invalid_settings() {
 
 #[test]
 fn newly_opened_pdfs_use_the_default_workspace() {
-    use pdfcraft_ui_egui::{LeftPanel, Mode};
+    use visionpdf_ui_egui::{LeftPanel, Mode};
     let mut app = VisionPDFApp::new();
     app.set_option("language", "en").unwrap();
     app.restore(r#"{"default_mode": "edit"}"#);
@@ -1532,13 +1532,13 @@ fn newly_opened_pdfs_use_the_default_workspace() {
         String::from_utf8(FIXTURE.to_vec()).unwrap().replace("/Outlines 6 0 R", "/Outlines 6 0 R /PageLayout /TwoColumnLeft /PageMode /UseOutlines");
     app.open_bytes("initial-view.pdf", None, pdf.into_bytes()).unwrap();
     assert_eq!(app.mode, Mode::Read);
-    assert_eq!(app.views.last().unwrap().layout, pdfcraft_ui_egui::canvas::PageLayout::TwoUp);
-    assert_eq!(app.right, Some(pdfcraft_ui_egui::RightPanel::Bookmarks));
+    assert_eq!(app.views.last().unwrap().layout, visionpdf_ui_egui::canvas::PageLayout::TwoUp);
+    assert_eq!(app.right, Some(visionpdf_ui_egui::RightPanel::Bookmarks));
 }
 
 #[test]
 fn explicit_mode_overrides_default_before_and_after_open() {
-    use pdfcraft_ui_egui::Mode;
+    use visionpdf_ui_egui::Mode;
     for before in [false, true] {
         for (value, mode) in [("all", Mode::AllTools), ("read", Mode::Read), ("edit", Mode::Edit), ("convert", Mode::Convert), ("sign", Mode::Sign)] {
             let mut app = VisionPDFApp::new();
@@ -1564,7 +1564,7 @@ fn explicit_mode_overrides_default_before_and_after_open() {
 #[test]
 fn preferences_selects_default_workspace_for_next_open() {
     use egui::accesskit::Role;
-    use pdfcraft_ui_egui::Mode;
+    use visionpdf_ui_egui::Mode;
     let mut h = harness(|app| app.set_option("dialog", "preferences").unwrap());
     h.get_by_label("Default workspace mode");
     h.get_by_role_and_label(Role::RadioButton, "Read").scroll_to_me();
@@ -1585,7 +1585,7 @@ fn preferences_selects_default_workspace_for_next_open() {
 #[test]
 fn use_system_title_bar_swaps_the_header_bar_for_the_window_frame() {
     use egui::accesskit::Role;
-    use pdfcraft_ui_egui::window_controls::Layout;
+    use visionpdf_ui_egui::window_controls::Layout;
     fn decorations(h: &Harness<'static, VisionPDFApp>) -> Option<bool> {
         h.output().viewport_output.values().flat_map(|v| v.commands.iter()).find_map(|c| match c {
             egui::ViewportCommand::Decorations(on) => Some(*on),
@@ -1630,7 +1630,7 @@ fn use_system_title_bar_swaps_the_header_bar_for_the_window_frame() {
 #[test]
 fn preferences_choose_animation_effects_and_the_choice_is_saved() {
     use egui::accesskit::Role;
-    use pdfcraft_ui_egui::motion::AnimationEffects;
+    use visionpdf_ui_egui::motion::AnimationEffects;
     let mut h = harness(|app| app.set_option("dialog", "preferences").unwrap());
     assert_eq!(h.state().animation_effects, AnimationEffects::System);
     h.get_by_label("Animation effects");
@@ -1663,7 +1663,7 @@ fn preferences_choose_animation_effects_and_the_choice_is_saved() {
 
 #[test]
 fn explicit_mode_preserves_independent_tool_and_panel_options() {
-    use pdfcraft_ui_egui::LeftPanel;
+    use visionpdf_ui_egui::LeftPanel;
     let mut app = VisionPDFApp::new();
     app.set_option("language", "en").unwrap();
     app.set_option("tool", "export").unwrap();
@@ -1678,7 +1678,7 @@ fn explicit_mode_preserves_independent_tool_and_panel_options() {
 
 #[test]
 fn opening_a_pdf_keeps_a_closed_left_panel_and_the_chosen_tool() {
-    use pdfcraft_ui_egui::{LeftPanel, Mode};
+    use visionpdf_ui_egui::{LeftPanel, Mode};
     // `--left closed` without `--mode`, default workspace Edit: the panel stays closed.
     let mut app = VisionPDFApp::new();
     app.set_option("language", "en").unwrap();
@@ -1764,12 +1764,12 @@ fn cancelling_then_discarding_an_earlier_dirty_tab_preserves_the_selected_docume
     let ids: Vec<_> = h.state().views.iter().map(|view| view.id).collect();
     h.get_by_label("first.pdf").click();
     h.run_steps(3);
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::SetInfo { key: "Title".into(), value: "Unsaved title".into() }));
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::SetInfo { key: "Title".into(), value: "Unsaved title".into() }));
     h.run_steps(3);
     h.get_by_label("middle.pdf").click();
     h.run_steps(3);
     close_named_tab(&mut h, "first.pdf (edited)");
-    assert_eq!(h.state().close_request, Some(pdfcraft_ui_egui::CloseRequest::Tab(ids[0])));
+    assert_eq!(h.state().close_request, Some(visionpdf_ui_egui::CloseRequest::Tab(ids[0])));
     h.get_by_label("Cancel").click();
     h.run_steps(3);
     assert_eq!(h.state().views.len(), 3);
@@ -1793,7 +1793,7 @@ fn long_german_tool_labels_stay_within_the_sidebar() {
     if crate::support::skip_without_catalogs("long_german_tool_labels_stay_within_the_sidebar") {
         return;
     }
-    use pdfcraft_ui_egui::{LeftPanel, Mode};
+    use visionpdf_ui_egui::{LeftPanel, Mode};
     let mut h = harness(|app| app.open_bytes("fixture.pdf", None, FIXTURE.to_vec()).expect("fixture opens"));
     h.state_mut().set_option("language", "de").unwrap();
     h.state_mut().mode = Mode::AllTools;
@@ -1833,7 +1833,7 @@ fn document_tabs_expose_selection_and_activate_from_keyboard() {
             assert_eq!(doc.bytes.as_slice(), FIXTURE);
             assert!(!doc.dirty);
         }
-        if let Ok(dir) = std::env::var("PDFCRAFT_TAB_SHOTS") {
+        if let Ok(dir) = std::env::var("VISIONPDF_TAB_SHOTS") {
             let _gpu = crate::gpu();
             crate::support::settle(&mut h);
             h.render().unwrap().save(format!("{dir}/focused-tab-{key:?}.png")).unwrap();
@@ -1850,7 +1850,7 @@ fn document_tab_identity_survives_dirty_labels_and_removing_an_earlier_document(
     h.get_by_role_and_label(Role::Tab, "middle.pdf").focus();
     h.run_steps(2);
     let middle_id = h.get_by_role_and_label(Role::Tab, "middle.pdf").accesskit_node().id();
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::SetInfo { key: "Title".into(), value: "Unsaved title".into() }));
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::SetInfo { key: "Title".into(), value: "Unsaved title".into() }));
     h.run_steps(3);
     let dirty = h.get_by_role_and_label(Role::Tab, "middle.pdf (edited)");
     assert_eq!(dirty.accesskit_node().id(), middle_id);
@@ -1922,7 +1922,7 @@ fn dragging_a_tab_moves_it_and_keeps_the_same_document_active() {
         assert_eq!(doc.bytes.as_slice(), FIXTURE);
         assert!(!doc.dirty);
     }
-    if let Ok(dir) = std::env::var("PDFCRAFT_TAB_SHOTS") {
+    if let Ok(dir) = std::env::var("VISIONPDF_TAB_SHOTS") {
         let _gpu = crate::gpu();
         let to = tab(&h, "first.pdf").left_center() - egui::vec2(10.0, 0.0);
         drag_named_tab(&mut h, "last.pdf", to, false);
@@ -1962,7 +1962,7 @@ fn the_drop_line_shows_in_front_of_the_first_tab() {
     drag_named_tab(&mut h, "last.pdf", to, false);
     let during = blue_left_of(&mut h, first);
     assert!(during > before + 10, "no drop line left of the first tab ({before} -> {during})");
-    if let Ok(dir) = std::env::var("PDFCRAFT_TAB_SHOTS") {
+    if let Ok(dir) = std::env::var("VISIONPDF_TAB_SHOTS") {
         h.render().unwrap().save(format!("{dir}/dragging-to-front.png")).unwrap();
     }
 }
@@ -1995,7 +1995,7 @@ fn the_combine_tab_does_not_move_and_documents_stay_in_order() {
 /// is boxed and editable with one click; another tab puts the tool down again.
 #[test]
 fn the_edit_tab_turns_on_edit_text_and_images() {
-    use pdfcraft_ui_egui::{Mode, QuickTool};
+    use visionpdf_ui_egui::{Mode, QuickTool};
     let mut h = harness(|app| app.open_bytes("fixture.pdf", None, FIXTURE.to_vec()).expect("fixture opens"));
     assert_eq!(h.state().quick_tool, QuickTool::Select);
     support::outside_menus(&h, "Edit").click();
@@ -2019,7 +2019,7 @@ fn the_edit_tab_turns_on_edit_text_and_images() {
 /// not the grid behind the Edit panel.
 #[test]
 fn organize_pages_from_the_edit_panel_opens_its_panel() {
-    use pdfcraft_ui_egui::LeftPanel;
+    use visionpdf_ui_egui::LeftPanel;
     let mut h = harness(|app| app.open_bytes("fixture.pdf", None, FIXTURE.to_vec()).expect("fixture opens"));
     support::outside_menus(&h, "Edit").click();
     h.run_steps(3);
@@ -2047,14 +2047,14 @@ fn the_edit_panel_keeps_the_add_update_remove_menu() {
     assert_eq!(enabled(&h, "Remove watermark"), Some(false), "nothing to remove yet");
     h.get_by_label("Add watermark…").click();
     h.run_steps(3);
-    assert_eq!(h.state().dialog, Some(pdfcraft_ui_egui::Dialog::Marks(pdfcraft_engine::MarkKind::Watermark)));
+    assert_eq!(h.state().dialog, Some(visionpdf_ui_egui::Dialog::Marks(visionpdf_engine::MarkKind::Watermark)));
 }
 
 /// #3282: in a short window the rail's panel buttons scroll above the page navigation instead of
 /// being drawn under the page number field.
 #[test]
 fn short_window_rail_buttons_scroll_clear_of_page_navigation() {
-    use pdfcraft_ui_egui::side_panels::ToolsSide;
+    use visionpdf_ui_egui::side_panels::ToolsSide;
 
     for side in [ToolsSide::Right, ToolsSide::Left] {
         let (width, height) = (1000.0, 560.0);
@@ -2134,8 +2134,8 @@ fn pages_fixture(n: usize) -> Vec<u8> {
 /// and not at all with the preference off. Settings are untrusted: bad entries are ignored.
 #[test]
 fn a_file_opened_again_shows_its_last_view() {
-    use pdfcraft_ui_egui::canvas::{Fit, PageLayout};
-    let path = std::env::temp_dir().join(format!("pdfcraft-last-view-{}.pdf", std::process::id())).to_string_lossy().into_owned();
+    use visionpdf_ui_egui::canvas::{Fit, PageLayout};
+    let path = std::env::temp_dir().join(format!("visionpdf-last-view-{}.pdf", std::process::id())).to_string_lossy().into_owned();
     let p = path.clone();
     let mut h = harness(move |app| app.open_bytes("doc.pdf", Some(p), pages_fixture(3)).expect("opens"));
     let p = path.clone();
@@ -2187,8 +2187,8 @@ fn a_file_opened_again_shows_its_last_view() {
 /// #1767: a fixed zoom with a fraction comes back as it was, not rounded to a whole percent.
 #[test]
 fn a_fractional_zoom_is_remembered_exactly() {
-    use pdfcraft_ui_egui::canvas::Fit;
-    let path = std::env::temp_dir().join(format!("pdfcraft-last-view-frac-{}.pdf", std::process::id())).to_string_lossy().into_owned();
+    use visionpdf_ui_egui::canvas::Fit;
+    let path = std::env::temp_dir().join(format!("visionpdf-last-view-frac-{}.pdf", std::process::id())).to_string_lossy().into_owned();
     let p = path.clone();
     let mut h = harness(move |app| app.open_bytes("doc.pdf", Some(p), pages_fixture(3)).expect("opens"));
     h.state_mut().views[0].set_zoom(0.625);
@@ -2209,8 +2209,8 @@ fn a_fractional_zoom_is_remembered_exactly() {
 /// screen for the remembered view.
 #[test]
 fn full_screen_neither_is_remembered_nor_hides_the_last_view() {
-    use pdfcraft_ui_egui::canvas::{Fit, PageLayout};
-    let path = std::env::temp_dir().join(format!("pdfcraft-last-view-fs-{}.pdf", std::process::id())).to_string_lossy().into_owned();
+    use visionpdf_ui_egui::canvas::{Fit, PageLayout};
+    let path = std::env::temp_dir().join(format!("visionpdf-last-view-fs-{}.pdf", std::process::id())).to_string_lossy().into_owned();
     let p = path.clone();
     let mut h = harness(move |app| app.open_bytes("doc.pdf", Some(p), pages_fixture(3)).expect("opens"));
     {
@@ -2244,7 +2244,7 @@ fn full_screen_neither_is_remembered_nor_hides_the_last_view() {
 #[cfg(not(target_arch = "wasm32"))]
 #[test]
 fn home_recent_context_menu_reveals_the_target_without_opening_or_removing_it() {
-    let missing = std::env::temp_dir().join(format!("pdfcraft-recent-missing-{}", std::process::id())).join("jährlicher report.pdf");
+    let missing = std::env::temp_dir().join(format!("visionpdf-recent-missing-{}", std::process::id())).join("jährlicher report.pdf");
     assert!(!missing.exists());
     let expected = missing.to_string_lossy().into_owned();
     let target = expected.clone();
@@ -2255,7 +2255,7 @@ fn home_recent_context_menu_reveals_the_target_without_opening_or_removing_it() 
         // fixed frame count below on a busy runner.
         app.run_inline = true;
         for (name, path) in [("first.pdf", ".".to_owned()), ("target.pdf", target)] {
-            app.recent.push(pdfcraft_ui_egui::RecentFile { name: name.into(), path, pages: 1, size: 0 });
+            app.recent.push(visionpdf_ui_egui::RecentFile { name: name.into(), path, pages: 1, size: 0 });
         }
         app
     });

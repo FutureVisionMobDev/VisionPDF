@@ -1,7 +1,7 @@
 //! Continuous view renders the pages ahead of the scroll before they come into view.
 
 use egui_kittest::Harness;
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_ui_egui::VisionPDFApp;
 
 const PAGES: usize = 20;
 

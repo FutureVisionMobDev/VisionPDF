@@ -4,9 +4,9 @@
 use egui::{Key, Modifiers};
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_engine::Edit;
-use pdfcraft_render::DestView;
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_engine::Edit;
+use visionpdf_render::DestView;
+use visionpdf_ui_egui::VisionPDFApp;
 
 /// Three 300×400 pages, each with a line of Helvetica text at (40, 150), the first optionally
 /// turned by `rotate` (the others upright).
@@ -193,7 +193,7 @@ fn a_bookmark_made_with_text_selected_in_a_turned_view_goes_to_the_corner_shown_
 
 #[test]
 fn a_bookmark_in_a_spread_of_unequal_pages_goes_to_the_page_crossing_the_top_of_the_window() {
-    use pdfcraft_ui_egui::canvas::PageLayout;
+    use visionpdf_ui_egui::canvas::PageLayout;
     // Pages 1 and 2 share a row; page 1 is shorter, so it is centred and starts below page 2's top.
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
         let mut app = VisionPDFApp::new();

@@ -5,7 +5,7 @@ use crate::support;
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::{LinkOrigin, VisionPDFApp, PendingLink};
+use visionpdf_ui_egui::{LinkOrigin, VisionPDFApp, PendingLink};
 
 use crate::gpu;
 
@@ -86,7 +86,7 @@ fn remote_harness(source_path: Option<String>, file: &str, destination: &str) ->
 }
 
 fn linked_pages(count: usize, password: Option<&str>) -> Vec<u8> {
-    use pdfcraft_engine::{Edit, Protection, Session};
+    use visionpdf_engine::{Edit, Protection, Session};
     let mut session = Session::new();
     let id = session.open("target.pdf", None, std::sync::Arc::new(fixture()), None).unwrap();
     for page in 1..count {
@@ -140,7 +140,7 @@ fn click_field(h: &mut Harness<'static, VisionPDFApp>, name: &str) {
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
         let f = doc.form.iter().find(|f| f.name == name).unwrap();
-        pdfcraft_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen").center()
+        visionpdf_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen").center()
     };
     click_at(h, at);
 }
@@ -244,7 +244,7 @@ fn a_web_bookmark_asks_first_like_a_link() {
 #[test]
 fn a_bookmark_to_another_pdf_opens_it_instead_of_moving_here() {
     let _gpu = gpu();
-    let dir = std::env::temp_dir().join(format!("pdfcraft-ui-bookmark-gotor-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-ui-bookmark-gotor-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     std::fs::write(dir.join("target.pdf"), linked_pages(2, None)).unwrap();
     let mut h = bookmark_harness(Some(dir.join("source.pdf").to_string_lossy().into_owned()));
@@ -263,7 +263,7 @@ fn a_bookmark_to_another_pdf_opens_it_instead_of_moving_here() {
 #[test]
 fn bookmarks_go_through_the_link_policy() {
     let _gpu = gpu();
-    let dir = std::env::temp_dir().join(format!("pdfcraft-ui-bookmark-policy-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-ui-bookmark-policy-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let target = dir.join("absent.pdf");
@@ -311,7 +311,7 @@ fn a_link_asks_first_and_opens_when_allowed() {
 #[test]
 fn a_local_gotor_link_opens_in_a_tab_and_applies_its_destination() {
     let _gpu = gpu();
-    let dir = std::env::temp_dir().join(format!("pdfcraft-ui-gotor-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-ui-gotor-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     std::fs::write(dir.join("target.pdf"), linked_pages(2, None)).unwrap();
     let mut h = remote_harness(Some(dir.join("source.pdf").to_string_lossy().into_owned()), "target.pdf", "[1 /FitH 200]");
@@ -351,7 +351,7 @@ fn named_pages() -> Vec<u8> {
 #[test]
 fn a_gotor_link_to_a_named_destination_opens_at_its_page() {
     let _gpu = gpu();
-    let dir = std::env::temp_dir().join(format!("pdfcraft-ui-gotor-named-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-ui-gotor-named-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     std::fs::write(dir.join("target.pdf"), named_pages()).unwrap();
     for (destination, page) in [("/there", 2), ("(here)", 1)] {
@@ -373,7 +373,7 @@ fn a_gotor_link_to_a_named_destination_opens_at_its_page() {
 #[test]
 fn a_remote_destination_survives_password_retries_and_cancel_opens_no_tab() {
     let _gpu = gpu();
-    let dir = std::env::temp_dir().join(format!("pdfcraft-ui-gotor-password-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-ui-gotor-password-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     std::fs::write(dir.join("target.pdf"), linked_pages(2, Some("test-password"))).unwrap();
 
@@ -405,7 +405,7 @@ fn a_remote_destination_survives_password_retries_and_cancel_opens_no_tab() {
 #[test]
 fn a_gotor_link_to_a_directory_or_device_is_refused_without_reading_it() {
     let _gpu = gpu();
-    let dir = std::env::temp_dir().join(format!("pdfcraft-ui-gotor-not-a-file-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-ui-gotor-not-a-file-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(dir.join("folder.pdf")).unwrap();
     // Only Unix adds a target (a device), so elsewhere the list is never changed.
@@ -593,7 +593,7 @@ fn a_numeric_host_is_shown_as_the_address_it_goes_to() {
 #[test]
 fn an_absolute_gotor_waits_for_consent_and_keeps_its_destination_across_tabs() {
     let _gpu = gpu();
-    let dir = std::env::temp_dir().join(format!("pdfcraft-ui-gotor-consent-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-ui-gotor-consent-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let target = dir.join("target with spaces.pdf");
@@ -621,7 +621,7 @@ fn an_absolute_gotor_waits_for_consent_and_keeps_its_destination_across_tabs() {
     assert!(h.state().pending_remote_link.is_none());
     assert_eq!(h.state().views.len(), 3);
     assert_eq!(h.state().views[2].current, 1);
-    assert_eq!(h.state().views[2].fit, pdfcraft_ui_egui::canvas::Fit::Width);
+    assert_eq!(h.state().views[2].fit, visionpdf_ui_egui::canvas::Fit::Width);
     assert_eq!(h.state().active, Some(2));
     let target_doc = h.state().session.get(h.state().views[2].id).unwrap();
     assert_eq!(target_doc.path.as_deref(), Some(file));
@@ -635,7 +635,7 @@ fn an_absolute_gotor_waits_for_consent_and_keeps_its_destination_across_tabs() {
 #[test]
 fn cancelling_an_absolute_gotor_by_button_escape_or_dismissal_changes_nothing() {
     let _gpu = gpu();
-    let target = std::env::temp_dir().join(format!("pdfcraft-ui-gotor-cancel-{}.pdf", std::process::id()));
+    let target = std::env::temp_dir().join(format!("visionpdf-ui-gotor-cancel-{}.pdf", std::process::id()));
     for answer in ["button", "escape", "outside"] {
         let mut h = remote_harness(None, target.to_str().unwrap(), "[1 /Fit]");
         let source = h.state().views[0].id;
@@ -666,7 +666,7 @@ fn cancelling_an_absolute_gotor_by_button_escape_or_dismissal_changes_nothing() 
 #[test]
 fn consenting_to_absolute_gotor_still_validates_the_target() {
     let _gpu = gpu();
-    let dir = std::env::temp_dir().join(format!("pdfcraft-ui-gotor-consent-invalid-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-ui-gotor-consent-invalid-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(dir.join("folder.pdf")).unwrap();
     std::fs::write(dir.join("notes.txt"), b"text").unwrap();
@@ -682,7 +682,7 @@ fn consenting_to_absolute_gotor_still_validates_the_target() {
     {
         std::os::unix::fs::symlink("/dev/zero", dir.join("zero.pdf")).unwrap();
         cases.push(("zero.pdf", "Couldn't follow linked PDF: the linked path is not a regular file"));
-        std::fs::File::create(dir.join("large.pdf")).unwrap().set_len(pdfcraft_engine::MAX_REMOTE_DOCUMENT_BYTES + 1).unwrap();
+        std::fs::File::create(dir.join("large.pdf")).unwrap().set_len(visionpdf_engine::MAX_REMOTE_DOCUMENT_BYTES + 1).unwrap();
         cases.push(("large.pdf", "Couldn't follow linked PDF: the linked file is too large to open"));
     }
     for (name, expected_error) in cases {
@@ -717,7 +717,7 @@ fn consenting_to_absolute_gotor_still_validates_the_target() {
 #[test]
 fn an_approved_absolute_gotor_preserves_password_retries_and_cancellation() {
     let _gpu = gpu();
-    let dir = std::env::temp_dir().join(format!("pdfcraft-ui-gotor-consent-password-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-ui-gotor-consent-password-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let target = dir.join("encrypted.pdf");
     std::fs::write(&target, linked_pages(2, Some("test-password"))).unwrap();
@@ -755,7 +755,7 @@ fn an_approved_absolute_gotor_preserves_password_retries_and_cancellation() {
 #[test]
 fn closing_the_source_invalidates_pending_absolute_gotor_consent() {
     let _gpu = gpu();
-    let target = std::env::temp_dir().join(format!("pdfcraft-ui-gotor-closed-source-{}.pdf", std::process::id()));
+    let target = std::env::temp_dir().join(format!("visionpdf-ui-gotor-closed-source-{}.pdf", std::process::id()));
     let mut h = remote_harness(None, target.to_str().unwrap(), "[0 /Fit]");
     click_remote_link(&mut h);
     h.state_mut().close_tab(0);
@@ -860,7 +860,7 @@ fn highlighted_link_cancel_and_escape_do_not_open_url() {
 fn highlighted_internal_link_navigates_after_save_and_reopen() {
     let _gpu = gpu();
     let bytes = overlapping_annotation_fixture("Highlight", true);
-    let mut session = pdfcraft_engine::Session::new();
+    let mut session = visionpdf_engine::Session::new();
     let id = session.open("highlighted-link.pdf", None, std::sync::Arc::new(bytes), None).unwrap();
     let saved = session.save_bytes(id).unwrap().as_ref().clone();
     let mut h = overlapping_annotation_harness(saved);
@@ -921,7 +921,7 @@ fn active_comment_gesture_keeps_highlighted_link_click() {
     h.run_steps(2);
     h.drag_at(at);
     h.run_steps(1);
-    h.state_mut().views[0].comments.gesture = Some(pdfcraft_ui_egui::comments::Gesture::Move { page: 0, index: 1, from: at });
+    h.state_mut().views[0].comments.gesture = Some(visionpdf_ui_egui::comments::Gesture::Move { page: 0, index: 1, from: at });
     h.drop_at(at);
     h.run_steps(4);
     assert_eq!(h.state().pending_link, None);

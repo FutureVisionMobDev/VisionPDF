@@ -8,7 +8,7 @@
 const WINDOW_KEY: &str = "window";
 /// The size egui opens a stored size below (its floor for "ridiculously small" windows), in points.
 const EGUI_FLOOR: f32 = 64.0;
-/// The size a window that opened at [`EGUI_FLOOR`] is given (apps/pdfcraft opens a first start at
+/// The size a window that opened at [`EGUI_FLOOR`] is given (apps/visionpdf opens a first start at
 /// this size too), at most nine tenths of the monitor.
 const USABLE: egui::Vec2 = egui::vec2(1440.0, 920.0);
 

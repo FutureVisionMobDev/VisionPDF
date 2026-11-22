@@ -855,7 +855,7 @@ pub(crate) fn node_color(h: &XHost, node: usize, path: &str) -> String {
 /// one serves every side, two alternate (0, 1, 0, 1), three reuse the second for the fourth
 /// (0, 1, 2, 1). `None` past the four sides, and when none is
 /// listed (the side is a default one). The layout picks edges and corners with the same
-/// pattern (`drawn_side` in `pdfcraft_xfa`, which this crate doesn't depend on); tests on both
+/// pattern (`drawn_side` in `visionpdf_xfa`, which this crate doesn't depend on); tests on both
 /// sides pin it.
 fn drawn_index(listed: usize, index: usize) -> Option<usize> {
     match listed {

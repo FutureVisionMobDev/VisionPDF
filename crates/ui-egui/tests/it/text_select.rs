@@ -3,7 +3,7 @@
 
 use egui::{Event, Modifiers, MouseWheelUnit, PointerButton, Pos2, TouchPhase};
 use egui_kittest::Harness;
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_ui_egui::VisionPDFApp;
 
 /// One 300×200 page with two lines of Helvetica text.
 fn two_lines() -> Vec<u8> {
@@ -233,7 +233,7 @@ fn selected_text_copy_edit_and_context_menus() {
     let (mut h, at) = harness(|app| app.system_clipboard = false);
     click(&mut h, at);
     click(&mut h, at);
-    h.state_mut().quick_tool = pdfcraft_ui_egui::QuickTool::Hand;
+    h.state_mut().quick_tool = visionpdf_ui_egui::QuickTool::Hand;
     h.run_steps(2); // Hide floating Copy so this test can only reach menu entries.
     crate::support::open_menu(&mut h, "Edit");
     crate::support::menu_row(&h, "Copy").click();
@@ -243,7 +243,7 @@ fn selected_text_copy_edit_and_context_menus() {
         did_copy |= copied(&h, "quick");
     }
     assert!(did_copy, "Edit Copy emits the selected text");
-    h.state_mut().quick_tool = pdfcraft_ui_egui::QuickTool::Hand;
+    h.state_mut().quick_tool = visionpdf_ui_egui::QuickTool::Hand;
     h.run_steps(2); // Hide the floating bar: the remaining Copy must be in the context menu.
     h.event(Event::PointerMoved(at));
     for pressed in [true, false] {
@@ -297,9 +297,9 @@ fn selected_text_copy_command_requires_selection() {
 fn selected_text_copy_floating_button_honours_permissions() {
     use egui_kittest::kittest::Queryable;
     for password in ["pw", "owner"] {
-        let mut doc = pdfcraft_cos::Document::open(std::sync::Arc::new(two_lines())).unwrap();
-        doc.set_encryption(&pdfcraft_cos::NewEncryption {
-            algorithm: pdfcraft_cos::Algorithm::Aes256,
+        let mut doc = visionpdf_cos::Document::open(std::sync::Arc::new(two_lines())).unwrap();
+        doc.set_encryption(&visionpdf_cos::NewEncryption {
+            algorithm: visionpdf_cos::Algorithm::Aes256,
             user_password: "pw",
             owner_password: "owner",
             permissions: -1 ^ 0b1_0000,
@@ -307,7 +307,7 @@ fn selected_text_copy_floating_button_honours_permissions() {
             seed: [4; 32],
         })
         .unwrap();
-        let bytes = pdfcraft_cos::write_full(&doc, &Default::default()).unwrap();
+        let bytes = visionpdf_cos::write_full(&doc, &Default::default()).unwrap();
         let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
             let mut app = VisionPDFApp::new();
             app.set_option("language", "en").unwrap();
@@ -415,9 +415,9 @@ fn selected_text_copy_without_system_clipboard_builds_no_html() {
 /// A document that withholds copying gives neither the text nor its HTML.
 #[test]
 fn selected_text_copy_with_formatting_honours_permissions() {
-    let mut doc = pdfcraft_cos::Document::open(std::sync::Arc::new(two_lines())).unwrap();
-    doc.set_encryption(&pdfcraft_cos::NewEncryption {
-        algorithm: pdfcraft_cos::Algorithm::Aes256,
+    let mut doc = visionpdf_cos::Document::open(std::sync::Arc::new(two_lines())).unwrap();
+    doc.set_encryption(&visionpdf_cos::NewEncryption {
+        algorithm: visionpdf_cos::Algorithm::Aes256,
         user_password: "pw",
         owner_password: "owner",
         permissions: -1 ^ 0b1_0000,
@@ -425,7 +425,7 @@ fn selected_text_copy_with_formatting_honours_permissions() {
         seed: [4; 32],
     })
     .unwrap();
-    let bytes = pdfcraft_cos::write_full(&doc, &Default::default()).unwrap();
+    let bytes = visionpdf_cos::write_full(&doc, &Default::default()).unwrap();
     let (mut h, at) = harness_with(bytes, |app| app.submit_password(Some("pw".into())));
     let sets = html_clipboard(h.state_mut(), true);
     click(&mut h, at);
@@ -1021,7 +1021,7 @@ fn a_highlight_dragged_back_across_pages_selects_its_part_where_the_drag_ended()
 #[test]
 fn a_page_range_redaction_is_not_followed_up_as_a_selection() {
     let mut h = three_pages();
-    h.state_mut().redact_pages_draft = pdfcraft_ui_egui::RedactPagesDraft { current: false, from: 1, to: 3 };
+    h.state_mut().redact_pages_draft = visionpdf_ui_egui::RedactPagesDraft { current: false, from: 1, to: 3 };
     h.state_mut().redact_pages();
     h.run_steps(3);
     let app = h.state();

@@ -16,7 +16,7 @@ use std::sync::mpsc::{self, RecvTimeoutError};
 use std::sync::{Arc, Mutex, PoisonError};
 use std::time::{Duration, SystemTime};
 
-use pdfcraft_engine::DocId;
+use visionpdf_engine::DocId;
 
 use crate::VisionPDFApp;
 
@@ -401,7 +401,7 @@ impl VisionPDFApp {
             let Some(ctx) = self.ctx.clone() else { return false };
             let (tx, rx) = mpsc::channel();
             let out = self.watch.found.clone();
-            if std::thread::Builder::new().name("pdfcraft-watch".into()).spawn(move || run(rx, out, ctx)).is_err() {
+            if std::thread::Builder::new().name("visionpdf-watch".into()).spawn(move || run(rx, out, ctx)).is_err() {
                 return false;
             }
             self.watch.inbox = Some(tx);
@@ -532,7 +532,7 @@ mod tests {
 
     impl TempDir {
         fn new(test: &str, bytes: &[u8]) -> (Self, String) {
-            let dir = std::env::temp_dir().join(format!("pdfcraft-watch-{test}-{}", std::process::id()));
+            let dir = std::env::temp_dir().join(format!("visionpdf-watch-{test}-{}", std::process::id()));
             let _ = std::fs::remove_dir_all(&dir);
             std::fs::create_dir_all(&dir).unwrap();
             let path = dir.join("thesis.pdf").to_string_lossy().into_owned();
@@ -578,7 +578,7 @@ mod tests {
         found
     }
 
-    fn doc<'a>(h: &'a Harness<'static, VisionPDFApp>) -> &'a pdfcraft_engine::Document {
+    fn doc<'a>(h: &'a Harness<'static, VisionPDFApp>) -> &'a visionpdf_engine::Document {
         let app = h.state();
         app.session.get(app.views[0].id).unwrap()
     }
@@ -608,7 +608,7 @@ mod tests {
         let mut h = harness(&path);
         let app = h.state_mut();
         app.views[0].select_pages(&[0]);
-        app.apply_edit(pdfcraft_engine::Edit::RotatePages { pages: vec![0], degrees: 90 });
+        app.apply_edit(visionpdf_engine::Edit::RotatePages { pages: vec![0], degrees: 90 });
         xattr::set(&path, "com.apple.quarantine", b"2082;1234;Preview;").unwrap();
         // Exercise Save before the worker has consumed the metadata change.
         assert!(h.state_mut().save_active(SaveTarget::InPlace), "ctime alone must not cause an overwrite prompt");
@@ -629,7 +629,7 @@ mod tests {
         let mut h = harness(&path);
         let app = h.state_mut();
         app.views[0].select_pages(&[0]);
-        app.apply_edit(pdfcraft_engine::Edit::RotatePages { pages: vec![0], degrees: 90 });
+        app.apply_edit(visionpdf_engine::Edit::RotatePages { pages: vec![0], degrees: 90 });
         assert!(app.save_active(SaveTarget::InPlace), "the document save uses upstream preservation limits");
         let mut saved = vec![0; binding.len()];
         let count = rustix::fs::lgetxattr(&path, "com.apple.LaunchServices.OpenWith", saved.as_mut_slice()).unwrap();
@@ -650,7 +650,7 @@ mod tests {
         std::fs::File::options().write(true).open(&path).unwrap().set_modified(old).unwrap();
         let app = h.state_mut();
         app.views[0].select_pages(&[0]);
-        app.apply_edit(pdfcraft_engine::Edit::RotatePages { pages: vec![0], degrees: 90 });
+        app.apply_edit(visionpdf_engine::Edit::RotatePages { pages: vec![0], degrees: 90 });
         assert!(!app.save_active(SaveTarget::InPlace));
         assert!(matches!(app.dialog, Some(crate::Dialog::OverwriteChanged)));
     }
@@ -665,7 +665,7 @@ mod tests {
         let stale = find_new_version(h.state_mut(), &path, &fixture(3));
         let app = h.state_mut();
         app.views[0].select_pages(&[0]);
-        app.apply_edit(pdfcraft_engine::Edit::RotatePages { pages: vec![0], degrees: 90 });
+        app.apply_edit(visionpdf_engine::Edit::RotatePages { pages: vec![0], degrees: 90 });
         // B is on disk, not the A the document came from: Save asks first (#2166), and the
         // user saves C over it.
         assert!(!app.save_active(SaveTarget::InPlace), "asks before writing over B");
@@ -690,7 +690,7 @@ mod tests {
         let new_path = dir.0.join("copy.pdf").to_string_lossy().into_owned();
         let app = h.state_mut();
         app.views[0].select_pages(&[0]);
-        app.apply_edit(pdfcraft_engine::Edit::RotatePages { pages: vec![0], degrees: 90 });
+        app.apply_edit(visionpdf_engine::Edit::RotatePages { pages: vec![0], degrees: 90 });
         app.save_override = Some(new_path.clone());
         assert!(app.save_active(SaveTarget::As), "saved as the new file");
         app.watch.found.lock().unwrap().extend(stale);

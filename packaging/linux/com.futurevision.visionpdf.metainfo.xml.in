@@ -36,7 +36,7 @@
   <screenshots>
     <screenshot type="default">
       <caption>A PDF open with its threaded comments</caption>
-      <image>https://raw.githubusercontent.com/FutureVisionMobDev/VisionPDF/main/docs/images/pdfcraft-viewer.png</image>
+      <image>https://raw.githubusercontent.com/FutureVisionMobDev/VisionPDF/main/docs/images/visionpdf-viewer.png</image>
     </screenshot>
   </screenshots>
   <branding>
@@ -52,7 +52,7 @@
     <control>tablet</control>
   </supports>
   <provides>
-    <binary>pdfcraft</binary>
+    <binary>visionpdf</binary>
     <mediatype>application/pdf</mediatype>
   </provides>
   <content_rating type="oars-1.1"/>

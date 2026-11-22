@@ -5,8 +5,8 @@ use egui::accesskit::Role;
 use egui::{Pos2, pos2};
 use egui_kittest::Harness;
 use egui_kittest::kittest::{NodeT, Queryable};
-use pdfcraft_render::Annotation;
-use pdfcraft_ui_egui::{VisionPDFApp, QuickTool};
+use visionpdf_render::Annotation;
+use visionpdf_ui_egui::{VisionPDFApp, QuickTool};
 
 use crate::support;
 
@@ -117,10 +117,10 @@ fn sidebar_comment_centres_the_annotation_at_high_zoom() {
             app.set_option("layout", layout).unwrap();
             app.set_option("zoom", "800").unwrap();
             app.views[0].rotation = rotation;
-            let shape = pdfcraft_engine::Shape::Note { at: [150.0, 90.0], icon: pdfcraft_engine::NoteIcon::Comment };
-            assert!(app.apply_edit(pdfcraft_engine::Edit::AddAnnotation(pdfcraft_engine::NewAnnotation {
+            let shape = visionpdf_engine::Shape::Note { at: [150.0, 90.0], icon: visionpdf_engine::NoteIcon::Comment };
+            assert!(app.apply_edit(visionpdf_engine::Edit::AddAnnotation(visionpdf_engine::NewAnnotation {
                 page: 1,
-                style: pdfcraft_engine::Style::default_for(&shape),
+                style: visionpdf_engine::Style::default_for(&shape),
                 shape,
                 contents: "Reveal this note".into(),
                 author: "Tester".into(),
@@ -147,7 +147,7 @@ fn sidebar_comment_centres_the_annotation_at_high_zoom() {
         assert!((view.zoom - 8.0).abs() < 0.01, "revealing a comment preserves zoom");
         if layout == "continuous"
             && rotation == 0
-            && let Ok(dir) = std::env::var("PDFCRAFT_SHOTS")
+            && let Ok(dir) = std::env::var("VISIONPDF_SHOTS")
         {
             let _gpu = crate::gpu();
             crate::support::settle(&mut h);
@@ -173,10 +173,10 @@ fn double_click_a_cards_text(selected: bool) {
         app.open_bytes("text.pdf", None, TEXT_FIXTURE.to_vec()).expect("opens");
         app.set_option("left", "closed").unwrap();
         app.set_option("panel", "comments").unwrap();
-        let shape = pdfcraft_engine::Shape::Note { at: [150.0, 90.0], icon: pdfcraft_engine::NoteIcon::Comment };
-        assert!(app.apply_edit(pdfcraft_engine::Edit::AddAnnotation(pdfcraft_engine::NewAnnotation {
+        let shape = visionpdf_engine::Shape::Note { at: [150.0, 90.0], icon: visionpdf_engine::NoteIcon::Comment };
+        assert!(app.apply_edit(visionpdf_engine::Edit::AddAnnotation(visionpdf_engine::NewAnnotation {
             page: 0,
-            style: pdfcraft_engine::Style::default_for(&shape),
+            style: visionpdf_engine::Style::default_for(&shape),
             shape,
             contents: "Edit this note".into(),
             author: "Tester".into(),
@@ -215,7 +215,7 @@ fn dragging_over_text_with_the_highlighter_highlights_it() {
     assert_eq!(c.len(), 1, "{c:?}");
     assert_eq!((c[0].subtype.as_str(), c[0].author.as_deref(), c[0].quads.len()), ("Highlight", Some("Tester"), 1));
     assert_eq!(h.state().views[0].comments.selected, Some((0, 0)), "the new comment is selected");
-    assert_eq!(h.state().quick_tool, QuickTool::Comment(pdfcraft_ui_egui::comments::CommentTool::Highlight), "the highlighter stays on");
+    assert_eq!(h.state().quick_tool, QuickTool::Comment(visionpdf_ui_egui::comments::CommentTool::Highlight), "the highlighter stays on");
     // The Comments panel opened with the tool and lists it.
     h.get_by_label_contains("Comments");
     assert_eq!(h.state().session.get(h.state().views[0].id).unwrap().can_undo(), Some("Add highlight"));
@@ -223,7 +223,7 @@ fn dragging_over_text_with_the_highlighter_highlights_it() {
 
 #[test]
 fn the_quick_bar_colour_changes_the_selected_comment() {
-    use pdfcraft_ui_egui::comments::CommentTool;
+    use visionpdf_ui_egui::comments::CommentTool;
 
     let mut h = harness(|app| app.set_option("quick", "highlight").unwrap());
     let (a, b) = {
@@ -247,7 +247,7 @@ fn the_quick_bar_colour_changes_the_selected_comment() {
 
 #[test]
 fn the_quick_bar_colour_changes_the_selected_arrow() {
-    use pdfcraft_ui_egui::comments::CommentTool;
+    use visionpdf_ui_egui::comments::CommentTool;
 
     // Arrows are saved as Line annotations; the Arrow tool's colour must still reach them.
     let mut h = harness(|app| app.set_option("quick", "arrow").unwrap());
@@ -269,7 +269,7 @@ fn the_quick_bar_colour_changes_the_selected_arrow() {
 
 #[test]
 fn the_quick_bar_colour_skips_the_selected_comment_when_commenting_is_forbidden() {
-    use pdfcraft_ui_egui::comments::CommentTool;
+    use visionpdf_ui_egui::comments::CommentTool;
 
     // One page with a yellow highlight, encrypted to allow printing only (no commenting).
     let plain = b"%PDF-1.7
@@ -279,9 +279,9 @@ fn the_quick_bar_colour_skips_the_selected_comment_when_commenting_is_forbidden(
 4 0 obj << /Type /Annot /Subtype /Highlight /Rect [20 140 120 165] /QuadPoints [20 165 120 165 20 140 120 140] /C [1 0.94 0] >> endobj
 trailer << /Root 1 0 R >>
 %%EOF";
-    let mut doc = pdfcraft_cos::Document::open(std::sync::Arc::new(plain.to_vec())).expect("fixture parses");
-    doc.set_encryption(&pdfcraft_cos::NewEncryption {
-        algorithm: pdfcraft_cos::Algorithm::Aes256,
+    let mut doc = visionpdf_cos::Document::open(std::sync::Arc::new(plain.to_vec())).expect("fixture parses");
+    doc.set_encryption(&visionpdf_cos::NewEncryption {
+        algorithm: visionpdf_cos::Algorithm::Aes256,
         user_password: "",
         owner_password: "owner",
         permissions: 0b0100,
@@ -289,7 +289,7 @@ trailer << /Root 1 0 R >>
         seed: [5; 32],
     })
     .expect("encrypts");
-    let bytes = pdfcraft_cos::write_full(&doc, &Default::default()).expect("writes");
+    let bytes = visionpdf_cos::write_full(&doc, &Default::default()).expect("writes");
     let mut h = harness(move |app| {
         app.open_bytes("restricted.pdf", None, bytes).expect("opens restricted");
         app.set_option("quick", "highlight").unwrap();
@@ -397,7 +397,7 @@ fn clicking_the_page_gives_the_keyboard_back_from_a_highlight_note() {
 fn drawing_another_comment_takes_the_keyboard_from_a_highlight_note() {
     // #2669: a highlight's note kept the keyboard while rectangles and ovals were drawn (a drag
     // is not a click, so the editor never let go), and V and H were typed into it.
-    use pdfcraft_ui_egui::comments::CommentTool;
+    use visionpdf_ui_egui::comments::CommentTool;
     let mut h = harness(|app| {
         app.set_option("quick", "highlight").unwrap();
         app.set_option("panel", "comments").unwrap();
@@ -616,7 +616,7 @@ fn selected_text_comment_action_opens_note_composer() {
     h.run_steps(2);
     assert!(matches!(
         h.state().views[0].comments.composer.as_ref().map(|c| &c.kind),
-        Some(pdfcraft_ui_egui::comments::ComposerKind::TextNote { .. })
+        Some(visionpdf_ui_egui::comments::ComposerKind::TextNote { .. })
     ));
     h.get_by_label("Add comment");
     assert!(h.query_by_label("Sticky note").is_none());
@@ -648,7 +648,7 @@ fn selection_note_replaced_by_sticky_note_posts_at_the_new_anchor() {
 
 #[test]
 fn selection_note_posts_highlight_and_hovers_author_and_comment() {
-    let _gpu = std::env::var_os("PDFCRAFT_SHOTS").map(|_| crate::gpu());
+    let _gpu = std::env::var_os("VISIONPDF_SHOTS").map(|_| crate::gpu());
     let mut h = harness(|_| {});
     h.state_mut().views[0].select_text(0, 4, 8);
     let selected = h.state().views[0].selected_text().unwrap();
@@ -677,7 +677,7 @@ fn selection_note_posts_highlight_and_hovers_author_and_comment() {
     h.run_steps(3);
     h.get_by_label(&hover);
     assert!(h.query_by_label_contains(&selected).is_none(), "hover omits the selected text");
-    if let Ok(dir) = std::env::var("PDFCRAFT_SHOTS") {
+    if let Ok(dir) = std::env::var("VISIONPDF_SHOTS") {
         h.render().unwrap().save(format!("{dir}/selection-comment-hover.png")).unwrap();
     }
 }
@@ -761,7 +761,7 @@ fn pen_strokes_stay_unselected_so_writing_continues() {
     let kinds: Vec<&str> = c.iter().map(|a| a.subtype.as_str()).collect();
     assert_eq!(kinds, ["Ink", "Ink"], "{c:?}");
     assert_eq!(h.state().views[0].comments.selected, None, "nothing is selected after drawing");
-    assert_eq!(h.state().quick_tool, QuickTool::Comment(pdfcraft_ui_egui::comments::CommentTool::Ink), "the pen stays on");
+    assert_eq!(h.state().quick_tool, QuickTool::Comment(visionpdf_ui_egui::comments::CommentTool::Ink), "the pen stays on");
     // Other drawn shapes are still selected when made.
     h.state_mut().set_option("quick", "square").unwrap();
     drag_pt(&mut h, (180.0, 100.0), (260.0, 40.0));
@@ -796,7 +796,7 @@ fn sticky_note_composer_posts_and_returns_to_select() {
 #[test]
 fn a_sticky_note_on_a_turned_page_is_picked_where_it_is_drawn() {
     let mut h = harness(|app| {
-        app.apply_edit(pdfcraft_engine::Edit::RotatePages { pages: vec![0], degrees: 90 });
+        app.apply_edit(visionpdf_engine::Edit::RotatePages { pages: vec![0], degrees: 90 });
         app.set_option("quick", "note").unwrap();
     });
     crate::support::settle(&mut h);
@@ -857,10 +857,10 @@ fn the_edit_composer_shows_while_part_of_its_comment_is_on_screen() {
     let mut h = harness(|app| app.set_option("quick", "square").unwrap());
     drag_pt(&mut h, (20.0, 190.0), (280.0, 10.0));
     // What "Edit text…" opens: the composer anchored at the comment's top-right corner.
-    h.state_mut().views[0].comments.composer = Some(pdfcraft_ui_egui::comments::Composer {
+    h.state_mut().views[0].comments.composer = Some(visionpdf_ui_egui::comments::Composer {
         page: 0,
         at: [280.0, 190.0],
-        kind: pdfcraft_ui_egui::comments::ComposerKind::Edit(0),
+        kind: visionpdf_ui_egui::comments::ComposerKind::Edit(0),
         text: String::new(),
         focus: true,
     });
@@ -930,7 +930,7 @@ fn a_text_box_is_sized_by_dragging() {
     h.hover_at(to);
     h.run_steps(2);
     assert!(
-        matches!(&h.state().views[0].comments.gesture, Some(pdfcraft_ui_egui::comments::Gesture::Draw { points, .. }) if points.len() == 2),
+        matches!(&h.state().views[0].comments.gesture, Some(visionpdf_ui_egui::comments::Gesture::Draw { points, .. }) if points.len() == 2),
         "the box shows while it is dragged"
     );
     h.drop_at(to);
@@ -955,14 +955,14 @@ fn a_text_box_is_sized_by_dragging() {
     assert!(near(r, [150.0, 180.0, 250.0, 190.0]), "{r:?}");
 
     // Drags of two and four pixels are clicks: the box fits its text.
-    let fitted = pdfcraft_ui_egui::comments::text_box_rect([0.0, 0.0], "Hi", 12.0, 0);
+    let fitted = visionpdf_ui_egui::comments::text_box_rect([0.0, 0.0], "Hi", 12.0, 0);
     for (text, x, d) in [("Hi", 200.0, 2.0), ("Hi again", 270.0, 4.0)] {
         h.state_mut().set_option("quick", "freetext").unwrap();
         let p = at(&h, x, 40.0);
         drag(&mut h, p, p + egui::vec2(d, d));
         post_text(&mut h, text);
         let r = rect_of(&h, text).map(f64::from);
-        let fitted = if text == "Hi" { fitted } else { pdfcraft_ui_egui::comments::text_box_rect([0.0, 0.0], text, 12.0, 0) };
+        let fitted = if text == "Hi" { fitted } else { visionpdf_ui_egui::comments::text_box_rect([0.0, 0.0], text, 12.0, 0) };
         assert!((r[2] - r[0] - (fitted[2] - fitted[0])).abs() < 1.0 && (r[3] - r[1] - (fitted[3] - fitted[1])).abs() < 1.0, "{text}: {r:?}");
     }
 }
@@ -997,13 +997,13 @@ fn a_dragged_text_box_follows_a_rotated_view() {
 /// border does not cut off the last line.
 #[test]
 fn a_dragged_text_box_wraps_inside_its_border() {
-    use pdfcraft_ui_egui::comments::CommentTool;
+    use visionpdf_ui_egui::comments::CommentTool;
     let mut h = harness(|app| {
         app.set_option("quick", "freetext").unwrap();
         app.comment_prefs.set_width(CommentTool::TextBox, 3.0);
     });
     // Wide enough for "word word" inside a 2 pt padding, not inside 2 + 3 pt.
-    let w = pdfcraft_engine::annot_text::text_width("word word", 12.0) as f32 + 6.0;
+    let w = visionpdf_engine::annot_text::text_width("word word", 12.0) as f32 + 6.0;
     drag_pt(&mut h, (20.0, 190.0), (20.0 + w, 180.0));
     post_text(&mut h, "word word");
     let r = rect_of(&h, "word word");
@@ -1157,7 +1157,7 @@ fn arrow_nudge_skips_locked_comments_and_duplicate_selection_entries() {
         drag_pt(&mut h, a, b);
     }
     h.state_mut().set_option("quick", "select").unwrap();
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::LockAnnotation { page: 0, index: 1, locked: true }));
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::LockAnnotation { page: 0, index: 1, locked: true }));
     h.run_steps(2);
     let before = comments(&h);
     h.state_mut().views[0].comments.selected = Some((0, 0));
@@ -1288,7 +1288,7 @@ fn shift_holds_new_lines_and_sides_level_or_plumb() {
 #[test]
 fn a_shape_just_drawn_resizes_from_its_handles_without_the_select_tool() {
     // #2338: the new shape showed its handles, but only the Select tool answered them.
-    let square = QuickTool::Comment(pdfcraft_ui_egui::comments::CommentTool::Rectangle);
+    let square = QuickTool::Comment(visionpdf_ui_egui::comments::CommentTool::Rectangle);
     let mut h = harness(|app| app.set_option("quick", "square").unwrap());
     drag_pt(&mut h, (40.0, 100.0), (140.0, 40.0));
     assert_eq!(h.state().views[0].comments.selected, Some((0, 0)), "the new rectangle is selected");
@@ -1334,7 +1334,7 @@ fn the_panel_posts_comments_and_replies() {
 
 /// The side panel's width as egui keeps it from one frame to the next.
 fn panel_width(h: &Harness<'static, VisionPDFApp>) -> f32 {
-    h.ctx.data(|data| data.get_temp::<egui::Rect>(egui::Id::unique("pdfcraft-inspector-body"))).expect("the inspector body is shown").width()
+    h.ctx.data(|data| data.get_temp::<egui::Rect>(egui::Id::unique("visionpdf-inspector-body"))).expect("the inspector body is shown").width()
 }
 
 #[test]
@@ -1383,8 +1383,8 @@ fn line_ending_properties_change_and_undo() {
     h.run_steps(1);
     {
         let d = h.state_mut().comment_props.as_mut().expect("open");
-        assert_eq!(d.edited.endings.as_deref(), Some(&[pdfcraft_engine::LineEnding::None, pdfcraft_engine::LineEnding::None][..]));
-        d.edited.endings = Some(vec![pdfcraft_engine::LineEnding::None, pdfcraft_engine::LineEnding::Diamond]);
+        assert_eq!(d.edited.endings.as_deref(), Some(&[visionpdf_engine::LineEnding::None, visionpdf_engine::LineEnding::None][..]));
+        d.edited.endings = Some(vec![visionpdf_engine::LineEnding::None, visionpdf_engine::LineEnding::Diamond]);
     }
     h.get_by_label("OK").click();
     h.run_steps(3);
@@ -1394,14 +1394,14 @@ fn line_ending_properties_change_and_undo() {
         assert_eq!(doc.can_undo(), Some("Change comment properties"));
         doc.comment_props(0, 0).unwrap().endings
     };
-    assert_eq!(endings.as_deref(), Some(&[pdfcraft_engine::LineEnding::None, pdfcraft_engine::LineEnding::Diamond][..]));
+    assert_eq!(endings.as_deref(), Some(&[visionpdf_engine::LineEnding::None, visionpdf_engine::LineEnding::Diamond][..]));
     h.state_mut().execute("edit.undo");
     h.run_steps(2);
     let s = h.state();
     let doc = s.session.get(s.views[0].id).unwrap();
     assert_eq!(
         doc.comment_props(0, 0).unwrap().endings.as_deref(),
-        Some(&[pdfcraft_engine::LineEnding::None, pdfcraft_engine::LineEnding::None][..])
+        Some(&[visionpdf_engine::LineEnding::None, visionpdf_engine::LineEnding::None][..])
     );
 }
 
@@ -1435,7 +1435,7 @@ fn comment_properties_change_appearance_and_author() {
 /// and from Properties for existing ones; "No fill" takes it away again.
 #[test]
 fn shapes_take_a_fill_colour_from_the_quick_bar_and_properties() {
-    use pdfcraft_ui_egui::comments::CommentTool;
+    use visionpdf_ui_egui::comments::CommentTool;
     let mut h = harness(|app| app.set_option("quick", "square").unwrap());
     h.run_steps(2);
     // No fill by default; the quick bar says so.
@@ -1493,13 +1493,13 @@ fn shapes_take_a_fill_colour_from_the_quick_bar_and_properties() {
 /// callout has none to choose. Make Properties Default carries it into the Text box tool.
 #[test]
 fn text_box_properties_choose_the_border_shape() {
-    use pdfcraft_engine::BorderShape;
-    use pdfcraft_ui_egui::comments::CommentTool;
+    use visionpdf_engine::BorderShape;
+    use visionpdf_ui_egui::comments::CommentTool;
     let mut h = harness(|_| {});
-    let shape = pdfcraft_engine::Shape::TextBox { rect: [40.0, 120.0, 200.0, 160.0], font_size: 12.0 };
-    let mut style = pdfcraft_engine::Style::default_for(&shape);
+    let shape = visionpdf_engine::Shape::TextBox { rect: [40.0, 120.0, 200.0, 160.0], font_size: 12.0 };
+    let mut style = visionpdf_engine::Style::default_for(&shape);
     style.width = 1.0;
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::AddAnnotation(pdfcraft_engine::NewAnnotation {
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::AddAnnotation(visionpdf_engine::NewAnnotation {
         page: 0,
         shape,
         style,
@@ -1529,20 +1529,20 @@ fn text_box_properties_choose_the_border_shape() {
 /// the toolbar, and a default made from it draws no circle either.
 #[test]
 fn no_thickness_in_text_box_properties_takes_the_circle_away() {
-    use pdfcraft_engine::BorderShape;
-    use pdfcraft_ui_egui::comments::CommentTool;
+    use visionpdf_engine::BorderShape;
+    use visionpdf_ui_egui::comments::CommentTool;
     let mut h = harness(|_| {});
-    let shape = pdfcraft_engine::Shape::TextBox { rect: [40.0, 120.0, 200.0, 160.0], font_size: 12.0 };
-    let mut style = pdfcraft_engine::Style::default_for(&shape);
+    let shape = visionpdf_engine::Shape::TextBox { rect: [40.0, 120.0, 200.0, 160.0], font_size: 12.0 };
+    let mut style = visionpdf_engine::Style::default_for(&shape);
     style.width = 1.0;
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::AddAnnotation(pdfcraft_engine::NewAnnotation {
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::AddAnnotation(visionpdf_engine::NewAnnotation {
         page: 0,
         shape,
         style,
         contents: "Pos. 3".into(),
         author: "Tester".into(),
     })));
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::BorderShapeAnnotation { page: 0, index: 0, shape: BorderShape::Circle }));
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::BorderShapeAnnotation { page: 0, index: 0, shape: BorderShape::Circle }));
     h.state_mut().comment_prefs.set_border_shape(CommentTool::TextBox, BorderShape::Circle);
     h.run_steps(2);
     h.state_mut().open_comment_props(0, 0);
@@ -1568,7 +1568,7 @@ fn no_thickness_in_text_box_properties_takes_the_circle_away() {
 /// the next rectangle is drawn with a see-through fill and an opaque line.
 #[test]
 fn comment_properties_set_each_parts_opacity() {
-    use pdfcraft_ui_egui::comments::CommentTool;
+    use visionpdf_ui_egui::comments::CommentTool;
     let mut h = harness(|app| app.set_option("quick", "square").unwrap());
     h.state_mut().comment_prefs.set_fill(CommentTool::Rectangle, Some([1.0, 1.0, 0.0]));
     h.run_steps(2);
@@ -1600,10 +1600,10 @@ fn comment_properties_set_each_parts_opacity() {
     assert_eq!(props(&h, 1), (1.0, Some(0.3), None), "the next rectangle takes the default");
 
     // A text box with a border and a fill: its text, border and fill.
-    let shape = pdfcraft_engine::Shape::TextBox { rect: [40.0, 120.0, 200.0, 160.0], font_size: 12.0 };
-    let mut style = pdfcraft_engine::Style::default_for(&shape);
+    let shape = visionpdf_engine::Shape::TextBox { rect: [40.0, 120.0, 200.0, 160.0], font_size: 12.0 };
+    let mut style = visionpdf_engine::Style::default_for(&shape);
     (style.width, style.fill) = (1.0, Some([1.0, 1.0, 0.6]));
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::AddAnnotation(pdfcraft_engine::NewAnnotation {
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::AddAnnotation(visionpdf_engine::NewAnnotation {
         page: 0,
         shape,
         style,
@@ -1617,7 +1617,7 @@ fn comment_properties_set_each_parts_opacity() {
     for label in ["Text opacity", "Border opacity", "Fill opacity"] {
         h.get_by_role_and_label(egui::accesskit::Role::Slider, label);
     }
-    if let Ok(dir) = std::env::var("PDFCRAFT_SHOTS") {
+    if let Ok(dir) = std::env::var("VISIONPDF_SHOTS") {
         let _gpu = crate::gpu();
         h.render().unwrap().save(format!("{dir}/comment-part-opacity.png")).unwrap();
     }
@@ -1666,7 +1666,7 @@ fn the_panel_filters_and_sorts() {
     assert_eq!(h.query_all_by_label("Oval").count(), ovals - 1, "the oval's card is filtered out");
     assert!(h.query_all_by_label("Rectangle").count() >= 1);
     h.state_mut().views[0].comments.hidden_types.clear();
-    h.state_mut().views[0].comments.sort = pdfcraft_ui_egui::comments::SortBy::Type;
+    h.state_mut().views[0].comments.sort = visionpdf_ui_egui::comments::SortBy::Type;
     h.run_steps(2);
     // Grouped by type: a group header names each type.
     assert_eq!(h.query_all_by_label("Oval").count(), ovals + 1, "a group header was added");
@@ -2144,7 +2144,7 @@ fn the_panel_reveals_edits_and_reopens_a_late_thread_without_changing_its_replie
         );
     }
     assert_eq!(after.iter().find(|a| a.name.as_deref() == Some("late-reply")).unwrap().in_reply_to.as_deref(), Some("late"));
-    reopened.state_mut().views[0].comments.sort = pdfcraft_ui_egui::comments::SortBy::Author;
+    reopened.state_mut().views[0].comments.sort = visionpdf_ui_egui::comments::SortBy::Author;
     reopened.run_steps(2);
     assert_eq!(reopened.query_all_by_label("Delta").count(), 2, "the author group and its card remain visible after sorting");
     reopened.get_by_label("Late root edited exactly");
@@ -2155,10 +2155,10 @@ fn the_panel_reveals_edits_and_reopens_a_late_thread_without_changing_its_replie
 fn page_groups_collapse_and_expand() {
     let mut h = harness(|app| app.set_option("panel", "comments").unwrap());
     for (page, text) in [(0, "First page note"), (1, "Second page note")] {
-        let shape = pdfcraft_engine::Shape::Note { at: [100.0, 100.0], icon: pdfcraft_engine::NoteIcon::Comment };
-        h.state_mut().apply_edit(pdfcraft_engine::Edit::AddAnnotation(pdfcraft_engine::NewAnnotation {
+        let shape = visionpdf_engine::Shape::Note { at: [100.0, 100.0], icon: visionpdf_engine::NoteIcon::Comment };
+        h.state_mut().apply_edit(visionpdf_engine::Edit::AddAnnotation(visionpdf_engine::NewAnnotation {
             page,
-            style: pdfcraft_engine::Style::default_for(&shape),
+            style: visionpdf_engine::Style::default_for(&shape),
             shape,
             contents: text.into(),
             author: "Tester".into(),
@@ -2213,10 +2213,10 @@ fn flatten_comments_from_the_page_menu_and_the_panel_menu() {
         app.set_option("panel", "comments").unwrap();
         app.set_option("quick", "select").unwrap();
     });
-    let shape = pdfcraft_engine::Shape::Rectangle { rect: [20.0, 20.0, 80.0, 60.0] };
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::AddAnnotation(pdfcraft_engine::NewAnnotation {
+    let shape = visionpdf_engine::Shape::Rectangle { rect: [20.0, 20.0, 80.0, 60.0] };
+    h.state_mut().apply_edit(visionpdf_engine::Edit::AddAnnotation(visionpdf_engine::NewAnnotation {
         page: 0,
-        style: pdfcraft_engine::Style::default_for(&shape),
+        style: visionpdf_engine::Style::default_for(&shape),
         shape,
         contents: "Reviewed".into(),
         author: "Tester".into(),
@@ -2263,7 +2263,7 @@ fn comments_take_checkmarks_lock_hide_and_summarize() {
     h.get_by_label("Remove checkmark");
 
     // "…" ▸ Copy text puts the comment's text on the clipboard.
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::SetAnnotationContents { page: 0, index: 0, text: "Copy me".into() });
+    h.state_mut().apply_edit(visionpdf_engine::Edit::SetAnnotationContents { page: 0, index: 0, text: "Copy me".into() });
     h.run_steps(2);
     h.get_by_label("More").click();
     h.run_steps(2);
@@ -2374,7 +2374,7 @@ fn polygons_clouds_connected_lines_callouts_and_inserted_text() {
 
 fn drawn_points(h: &Harness<'static, VisionPDFApp>) -> usize {
     match &h.state().views[0].comments.gesture {
-        Some(pdfcraft_ui_egui::comments::Gesture::Draw { points, .. }) => points.len(),
+        Some(visionpdf_ui_egui::comments::Gesture::Draw { points, .. }) => points.len(),
         _ => 0,
     }
 }
@@ -2451,7 +2451,7 @@ fn the_panel_filters_by_colour_and_checkmark() {
     h.state_mut().set_option("quick", "circle").unwrap();
     drag_pt(&mut h, (160.0, 100.0), (260.0, 40.0));
     h.state_mut().set_option("quick", "select").unwrap();
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::StyleAnnotation {
+    h.state_mut().apply_edit(visionpdf_engine::Edit::StyleAnnotation {
         page: 0,
         index: 1,
         color: Some([0.0, 0.47, 0.84]),
@@ -2459,7 +2459,7 @@ fn the_panel_filters_by_colour_and_checkmark() {
         width: None,
         endings: None,
     });
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::MarkAnnotation { page: 0, index: 0, marked: true, author: "Tester".into() });
+    h.state_mut().apply_edit(visionpdf_engine::Edit::MarkAnnotation { page: 0, index: 0, marked: true, author: "Tester".into() });
     h.run_steps(2);
     let cards = |h: &Harness<'static, VisionPDFApp>| (h.query_all_by_label("Rectangle").count(), h.query_all_by_label("Oval").count());
     // The filter menu lists the colours by name (counted with it open: it names the types too).
@@ -2492,15 +2492,15 @@ fn the_panel_shows_each_reviewers_status_and_only_my_checkmark() {
     let me = h.state().comment_prefs.author.clone();
     let other = format!("{me} (other)");
     for (state, author) in [
-        (pdfcraft_engine::ReviewState::Accepted, "Bob"),
-        (pdfcraft_engine::ReviewState::Completed, "Carol"),
-        (pdfcraft_engine::ReviewState::Rejected, "Bob"),
-        (pdfcraft_engine::ReviewState::Completed, "Dan"),
-        (pdfcraft_engine::ReviewState::None, "Dan"),
+        (visionpdf_engine::ReviewState::Accepted, "Bob"),
+        (visionpdf_engine::ReviewState::Completed, "Carol"),
+        (visionpdf_engine::ReviewState::Rejected, "Bob"),
+        (visionpdf_engine::ReviewState::Completed, "Dan"),
+        (visionpdf_engine::ReviewState::None, "Dan"),
     ] {
-        h.state_mut().apply_edit(pdfcraft_engine::Edit::SetAnnotationStatus { page: 0, index: 0, state, author: author.into() });
+        h.state_mut().apply_edit(visionpdf_engine::Edit::SetAnnotationStatus { page: 0, index: 0, state, author: author.into() });
     }
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::MarkAnnotation { page: 0, index: 0, marked: true, author: other.clone() });
+    h.state_mut().apply_edit(visionpdf_engine::Edit::MarkAnnotation { page: 0, index: 0, marked: true, author: other.clone() });
     h.state_mut().views[0].comments.selected = Some((0, 0));
     h.run_steps(2);
     h.get_by_label("Bob: Rejected");
@@ -2548,7 +2548,7 @@ fn make_current_properties_default() {
     });
     drag_pt(&mut h, (40.0, 100.0), (140.0, 40.0));
     h.state_mut().set_option("quick", "select").unwrap();
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::StyleAnnotation {
+    h.state_mut().apply_edit(visionpdf_engine::Edit::StyleAnnotation {
         page: 0,
         index: 0,
         color: Some([0.0, 0.47, 0.84]),
@@ -2561,14 +2561,14 @@ fn make_current_properties_default() {
     h.run_steps(2);
     h.get_by_label("Make Current Properties Default").click();
     h.run_steps(3);
-    let st = h.state().comment_prefs.style(pdfcraft_ui_egui::comments::CommentTool::Rectangle);
+    let st = h.state().comment_prefs.style(visionpdf_ui_egui::comments::CommentTool::Rectangle);
     assert_eq!((st.color, st.opacity, st.width), ([0.0, 0.47, 0.84], 0.5, 5.0));
     // The default survives a restart (#340): a fresh app reads the persisted settings and its
     // next rectangle still takes the style.
     let json = h.state().persist();
     let mut fresh = VisionPDFApp::new();
     fresh.restore(&json);
-    let st = fresh.comment_prefs.style(pdfcraft_ui_egui::comments::CommentTool::Rectangle);
+    let st = fresh.comment_prefs.style(visionpdf_ui_egui::comments::CommentTool::Rectangle);
     assert_eq!((st.color, st.opacity, st.width), ([0.0, 0.47, 0.84], 0.5, 5.0), "the tool default persisted");
     // The next rectangle takes it.
     h.state_mut().set_option("quick", "square").unwrap();
@@ -2582,7 +2582,7 @@ fn make_current_properties_default() {
 /// the tool's default (here a strikethrough's colour); without it, only the comment changes.
 #[test]
 fn properties_dialog_makes_the_strikethrough_colour_default() {
-    use pdfcraft_ui_egui::comments::CommentTool;
+    use visionpdf_ui_egui::comments::CommentTool;
     let mut h = harness(|app| app.set_option("quick", "strikeout").unwrap());
     let green = [0.18, 0.62, 0.36];
     let blue = [0.0, 0.47, 0.84];
@@ -2631,8 +2631,8 @@ fn properties_dialog_makes_the_strikethrough_colour_default() {
 /// at, the one Comment Properties shows, not the comment's /CA.
 #[test]
 fn a_text_only_text_box_made_default_gives_the_tool_its_texts_opacity() {
-    use pdfcraft_engine::{Edit, NewAnnotation, Shape, Style};
-    use pdfcraft_ui_egui::comments::CommentTool;
+    use visionpdf_engine::{Edit, NewAnnotation, Shape, Style};
+    use visionpdf_ui_egui::comments::CommentTool;
     let mut h = harness(|_| {});
     let shape = Shape::TextBox { rect: [100.0, 600.0, 220.0, 630.0], font_size: 12.0 };
     let style = Style { width: 0.0, fill: None, ..Style::default_for(&shape) };
@@ -2667,8 +2667,8 @@ fn a_text_only_text_box_made_default_gives_the_tool_its_texts_opacity() {
 /// that colour.
 #[test]
 fn a_text_box_made_default_gives_the_tool_its_border_colour() {
-    use pdfcraft_engine::{Edit, NewAnnotation, Shape, Style};
-    use pdfcraft_ui_egui::comments::CommentTool;
+    use visionpdf_engine::{Edit, NewAnnotation, Shape, Style};
+    use visionpdf_ui_egui::comments::CommentTool;
     let mut h = harness(|_| {});
     let shape = Shape::TextBox { rect: [100.0, 600.0, 220.0, 630.0], font_size: 12.0 };
     let style = Style { width: 1.0, ..Style::default_for(&shape) };
@@ -2697,7 +2697,7 @@ fn a_text_box_made_default_gives_the_tool_its_border_colour() {
 /// (Comment Properties may have given it one), and the tool's again with none selected.
 #[test]
 fn the_border_colour_button_shows_the_selected_text_boxs_colour() {
-    use pdfcraft_engine::{Edit, NewAnnotation, Shape, Style};
+    use visionpdf_engine::{Edit, NewAnnotation, Shape, Style};
     let mut h = harness(|app| app.set_option("quick", "freetext").unwrap());
     let shape = Shape::TextBox { rect: [100.0, 600.0, 220.0, 630.0], font_size: 12.0 };
     let style = Style { width: 1.0, ..Style::default_for(&shape) };
@@ -2737,7 +2737,7 @@ fn the_border_colour_button_shows_the_selected_text_boxs_colour() {
 /// #1302: making an arrow's properties the default updates the Arrow tool, not later plain lines.
 #[test]
 fn an_arrows_default_does_not_restyle_lines() {
-    use pdfcraft_ui_egui::comments::CommentTool;
+    use visionpdf_ui_egui::comments::CommentTool;
 
     let mut h = harness(|app| {
         app.set_option("panel", "comments").unwrap();
@@ -2745,7 +2745,7 @@ fn an_arrows_default_does_not_restyle_lines() {
     });
     drag_pt(&mut h, (20.0, 40.0), (140.0, 80.0));
     h.state_mut().set_option("quick", "select").unwrap();
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::StyleAnnotation {
+    h.state_mut().apply_edit(visionpdf_engine::Edit::StyleAnnotation {
         page: 0,
         index: 0,
         color: Some([0.0, 0.47, 0.84]),
@@ -2837,7 +2837,7 @@ trailer << /Root 1 0 R >>
 fn replacing_text_strikes_it_and_adds_a_caret() {
     let mut h = harness(|app| app.set_option("quick", "replace").unwrap());
     // Review on #5689 (CodeRabbit): both parts take the Replace text tool's style.
-    h.state_mut().comment_prefs.set_color(pdfcraft_ui_egui::comments::CommentTool::ReplaceText, [0.1, 0.6, 0.2]);
+    h.state_mut().comment_prefs.set_color(visionpdf_ui_egui::comments::CommentTool::ReplaceText, [0.1, 0.6, 0.2]);
     drag_pt(&mut h, (20.0, 155.0), (120.0, 155.0));
     assert!(h.state().views[0].comments.composer.is_some(), "the composer asks for the replacement");
     field(&h, "Replacement text").type_text("slow red");
@@ -2856,8 +2856,8 @@ fn replacing_text_strikes_it_and_adds_a_caret() {
     assert_eq!(h.state().quick_tool, QuickTool::Select);
     // Both members are the Replace text tool's, not Strikethrough's or Insert text's (#3947), so
     // Make Current Properties Default updates the Replace text tool.
-    assert_eq!(pdfcraft_ui_egui::comments::tool_for(strike), Some(pdfcraft_ui_egui::comments::CommentTool::ReplaceText));
-    assert_eq!(pdfcraft_ui_egui::comments::tool_for(caret), Some(pdfcraft_ui_egui::comments::CommentTool::ReplaceText));
+    assert_eq!(visionpdf_ui_egui::comments::tool_for(strike), Some(visionpdf_ui_egui::comments::CommentTool::ReplaceText));
+    assert_eq!(visionpdf_ui_egui::comments::tool_for(caret), Some(visionpdf_ui_egui::comments::CommentTool::ReplaceText));
     // The panel's card is the caret's, the group's primary: it shows the replacement, and
     // nothing is named Strikethrough.
     h.state_mut().set_option("panel", "comments").unwrap();
@@ -2865,7 +2865,7 @@ fn replacing_text_strikes_it_and_adds_a_caret() {
     // One card, the caret's, showing the replacement text; sorted by type, its group is named
     // Replace text (not Insert text, and no Strikethrough).
     assert_eq!(h.query_all_by_label("slow red").count(), 1, "one comment with the replacement text");
-    h.state_mut().views[0].comments.sort = pdfcraft_ui_egui::comments::SortBy::Type;
+    h.state_mut().views[0].comments.sort = visionpdf_ui_egui::comments::SortBy::Type;
     h.run_steps(3);
     assert!(h.query_by_role_and_label(egui::accesskit::Role::Label, "Replace text").is_some(), "the panel names the comment Replace text");
     assert!(h.query_by_role_and_label(egui::accesskit::Role::Label, "Insert text").is_none(), "not Insert text");
@@ -3039,7 +3039,7 @@ fn the_eraser_rubs_as_wide_as_its_thickness_setting() {
         assert_eq!(comments(&h).len(), 1);
         let zoom = h.state().views[0].page_screen_rect(0).expect("page 1 on screen").width() / 300.0;
         let app = h.state_mut();
-        app.comment_prefs.set_width(pdfcraft_ui_egui::comments::CommentTool::Eraser, width);
+        app.comment_prefs.set_width(visionpdf_ui_egui::comments::CommentTool::Eraser, width);
         app.set_option("quick", "eraser").unwrap();
         // Along the whole drawing, 20 pixels above it: out of reach of the default eraser
         // (6 pixels), within reach of the largest (36).
@@ -3074,7 +3074,7 @@ fn the_eraser_preview_is_as_wide_as_it_rubs() {
     // (twice its radius, three pixels per point of thickness): 12 pixels by default, 72 at 12 pt.
     for (width, across) in [(2.0, 12.0), (12.0, 72.0)] {
         let mut h = harness(move |app| {
-            app.comment_prefs.set_width(pdfcraft_ui_egui::comments::CommentTool::Eraser, width);
+            app.comment_prefs.set_width(visionpdf_ui_egui::comments::CommentTool::Eraser, width);
             app.set_option("quick", "eraser").unwrap();
         });
         let (from, to) = (at(&h, 60.0, 100.0), at(&h, 240.0, 100.0));
@@ -3175,8 +3175,8 @@ fn markup_hover_fixture(subtype: &str, rotation: u16, extra: &str, refs: &str) -
 
 fn markup_hover_harness(pdf: Vec<u8>, view_rotation: u16) -> Harness<'static, VisionPDFApp> {
     // Give the fixture a complete xref so byte comparisons do not measure repair-on-save.
-    let doc = pdfcraft_cos::Document::open(std::sync::Arc::new(pdf)).expect("synthetic fixture parses");
-    let pdf = pdfcraft_cos::write_full(&doc, &Default::default()).expect("writes complete fixture");
+    let doc = visionpdf_cos::Document::open(std::sync::Arc::new(pdf)).expect("synthetic fixture parses");
+    let pdf = visionpdf_cos::write_full(&doc, &Default::default()).expect("writes complete fixture");
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
         let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
@@ -3201,7 +3201,7 @@ fn hover_markup_at(h: &mut Harness<'static, VisionPDFApp>, x: f32, y: f32) {
         let v = &app.views[0];
         let info = &app.session.get(v.id).unwrap().info;
         let page = &info.pages[0];
-        let xf = pdfcraft_ui_egui::canvas::PageXform {
+        let xf = visionpdf_ui_egui::canvas::PageXform {
             rect: v.page_screen_rect(0).expect("page on screen"),
             rot: v.rotation,
             pw: page.width,
@@ -3217,7 +3217,7 @@ fn hover_markup_at(h: &mut Harness<'static, VisionPDFApp>, x: f32, y: f32) {
 
 #[test]
 fn imported_commented_markup_keeps_author_at_rotated_zoomed_page_edges() {
-    let _gpu = std::env::var_os("PDFCRAFT_SHOTS").map(|_| crate::gpu());
+    let _gpu = std::env::var_os("VISIONPDF_SHOTS").map(|_| crate::gpu());
     for subtype in ["Highlight", "Underline", "StrikeOut", "Squiggly"] {
         for (page_rotation, view_rotation) in [(0, 0), (90, 0), (0, 90), (90, 90)] {
             for zoom in ["50", "125"] {
@@ -3236,7 +3236,7 @@ fn imported_commented_markup_keeps_author_at_rotated_zoomed_page_edges() {
                 h.get_by_label("Ada\nFirst multiline comment");
                 if subtype == "Highlight"
                     && matches!((page_rotation, view_rotation, zoom), (0, 0, "50") | (90, 90, "125"))
-                    && let Ok(dir) = std::env::var("PDFCRAFT_SHOTS")
+                    && let Ok(dir) = std::env::var("VISIONPDF_SHOTS")
                 {
                     h.render().unwrap().save(format!("{dir}/edge-comment-{page_rotation}-{view_rotation}-{zoom}.png")).unwrap();
                 }
@@ -3356,13 +3356,13 @@ fn the_squiggly_tool_marks_selected_text() {
     assert_eq!(c.len(), 1, "{c:?}");
     assert_eq!((c[0].subtype.as_str(), c[0].quads.len()), ("Squiggly", 1));
     // It sits with the other text markup in the Highlight ▸ flyout, and edits as itself.
-    assert!(pdfcraft_ui_egui::comments::GROUPS[1].contains(&pdfcraft_ui_egui::comments::CommentTool::Squiggly));
-    assert_eq!(pdfcraft_ui_egui::comments::tool_for(&c[0]), Some(pdfcraft_ui_egui::comments::CommentTool::Squiggly));
+    assert!(visionpdf_ui_egui::comments::GROUPS[1].contains(&visionpdf_ui_egui::comments::CommentTool::Squiggly));
+    assert_eq!(visionpdf_ui_egui::comments::tool_for(&c[0]), Some(visionpdf_ui_egui::comments::CommentTool::Squiggly));
 }
 
 #[test]
 fn the_opacity_set_for_a_tool_goes_into_its_new_comments() {
-    use pdfcraft_ui_egui::comments::CommentTool;
+    use visionpdf_ui_egui::comments::CommentTool;
     let mut h = harness(|app| app.comment_prefs.set_opacity(CommentTool::StrikeOut, 0.5));
     // Clamped: an invisible comment can't be found again.
     h.state_mut().comment_prefs.set_opacity(CommentTool::Underline, 0.0);
@@ -3374,7 +3374,7 @@ fn the_opacity_set_for_a_tool_goes_into_its_new_comments() {
     assert_eq!(c.len(), 1, "{c:?}");
     // The new comment carries /CA 0.5 (read back from the document's bytes).
     let bytes = h.state().session.get(h.state().views[0].id).unwrap().bytes.as_ref().clone();
-    let doc = pdfcraft_cos::Document::open(std::sync::Arc::new(bytes)).unwrap();
+    let doc = visionpdf_cos::Document::open(std::sync::Arc::new(bytes)).unwrap();
     let opacities: Vec<f64> = doc
         .object_numbers()
         .into_iter()
@@ -3394,7 +3394,7 @@ fn the_opacity_set_for_a_tool_goes_into_its_new_comments() {
 /// across restarts, until they open it again.
 #[test]
 fn a_closed_comments_panel_stays_closed_when_picking_comment_tools() {
-    use pdfcraft_ui_egui::RightPanel;
+    use visionpdf_ui_egui::RightPanel;
     let mut h = harness(|_| {});
     assert_eq!(h.state().right, None);
     assert!(h.state_mut().execute("comment.highlight"));
@@ -3434,7 +3434,7 @@ fn a_closed_comments_panel_stays_closed_when_picking_comment_tools() {
 /// with the new /DA size as one undo step, and shapes without text have no such control.
 #[test]
 fn text_box_properties_change_the_font_size() {
-    use pdfcraft_engine::{Edit, NewAnnotation, Shape};
+    use visionpdf_engine::{Edit, NewAnnotation, Shape};
     let mut h = harness(|_| {});
     let tb = NewAnnotation {
         page: 0,
@@ -3463,8 +3463,8 @@ fn text_box_properties_change_the_font_size() {
 
 #[test]
 fn text_box_and_callout_properties_include_fill_and_thickness() {
-    use pdfcraft_engine::{Edit, LineEnding, NewAnnotation, Shape};
-    use pdfcraft_ui_egui::comments::CommentTool;
+    use visionpdf_engine::{Edit, LineEnding, NewAnnotation, Shape};
+    use visionpdf_ui_egui::comments::CommentTool;
     let mut h = harness(|_| {});
     for (tool, shape) in [
         (CommentTool::TextBox, Shape::TextBox { rect: [40.0, 600.0, 240.0, 640.0], font_size: 12.0 }),
@@ -3510,11 +3510,11 @@ fn text_box_and_callout_properties_include_fill_and_thickness() {
 
 #[test]
 fn text_comments_can_save_a_zero_width_default() {
-    use pdfcraft_engine::{Edit, NewAnnotation, Shape};
-    use pdfcraft_ui_egui::comments::CommentTool;
+    use visionpdf_engine::{Edit, NewAnnotation, Shape};
+    use visionpdf_ui_egui::comments::CommentTool;
     let mut h = harness(|_| {});
     let shape = Shape::TextBox { rect: [40.0, 600.0, 240.0, 640.0], font_size: 12.0 };
-    let mut style = pdfcraft_engine::Style::default_for(&shape);
+    let mut style = visionpdf_engine::Style::default_for(&shape);
     style.width = 0.0;
     h.state_mut().apply_edit(Edit::AddAnnotation(NewAnnotation { page: 0, shape, style, contents: "Hello".into(), author: "Ada".into() }));
     h.run_steps(2);
@@ -3544,9 +3544,9 @@ fn a_moved_comment_is_drawn_where_it_goes_before_release() {
     let mut h = harness(|_| {});
     let id = h.state().views[0].id;
     for shape in
-        [pdfcraft_engine::Shape::Rectangle { rect: [30.0, 30.0, 70.0, 70.0] }, pdfcraft_engine::Shape::Oval { rect: [230.0, 30.0, 270.0, 70.0] }]
+        [visionpdf_engine::Shape::Rectangle { rect: [30.0, 30.0, 70.0, 70.0] }, visionpdf_engine::Shape::Oval { rect: [230.0, 30.0, 270.0, 70.0] }]
     {
-        let style = pdfcraft_engine::Style {
+        let style = visionpdf_engine::Style {
             color: [1.0, 0.0, 0.0],
             opacity: 1.0,
             width: 2.0,
@@ -3554,9 +3554,9 @@ fn a_moved_comment_is_drawn_where_it_goes_before_release() {
             fill_opacity: None,
             text_opacity: None,
             border_color: None,
-            border_shape: pdfcraft_engine::BorderShape::Rectangle,
+            border_shape: visionpdf_engine::BorderShape::Rectangle,
         };
-        assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::AddAnnotation(pdfcraft_engine::NewAnnotation {
+        assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::AddAnnotation(visionpdf_engine::NewAnnotation {
             page: 0,
             shape,
             style,
@@ -3677,7 +3677,7 @@ fn an_upright_comment_on_a_turned_page_is_drawn_where_it_goes_before_release() {
         assert!(a.no_rotate, "kept upright");
         let page = &info.pages[0];
         let xf =
-            pdfcraft_ui_egui::canvas::PageXform { rect: v.page_screen_rect(0).expect("on screen"), rot: v.rotation, pw: page.width, ph: page.height };
+            visionpdf_ui_egui::canvas::PageXform { rect: v.page_screen_rect(0).expect("on screen"), rot: v.rotation, pw: page.width, ph: page.height };
         xf.user_rect(info, 0, a.shown_rect(page.rotation))
     };
     let red = |v: [u8; 4]| v[0] > 200 && v[1] < 80 && v[2] < 80;
@@ -3908,9 +3908,9 @@ fn a_pop_up_is_editable_where_comments_are_allowed_but_changes_are_not() {
 5 0 obj << /Type /Annot /Subtype /Popup /Parent 4 0 R /Rect [60 60 260 160] /Open true >> endobj
 trailer << /Root 1 0 R >>
 %%EOF";
-    let mut doc = pdfcraft_cos::Document::open(std::sync::Arc::new(plain.to_vec())).unwrap();
-    doc.set_encryption(&pdfcraft_cos::NewEncryption {
-        algorithm: pdfcraft_cos::Algorithm::Aes256,
+    let mut doc = visionpdf_cos::Document::open(std::sync::Arc::new(plain.to_vec())).unwrap();
+    doc.set_encryption(&visionpdf_cos::NewEncryption {
+        algorithm: visionpdf_cos::Algorithm::Aes256,
         user_password: "",
         owner_password: "owner",
         // Everything but bit 4, modifying the document.
@@ -3919,7 +3919,7 @@ trailer << /Root 1 0 R >>
         seed: [4; 32],
     })
     .unwrap();
-    let bytes = pdfcraft_cos::write_full(&doc, &Default::default()).unwrap();
+    let bytes = visionpdf_cos::write_full(&doc, &Default::default()).unwrap();
     let mut h = harness(move |app| {
         app.open_bytes("restricted.pdf", None, bytes).expect("opens");
         // Only the restricted document, so it is the first view.
@@ -4457,7 +4457,7 @@ fn posting_from_the_composer_keeps_a_pop_ups_unsaved_text() {
 /// (page, index) naming another; other edits keep it.
 #[test]
 fn a_pop_ups_unsaved_work_follows_its_comment_or_is_dropped() {
-    use pdfcraft_engine::Edit;
+    use visionpdf_engine::Edit;
     let mut h = harness_with_bytes(NOTE_WITH_A_THREAD.to_vec(), |_| {});
     let key = |h: &Harness<'static, VisionPDFApp>, text: &str| {
         comments(h).into_iter().find(|a| a.contents.as_deref() == Some(text)).map(|a| (a.page, a.index)).expect(text)
@@ -4581,7 +4581,7 @@ fn a_card_out_of_view_that_grows_moves_the_cards_below_it() {
     assert!(h.query_by_label("Card 1").is_none(), "card 1 is out of view");
     let before = h.get_by_label("Card 61").rect().top();
     for text in ["A first reply", "A second reply"] {
-        h.state_mut().apply_edit(pdfcraft_engine::Edit::ReplyToAnnotation { page: 0, index: 0, text: text.into(), author: "Bo".into() });
+        h.state_mut().apply_edit(visionpdf_engine::Edit::ReplyToAnnotation { page: 0, index: 0, text: text.into(), author: "Bo".into() });
     }
     h.run_steps(4);
     let after = h.get_by_label("Card 61").rect().top();
@@ -4618,8 +4618,8 @@ fn freehand_highlighter_draws_translucent_yellow_ink() {
     assert_eq!(props.color, Some([1.0, 0.94, 0.0]));
     assert!((props.opacity - 0.35).abs() < 0.001);
     assert_eq!(props.width, Some(14.0));
-    assert_eq!(h.state().quick_tool, QuickTool::Comment(pdfcraft_ui_egui::comments::CommentTool::FreehandHighlight));
-    h.state_mut().comment_prefs.set_width(pdfcraft_ui_egui::comments::CommentTool::FreehandHighlight, 100.0);
+    assert_eq!(h.state().quick_tool, QuickTool::Comment(visionpdf_ui_egui::comments::CommentTool::FreehandHighlight));
+    h.state_mut().comment_prefs.set_width(visionpdf_ui_egui::comments::CommentTool::FreehandHighlight, 100.0);
     drag_pt(&mut h, (40.0, 160.0), (240.0, 160.0));
     let c = comments(&h);
     assert_eq!(c.len(), 2);
@@ -4651,7 +4651,7 @@ fn hotbar_picker_adds_and_runs_freehand_highlight() {
     // The new tool is available directly from its custom shortcut.
     h.query_all_by_role_and_label(Role::Button, "Freehand-Highlight").last().unwrap().click();
     h.run_steps(3);
-    assert_eq!(h.state().quick_tool, QuickTool::Comment(pdfcraft_ui_egui::comments::CommentTool::FreehandHighlight));
+    assert_eq!(h.state().quick_tool, QuickTool::Comment(visionpdf_ui_egui::comments::CommentTool::FreehandHighlight));
 }
 
 /// #6548: resting on the hotbar's gear showed two stacked tooltips, "Hotbar settings" and
@@ -4693,7 +4693,7 @@ fn hotbar_picker_searches_translated_tool_labels() {
     if crate::support::skip_without_catalogs("hotbar_picker_searches_translated_tool_labels") {
         return;
     }
-    use pdfcraft_ui_egui::i18n::{Lang, tr};
+    use visionpdf_ui_egui::i18n::{Lang, tr};
     let french = Lang::from_code("fr").unwrap();
     let mut h = harness(|app| {
         app.set_option("language", "fr").unwrap();
@@ -4934,9 +4934,9 @@ fn hotbar_floating_picker_does_not_overlap_rendered_bar() {
 }
 
 fn edit_composer_preserves_only_typewriter_whitespace(kind: u8) {
-    let shots = std::env::var_os("PDFCRAFT_COMPOSER_SHOTS").is_some();
+    let shots = std::env::var_os("VISIONPDF_COMPOSER_SHOTS").is_some();
     let _gpu = shots.then(crate::gpu);
-    use pdfcraft_engine::{Edit, NewAnnotation, NoteIcon, Shape, Style};
+    use visionpdf_engine::{Edit, NewAnnotation, NoteIcon, Shape, Style};
     let mut h = harness(move |app| {
         app.set_option("layout", "single").unwrap();
         app.set_option("panel", "comments").unwrap();
@@ -4990,7 +4990,7 @@ fn edit_composer_preserves_only_typewriter_whitespace(kind: u8) {
     }
     let c = h.state().views[0].comments.composer.as_ref().expect("the edit composer is open");
     assert_eq!(c.page, 1);
-    assert_eq!(c.kind, pdfcraft_ui_egui::comments::ComposerKind::Edit(0));
+    assert_eq!(c.kind, visionpdf_ui_egui::comments::ComposerKind::Edit(0));
     h.input_mut().events.push(egui::Event::Text(" edited\n\n".into()));
     let ctx = h.ctx.clone();
     let mut raw = std::mem::take(h.input_mut());
@@ -5008,14 +5008,14 @@ fn edit_composer_preserves_only_typewriter_whitespace(kind: u8) {
     let id = h.state().views[0].id;
     let bytes = h.state().session.save_bytes(id).unwrap();
     // Check the raw saved string: ordinary-comment reader trimming must not hide a bad post.
-    let cos = pdfcraft_cos::Document::open(bytes.clone()).unwrap();
-    let pages = pdfcraft_model::pages(&cos);
+    let cos = visionpdf_cos::Document::open(bytes.clone()).unwrap();
+    let pages = visionpdf_model::pages(&cos);
     let annots = cos.resolve(pages[1].dict.get(b"Annots").unwrap());
     let annot = cos.resolve(&annots.as_array().unwrap()[0]);
     let contents = cos.resolve(annot.as_dict().unwrap().get(b"Contents").unwrap());
     let expected = if kind == 0 { "Original edited\n\n" } else { "Original edited" };
     assert_eq!(contents.as_string().unwrap().to_text(), expected, "only a typewriter edit preserves trailing blank lines");
-    let mut reopened = pdfcraft_engine::Session::new();
+    let mut reopened = visionpdf_engine::Session::new();
     let again = reopened.open("edited.pdf", None, bytes, None).unwrap();
     let saved = reopened.get(again).unwrap().info.annotations.iter().find(|a| a.page == 1 && a.index == 0).unwrap();
     assert_eq!(saved.contents.as_deref(), Some(expected));
@@ -5103,7 +5103,7 @@ fn dragging_any_selected_comment_moves_the_whole_selection() {
     assert_eq!(h.state().session.get(id).unwrap().can_undo(), Some("Move comments"));
     // A locked one in the selection stays where it is; the others still move (it would refuse
     // the whole step otherwise, and nothing would move).
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::LockAnnotation { page: 0, index: 1, locked: true }));
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::LockAnnotation { page: 0, index: 1, locked: true }));
     h.run_steps(2);
     assert_eq!(h.state().views[0].comments.selection().len(), 3);
     let before = comments(&h);
@@ -5126,12 +5126,12 @@ fn dragging_any_selected_comment_moves_the_whole_selection() {
 /// tool or a stamp tool still on, the click places the bundle and opens no text box or stamp.
 #[test]
 fn copied_comments_take_the_click_from_the_tool_that_is_on() {
-    use pdfcraft_ui_egui::fill_sign::FillTool;
+    use visionpdf_ui_egui::fill_sign::FillTool;
     let mut h = harness(|_| {});
     let id = h.state().views[0].id;
-    let shape = pdfcraft_engine::Shape::Rectangle { rect: [20.0, 20.0, 60.0, 60.0] };
-    let style = pdfcraft_engine::Style::default_for(&shape);
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::AddAnnotation(pdfcraft_engine::NewAnnotation {
+    let shape = visionpdf_engine::Shape::Rectangle { rect: [20.0, 20.0, 60.0, 60.0] };
+    let style = visionpdf_engine::Style::default_for(&shape);
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::AddAnnotation(visionpdf_engine::NewAnnotation {
         page: 0,
         shape,
         style,
@@ -5142,7 +5142,7 @@ fn copied_comments_take_the_click_from_the_tool_that_is_on() {
     h.state_mut().views[0].comments.select_only((0, 0));
     assert!(h.state_mut().execute("comment.copy"));
     let count = |h: &Harness<'static, VisionPDFApp>| h.state().session.get(id).unwrap().info.annotations.len();
-    for (tool, at) in [(QuickTool::Fill(FillTool::Text), (150.0, 100.0)), (QuickTool::Stamp(pdfcraft_engine::StampKind::Approved), (200.0, 160.0))] {
+    for (tool, at) in [(QuickTool::Fill(FillTool::Text), (150.0, 100.0)), (QuickTool::Stamp(visionpdf_engine::StampKind::Approved), (200.0, 160.0))] {
         h.state_mut().quick_tool = tool;
         h.run_steps(2);
         let before = count(&h);
@@ -5165,9 +5165,9 @@ fn copied_comments_take_the_click_from_the_tool_that_is_on() {
 /// Two boxes on page 1 of the active document, and a reply to the first.
 fn add_two_boxes_and_a_reply(h: &mut Harness<'static, VisionPDFApp>) {
     for rect in [[20.0, 20.0, 60.0, 60.0], [100.0, 20.0, 140.0, 60.0]] {
-        let shape = pdfcraft_engine::Shape::Rectangle { rect };
-        let style = pdfcraft_engine::Style::default_for(&shape);
-        assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::AddAnnotation(pdfcraft_engine::NewAnnotation {
+        let shape = visionpdf_engine::Shape::Rectangle { rect };
+        let style = visionpdf_engine::Style::default_for(&shape);
+        assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::AddAnnotation(visionpdf_engine::NewAnnotation {
             page: 0,
             shape,
             style,
@@ -5175,7 +5175,7 @@ fn add_two_boxes_and_a_reply(h: &mut Harness<'static, VisionPDFApp>) {
             author: "Tester".into(),
         })));
     }
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::ReplyToAnnotation { page: 0, index: 0, text: "Reply".into(), author: "Tester".into() }));
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::ReplyToAnnotation { page: 0, index: 0, text: "Reply".into(), author: "Tester".into() }));
     h.run_steps(2);
 }
 
@@ -5206,7 +5206,7 @@ fn copied_comments_paste_into_another_document() {
     assert!(h.state_mut().execute("comment.paste"));
     let count = |h: &Harness<'static, VisionPDFApp>| h.state().session.get(target).unwrap().info.annotations.len();
     assert_eq!(count(&h), 0, "nothing placed yet");
-    assert!(matches!(h.state().views[1].comments.gesture, Some(pdfcraft_ui_egui::comments::Gesture::Place { count: 2, .. })));
+    assert!(matches!(h.state().views[1].comments.gesture, Some(visionpdf_ui_egui::comments::Gesture::Place { count: 2, .. })));
     click_pt(&mut h, (150.0, 100.0));
     let pasted = h.state().session.get(target).unwrap().info.annotations.clone();
     assert_eq!(pasted.len(), 3, "two comments and the reply: {pasted:?}");
@@ -5249,7 +5249,7 @@ fn copied_comments_paste_into_another_document() {
     h.run_steps(3);
     assert!(h.state().views[1].comments.gesture.is_none(), "plain text is not a paste of comments");
     // Nor when comments were copied earlier: a word copied in another app since is that word.
-    h.state_mut().comment_clipboard = Some(pdfcraft_ui_egui::CommentClip { xfdf, count: 2 });
+    h.state_mut().comment_clipboard = Some(visionpdf_ui_egui::CommentClip { xfdf, count: 2 });
     h.event(egui::Event::Paste("a word from elsewhere".into()));
     h.run_steps(3);
     assert!(h.state().views[1].comments.gesture.is_none(), "the old comments don't hang on the pointer");
@@ -5337,7 +5337,7 @@ fn connected_lines_are_completed_from_the_context_menu() {
 /// a locked one stays as it is. One undo step. Colouring the selection works the same way.
 #[test]
 fn properties_change_every_selected_comment_where_it_applies() {
-    use pdfcraft_engine::{Edit, NewAnnotation, Shape, Style};
+    use visionpdf_engine::{Edit, NewAnnotation, Shape, Style};
     let mut h = harness(|_| {});
     let shapes = [
         Shape::Rectangle { rect: [20.0, 20.0, 60.0, 60.0] },
@@ -5410,7 +5410,7 @@ fn properties_change_every_selected_comment_where_it_applies() {
 /// whose one opacity is the whole comment's, as it was.
 #[test]
 fn part_opacity_changes_every_selected_comment_that_shows_the_part() {
-    use pdfcraft_engine::{Edit, NewAnnotation, Shape, Style};
+    use visionpdf_engine::{Edit, NewAnnotation, Shape, Style};
     let mut h = harness(|_| {});
     for (n, width) in [1.0, 1.0, 0.0].into_iter().enumerate() {
         let x = 20.0 + 100.0 * n as f64;
@@ -5452,7 +5452,7 @@ fn part_opacity_changes_every_selected_comment_that_shows_the_part() {
 /// then drops the tool.
 #[test]
 fn escape_with_a_fill_tool_deselects_every_comment_then_drops_the_tool() {
-    use pdfcraft_ui_egui::fill_sign::FillTool;
+    use visionpdf_ui_egui::fill_sign::FillTool;
     let mut h = harness(|_| {});
     add_two_boxes_and_a_reply(&mut h);
     h.state_mut().quick_tool = QuickTool::Fill(FillTool::Text);
@@ -5487,7 +5487,7 @@ fn selected_square() -> Harness<'static, VisionPDFApp> {
 /// Both deleted it.
 #[test]
 fn delete_under_a_dialog_leaves_the_selected_comment() {
-    use pdfcraft_ui_egui::Dialog;
+    use visionpdf_ui_egui::Dialog;
     for (dialog, key) in [(Dialog::Shortcuts, egui::Key::Delete), (Dialog::About, egui::Key::Backspace)] {
         let mut h = selected_square();
         h.state_mut().dialog = Some(dialog);
@@ -5504,7 +5504,7 @@ fn delete_under_a_dialog_leaves_the_selected_comment() {
 #[test]
 fn escape_under_a_dialog_closes_it_and_keeps_the_selected_comment() {
     let mut h = selected_square();
-    h.state_mut().dialog = Some(pdfcraft_ui_egui::Dialog::Shortcuts);
+    h.state_mut().dialog = Some(visionpdf_ui_egui::Dialog::Shortcuts);
     h.run_steps(3);
     h.key_press(egui::Key::Escape);
     h.run_steps(3);
@@ -5855,7 +5855,7 @@ fn undo_with_a_card_menu_open_leaves_the_page_keys() {
     drag_pt(&mut h, (170.0, 180.0), (270.0, 120.0));
     assert_eq!(comments(&h).len(), 2);
     h.state_mut().set_option("quick", "select").unwrap();
-    h.state_mut().right = Some(pdfcraft_ui_egui::RightPanel::Comments);
+    h.state_mut().right = Some(visionpdf_ui_egui::RightPanel::Comments);
     h.run_steps(3);
     click_pt(&mut h, (250.0, 20.0));
     click_pt(&mut h, (90.0, 70.0));

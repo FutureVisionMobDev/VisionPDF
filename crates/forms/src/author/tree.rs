@@ -459,7 +459,7 @@ mod tests {
     }
 
     fn reopen(doc: &Document) -> Document {
-        let bytes = pdfcraft_cos::write_incremental(doc, &pdfcraft_cos::SaveOptions::default()).unwrap();
+        let bytes = visionpdf_cos::write_incremental(doc, &visionpdf_cos::SaveOptions::default()).unwrap();
         hayro_syntax::Pdf::new(bytes.clone()).unwrap();
         Document::open(std::sync::Arc::new(bytes)).unwrap()
     }

@@ -18,7 +18,7 @@
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
-use pdfcraft_cos::{DecodeBudget, Dict, Document, ObjRef, Object, SaveOptions, Stream, write_full};
+use visionpdf_cos::{DecodeBudget, Dict, Document, ObjRef, Object, SaveOptions, Stream, write_full};
 
 use crate::PrintError;
 
@@ -242,7 +242,7 @@ fn checksum(data: &[u8]) -> u32 {
 }
 
 /// `program` with the identity records of its `name` table saying `name`. The new table goes
-/// after the others, as `pdfcraft_fonts` writes its editor cmap, and the directory entry and
+/// after the others, as `visionpdf_fonts` writes its editor cmap, and the directory entry and
 /// `head`'s checksum adjustment are brought up to date. `None` when `program` is not a single
 /// sfnt font with a `name` table that can be read.
 pub(crate) fn renamed_sfnt(program: &[u8], name: &str) -> Option<Vec<u8>> {

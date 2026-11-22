@@ -132,7 +132,7 @@ fn printer_picker(ui: &mut egui::Ui, d: &mut PrintDraft) -> egui::Response {
             if opening {
                 search.request_focus();
             }
-            let query = pdfcraft_render::text::fold_case(filter.trim());
+            let query = visionpdf_render::text::fold_case(filter.trim());
             if d.printers_loading {
                 ui.add_enabled(false, egui::Label::new(tl!("Looking for printers…")));
             }
@@ -148,7 +148,7 @@ fn printer_picker(ui: &mut egui::Ui, d: &mut PrintDraft) -> egui::Response {
                 let mut matched = false;
                 for p in &d.printers {
                     let name = printer_label(&p.name);
-                    if !query.is_empty() && !pdfcraft_render::text::fold_case(&name).contains(&query) {
+                    if !query.is_empty() && !visionpdf_render::text::fold_case(&name).contains(&query) {
                         continue;
                     }
                     matched = true;

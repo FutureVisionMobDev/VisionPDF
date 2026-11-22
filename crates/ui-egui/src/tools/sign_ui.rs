@@ -7,8 +7,8 @@ use crate::file_filter::AddFilterAnyCase as _;
 use std::path::PathBuf;
 
 use egui::{Align, Color32, CornerRadius, Layout, Pos2, Rect, Stroke, vec2};
-use pdfcraft_engine::sign::{self, Appearance, AppearanceLabels, Certificate, DigitalId, Name, PrivateKey};
-use pdfcraft_engine::{SignOptions, SignatureImage, SignatureInfo, SignatureStatus, StatusCaptions};
+use visionpdf_engine::sign::{self, Appearance, AppearanceLabels, Certificate, DigitalId, Name, PrivateKey};
+use visionpdf_engine::{SignOptions, SignatureImage, SignatureInfo, SignatureStatus, StatusCaptions};
 
 use crate::canvas::{DocView, PageToolContext, Snapshot, SnapshotKind};
 use crate::fill_sign::SavedSig;
@@ -330,8 +330,8 @@ impl VisionPDFApp {
     }
 
     /// Run signature field `field`'s preSign scripts in document `doc` and keep the step pending.
-    fn run_presign(&mut self, doc: pdfcraft_engine::DocId, field: &str) {
-        match self.session.run_sign_event(doc, field, pdfcraft_engine::js::SignEvent::Before) {
+    fn run_presign(&mut self, doc: visionpdf_engine::DocId, field: &str) {
+        match self.session.run_sign_event(doc, field, visionpdf_engine::js::SignEvent::Before) {
             Ok(true) => {
                 self.presign = self.session.get(doc).map(|d| (doc, d.undo_depth()));
                 self.refresh_view_of(doc);
@@ -362,7 +362,7 @@ impl VisionPDFApp {
     }
 
     /// Show document `doc`'s changed form in its view.
-    fn refresh_view_of(&mut self, doc: pdfcraft_engine::DocId) {
+    fn refresh_view_of(&mut self, doc: visionpdf_engine::DocId) {
         if let Some(i) = self.views.iter().position(|v| v.id == doc)
             && let Some(info) = self.session.get(doc).map(|d| d.info.clone())
         {
@@ -571,7 +571,7 @@ impl VisionPDFApp {
             // Then its postSign scripts; what they change is a change after signing, to save.
             // What they say shows once signing is done, after the notice that it was saved.
             // The file is signed and saved by now: a postSign step that fails is said, not a failure.
-            let after = field.as_deref().and_then(|f| app.session.run_sign_event(doc_id, f, pdfcraft_engine::js::SignEvent::After).err());
+            let after = field.as_deref().and_then(|f| app.session.run_sign_event(doc_id, f, visionpdf_engine::js::SignEvent::After).err());
             let said = app.session.take_js_output(doc_id);
             #[cfg(target_os = "macos")]
             crate::macos_association::repair(&path);
@@ -630,7 +630,7 @@ impl VisionPDFApp {
             }
             // Scanned paper becomes transparent, as for Fill & Sign image signatures.
             let image = std::fs::File::open(path)
-                .map_err(pdfcraft_engine::signature_image::SignatureImageError::from)
+                .map_err(visionpdf_engine::signature_image::SignatureImageError::from)
                 .and_then(SignatureImage::read)
                 .and_then(|image| image.remove_white_background(245, 35));
             match (image, app.sign_draft.as_mut()) {
@@ -675,7 +675,7 @@ impl VisionPDFApp {
         self.status_captions_lang = Some(lang);
         // Only a document that draws a signature state shows the words: the others keep their
         // pages, selection and search results.
-        let drawing: Vec<pdfcraft_engine::DocId> = self
+        let drawing: Vec<visionpdf_engine::DocId> = self
             .views
             .iter()
             .map(|v| v.id)
@@ -789,7 +789,7 @@ mod tests {
     fn scratch() -> PathBuf {
         static N: std::sync::atomic::AtomicU32 = std::sync::atomic::AtomicU32::new(0);
         let n = N.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-        let d = std::env::temp_dir().join(format!("pdfcraft-sign-ui-{}-{n}", std::process::id()));
+        let d = std::env::temp_dir().join(format!("visionpdf-sign-ui-{}-{n}", std::process::id()));
         let _ = std::fs::remove_dir_all(&d);
         std::fs::create_dir_all(&d).unwrap();
         d
@@ -844,7 +844,7 @@ mod tests {
         let mut app = VisionPDFApp::new();
         let plain = app.session.create_from_text("t", "No signatures here.").unwrap();
         app.open_bytes("plain.pdf", None, plain.as_ref().clone()).unwrap();
-        app.views[0].texts.insert(0, std::sync::Arc::new(pdfcraft_render::PageText::default()));
+        app.views[0].texts.insert(0, std::sync::Arc::new(visionpdf_render::PageText::default()));
         app.apply_status_captions(crate::i18n::Lang::from_code("de").unwrap());
         assert!(!app.views[0].texts.is_empty(), "its text, selection and search results stay");
     }
@@ -1118,7 +1118,7 @@ mod tests {
         assert_eq!(import_app.import_digital_id(), Ok(0));
         assert_eq!(import_app.digital_ids[0].name, "Grace Hopper");
 
-        let bytes = pdfcraft_engine::Session::new().create_blank(200.0, 200.0, 1).unwrap();
+        let bytes = visionpdf_engine::Session::new().create_blank(200.0, 200.0, 1).unwrap();
         import_app.open_bytes("unsigned.pdf", None, bytes.as_ref().clone()).unwrap();
         let out_pdf = dir.join("signed.pdf");
         import_app.save_override = Some(out_pdf.to_string_lossy().into_owned());

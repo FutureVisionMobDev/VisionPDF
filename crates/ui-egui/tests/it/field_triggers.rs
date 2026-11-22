@@ -4,7 +4,7 @@
 //! button with only a mouse-down action runs it when pressed (#4751).
 
 use egui_kittest::Harness;
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_ui_egui::VisionPDFApp;
 
 /// `log` records what ran; `hot` (a text field) logs the pointer entering and leaving it;
 /// `strike` (a check box) shows or hides `note` from its Mouse Up script by its own new value.
@@ -48,7 +48,7 @@ fn harness() -> Harness<'static, VisionPDFApp> {
     h
 }
 
-fn field<'a>(app: &'a VisionPDFApp, name: &str) -> &'a pdfcraft_engine::FormField {
+fn field<'a>(app: &'a VisionPDFApp, name: &str) -> &'a visionpdf_engine::FormField {
     let id = app.active_ids().unwrap().1;
     app.session.get(id).unwrap().form.iter().find(|f| f.name == name).unwrap()
 }
@@ -57,7 +57,7 @@ fn centre(h: &Harness<'static, VisionPDFApp>, name: &str) -> egui::Pos2 {
     let app = h.state();
     let (index, id) = app.active_ids().unwrap();
     let doc = app.session.get(id).unwrap();
-    pdfcraft_ui_egui::forms_ui::field_screen_rect(&app.views[index], &doc.info, field(app, name), 0).unwrap().center()
+    visionpdf_ui_egui::forms_ui::field_screen_rect(&app.views[index], &doc.info, field(app, name), 0).unwrap().center()
 }
 
 fn log(h: &Harness<'static, VisionPDFApp>) -> String {

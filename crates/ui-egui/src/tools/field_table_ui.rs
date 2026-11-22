@@ -11,9 +11,9 @@ use std::ops::RangeInclusive;
 use std::sync::Arc;
 
 use egui::{Align, Color32, CornerRadius, Layout, Rect, RichText, Sense, Stroke, pos2, vec2};
-use pdfcraft_engine::field_table::{self, Cell, FieldTable, MAX_COLUMNS, MAX_FIRST_ROW, MAX_ROWS, TableError};
-use pdfcraft_engine::{DocId, Edit, FormField};
-use pdfcraft_render::PageInfo;
+use visionpdf_engine::field_table::{self, Cell, FieldTable, MAX_COLUMNS, MAX_FIRST_ROW, MAX_ROWS, TableError};
+use visionpdf_engine::{DocId, Edit, FormField};
+use visionpdf_render::PageInfo;
 
 use crate::canvas::PageXform;
 use crate::{Dialog, VisionPDFApp, i18n, theme, widgets};
@@ -452,7 +452,7 @@ pub(crate) fn paint_preview(painter: &egui::Painter, xf: &PageXform, page: usize
 
 #[cfg(test)]
 mod tests {
-    use pdfcraft_engine::field_table::TableColumn;
+    use visionpdf_engine::field_table::TableColumn;
 
     use super::*;
 

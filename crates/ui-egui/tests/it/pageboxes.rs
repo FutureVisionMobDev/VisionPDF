@@ -2,7 +2,7 @@
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::{NodeT, Queryable};
-use pdfcraft_ui_egui::{Dialog, VisionPDFApp, QuickTool};
+use visionpdf_ui_egui::{Dialog, VisionPDFApp, QuickTool};
 
 const FIXTURE: &[u8] = b"%PDF-1.7
 1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj
@@ -55,9 +55,9 @@ fn quick_toolbar_crop_crops_the_page_and_undo_restores_it() {
 
 #[test]
 fn quick_toolbar_crop_is_disabled_when_page_assembly_is_forbidden() {
-    let mut doc = pdfcraft_cos::Document::open(std::sync::Arc::new(FIXTURE.to_vec())).unwrap();
-    doc.set_encryption(&pdfcraft_cos::NewEncryption {
-        algorithm: pdfcraft_cos::Algorithm::Aes256,
+    let mut doc = visionpdf_cos::Document::open(std::sync::Arc::new(FIXTURE.to_vec())).unwrap();
+    doc.set_encryption(&visionpdf_cos::NewEncryption {
+        algorithm: visionpdf_cos::Algorithm::Aes256,
         user_password: "",
         owner_password: "owner",
         permissions: 0b0100,
@@ -65,7 +65,7 @@ fn quick_toolbar_crop_is_disabled_when_page_assembly_is_forbidden() {
         seed: [5; 32],
     })
     .unwrap();
-    let bytes = pdfcraft_cos::write_full(&doc, &Default::default()).unwrap();
+    let bytes = visionpdf_cos::write_full(&doc, &Default::default()).unwrap();
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_| {
         let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();

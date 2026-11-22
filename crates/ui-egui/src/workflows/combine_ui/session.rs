@@ -287,7 +287,7 @@ impl VisionPDFApp {
                 Err(e) => {
                     // (The engine's message names the file, which the row already shows.)
                     let e = match e {
-                        pdfcraft_engine::EditError::Source(m) => m,
+                        visionpdf_engine::EditError::Source(m) => m,
                         other => other.to_string(),
                     };
                     let why = e.strip_prefix(&format!("{name}: ")).unwrap_or(&e).to_string();
@@ -401,7 +401,7 @@ impl VisionPDFApp {
         let _ = recursive;
     }
 
-    /// Add the files at `paths` to the Combine files list and show it: `pdfcraft --combine` and
+    /// Add the files at `paths` to the Combine files list and show it: `visionpdf --combine` and
     /// File Explorer's "Combine files in VisionPDF" (#585), where each selected file arrives as a
     /// launch of its own and the running VisionPDF collects them here. Nothing to add shows the
     /// tab all the same.

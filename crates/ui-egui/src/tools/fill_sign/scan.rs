@@ -93,7 +93,7 @@ impl ScanDraft {
 
     fn run(photo: &SignaturePhoto, req: ScanRequest) -> ScanAnswer {
         let max_side = if req.full { SCAN_MAX_SIDE } else { PREVIEW_MAX_SIDE };
-        pdfcraft_engine::guard(|| photo.scan(req.frame, req.sensitivity, max_side))
+        visionpdf_engine::guard(|| photo.scan(req.frame, req.sensitivity, max_side))
     }
 
     /// Clean the framed area into `image` now: quickly (`full` false) while something is being

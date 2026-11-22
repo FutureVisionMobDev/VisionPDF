@@ -4,7 +4,7 @@
 use egui::Pos2;
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::{Dialog, VisionPDFApp, SaveTarget};
+use visionpdf_ui_egui::{Dialog, VisionPDFApp, SaveTarget};
 
 fn harness() -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
@@ -79,7 +79,7 @@ fn marking_applying_and_clearing() {
 /// it in place again.
 #[test]
 fn saving_after_applying_redactions_asks_where() {
-    let dir = std::env::temp_dir().join(format!("pdfcraft-redacted-save-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-redacted-save-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let original = dir.join("contract.pdf");
@@ -122,7 +122,7 @@ fn saving_after_applying_redactions_asks_where() {
 /// where, so the restored content is not written over the copy. Redo makes Save write in place.
 #[test]
 fn undoing_saved_redactions_does_not_save_over_the_redacted_copy() {
-    let dir = std::env::temp_dir().join(format!("pdfcraft-redacted-saved-undo-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-redacted-saved-undo-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let original = dir.join("contract.pdf");
@@ -179,7 +179,7 @@ fn undoing_saved_redactions_does_not_save_over_the_redacted_copy() {
 /// step do not bring Save in place back over the `_Redacted` copy.
 #[test]
 fn redoing_a_new_apply_after_undoing_saved_redactions_still_asks_where() {
-    let dir = std::env::temp_dir().join(format!("pdfcraft-redacted-branch-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-redacted-branch-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let original = dir.join("contract.pdf");
@@ -234,7 +234,7 @@ fn redoing_a_new_apply_after_undoing_saved_redactions_still_asks_where() {
 /// Save ask where, so a host does not write the restored content over the redacted copy.
 #[test]
 fn undoing_delivered_redactions_asks_where() {
-    let dir = std::env::temp_dir().join(format!("pdfcraft-redacted-delivered-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-redacted-delivered-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let original = dir.join("contract.pdf");
@@ -284,7 +284,7 @@ fn undoing_delivered_redactions_asks_where() {
 /// build keeps the steps counted for the `_Redacted` name.
 #[test]
 fn delivered_redactions_save_in_place() {
-    let dir = std::env::temp_dir().join(format!("pdfcraft-redacted-delivered-save-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-redacted-delivered-save-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let original = dir.join("contract.pdf");
@@ -315,7 +315,7 @@ fn delivered_redactions_save_in_place() {
 /// restored content is not written to the redacted copy the dialog proposed.
 #[test]
 fn undoing_saved_redactions_while_the_save_dialog_is_open_asks_again() {
-    let dir = std::env::temp_dir().join(format!("pdfcraft-redacted-dialog-undo-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-redacted-dialog-undo-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let original = dir.join("contract.pdf");
@@ -365,7 +365,7 @@ fn undoing_saved_redactions_while_the_save_dialog_is_open_asks_again() {
 /// makes Save ask again, so the unredacted content is not saved under that name.
 #[test]
 fn undoing_apply_redactions_while_the_save_dialog_is_open_asks_again() {
-    let dir = std::env::temp_dir().join(format!("pdfcraft-redacted-dialog-unapply-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-redacted-dialog-unapply-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let original = dir.join("contract.pdf");
@@ -403,7 +403,7 @@ fn undoing_apply_redactions_while_the_save_dialog_is_open_asks_again() {
 /// Undo of Apply redactions brings back Save in place; Redo makes Save ask where again.
 #[test]
 fn undoing_apply_redactions_saves_in_place_again() {
-    let dir = std::env::temp_dir().join(format!("pdfcraft-redacted-undo-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-redacted-undo-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let original = dir.join("contract.pdf");
@@ -451,7 +451,7 @@ fn undoing_apply_redactions_saves_in_place_again() {
 /// File ▸ Revert discards the applied redactions, so Save writes the opened file in place again.
 #[test]
 fn reverting_after_apply_redactions_saves_in_place_again() {
-    let dir = std::env::temp_dir().join(format!("pdfcraft-redacted-revert-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-redacted-revert-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let original = dir.join("contract.pdf");
@@ -504,10 +504,10 @@ fn redaction_codes_become_the_overlay_text() {
     h.run_steps(2);
     let prefs = &h.state().redact_prefs;
     assert_eq!(prefs.overlay_text(), "(b)(6), (b)(7)(C)", "codes in the set's order");
-    let pdfcraft_engine::Edit::AddAnnotation(a) = prefs.mark(0, vec![pdfcraft_engine::rect_quad([10.0, 10.0, 50.0, 30.0])], "T") else {
+    let visionpdf_engine::Edit::AddAnnotation(a) = prefs.mark(0, vec![visionpdf_engine::rect_quad([10.0, 10.0, 50.0, 30.0])], "T") else {
         panic!("a mark adds an annotation")
     };
-    assert!(matches!(a.shape, pdfcraft_engine::Shape::Redact { ref overlay, .. } if overlay == "(b)(6), (b)(7)(C)"));
+    assert!(matches!(a.shape, visionpdf_engine::Shape::Redact { ref overlay, .. } if overlay == "(b)(6), (b)(7)(C)"));
     h.state_mut().redact_prefs.use_code = false;
     assert_eq!(h.state().redact_prefs.overlay_text(), "CONFIDENTIAL", "custom text is kept while codes are used");
 }
@@ -523,10 +523,10 @@ fn redaction_properties_survive_a_restart() {
         p.fill = None;
         p.use_overlay = true;
         p.use_code = true;
-        p.code_set = pdfcraft_engine::REDACTION_CODE_SETS[0];
+        p.code_set = visionpdf_engine::REDACTION_CODE_SETS[0];
         p.codes = vec!["(b)(6)", "(b)(7)(C)"];
         p.overlay = "CONFIDENTIAL".into();
-        p.look.font = pdfcraft_engine::OverlayFont::Courier;
+        p.look.font = visionpdf_engine::OverlayFont::Courier;
         p.look.size = 12.0;
         p.look.color = [0.0, 0.0, 1.0];
         p.look.align = 2;
@@ -549,11 +549,11 @@ fn redaction_properties_survive_a_restart() {
     assert_eq!(p.fill, None, "no colour is a saved choice, not a missing one");
     assert_eq!(p.overlay_text(), "(b)(6), (b)(7)(C)");
     assert_eq!(p.overlay, "CONFIDENTIAL");
-    assert_eq!(p.look.font, pdfcraft_engine::OverlayFont::Courier);
+    assert_eq!(p.look.font, visionpdf_engine::OverlayFont::Courier);
     assert_eq!((p.look.size, p.look.color, p.look.align, p.look.repeat), (12.0, [0.0, 0.0, 1.0], 2, true));
     assert_eq!((p.outline, p.hover_fill, p.opacity), ([0.0, 0.5, 0.0], [1.0, 1.0, 0.0], 0.4));
     // The next mark takes the outline and opacity.
-    let pdfcraft_engine::Edit::AddAnnotation(a) = p.mark(0, vec![pdfcraft_engine::rect_quad([10.0, 10.0, 50.0, 30.0])], "T") else {
+    let visionpdf_engine::Edit::AddAnnotation(a) = p.mark(0, vec![visionpdf_engine::rect_quad([10.0, 10.0, 50.0, 30.0])], "T") else {
         panic!("a mark adds an annotation")
     };
     assert_eq!((a.style.color, a.style.opacity, a.style.fill), ([0.0, 0.5, 0.0], 0.4, None));
@@ -565,7 +565,7 @@ fn redaction_properties_survive_a_restart() {
     );
     let p = &odd.redact_prefs;
     assert_eq!((p.outline, p.opacity), ([0.89, 0.13, 0.13], 0.7));
-    assert_eq!(p.code_set.id, pdfcraft_engine::REDACTION_CODE_SETS[0].id);
+    assert_eq!(p.code_set.id, visionpdf_engine::REDACTION_CODE_SETS[0].id);
     assert_eq!(p.overlay_text(), "(b)(6)");
 }
 
@@ -603,7 +603,7 @@ fn redaction_properties_for_this_run_only_and_cancel() {
 
 #[test]
 fn redacting_an_imported_word_list() {
-    let memo = pdfcraft_engine::Session::new().create_from_text("memo", "Call Ada today\nAda is private\nPublic line").unwrap().to_vec();
+    let memo = visionpdf_engine::Session::new().create_from_text("memo", "Call Ada today\nAda is private\nPublic line").unwrap().to_vec();
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
         let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
@@ -615,22 +615,22 @@ fn redacting_an_imported_word_list() {
     h.run_steps(2);
     h.get_by_label("Multiple words or phrases");
     let list = b"  Ada \n\nprivate\nAda\nabsent\n".to_vec();
-    h.state_mut().use_files(pdfcraft_ui_egui::FilePurpose::RedactWords, vec![("names.txt".into(), list)]);
+    h.state_mut().use_files(visionpdf_ui_egui::FilePurpose::RedactWords, vec![("names.txt".into(), list)]);
     let d = &h.state().redact_search;
-    assert_eq!((d.mode, d.words.as_str()), (pdfcraft_ui_egui::RedactSearchMode::Words, "Ada\nprivate\nabsent"));
+    assert_eq!((d.mode, d.words.as_str()), (visionpdf_ui_egui::RedactSearchMode::Words, "Ada\nprivate\nabsent"));
     h.run_steps(2);
     h.get_by_label("3 word(s) or phrase(s)");
     h.get_by_label("Mark all").click();
     h.run_steps(3);
     assert_eq!((marks(&h), h.state().redact_search.found), (3, Some(3)));
     let too_big = vec![b'a'; 2 << 20];
-    h.state_mut().use_files(pdfcraft_ui_egui::FilePurpose::RedactWords, vec![("huge.txt".into(), too_big)]);
+    h.state_mut().use_files(visionpdf_ui_egui::FilePurpose::RedactWords, vec![("huge.txt".into(), too_big)]);
     assert_eq!(h.state().redact_search.words, "Ada\nprivate\nabsent", "an oversized list changes nothing");
 }
 
 #[test]
 fn redaction_search_can_match_case_and_whole_words() {
-    let memo = pdfcraft_engine::Session::new().create_from_text("memo", "Ada ada Adaline\nAda beta betamax").unwrap().to_vec();
+    let memo = visionpdf_engine::Session::new().create_from_text("memo", "Ada ada Adaline\nAda beta betamax").unwrap().to_vec();
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
         let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
@@ -658,7 +658,7 @@ fn removing_hidden_information_and_sanitizing() {
     h.get_by_label("Remove hidden information");
     {
         let d = &h.state().hidden_draft;
-        let fields = d.found.iter().find(|f| f.0 == pdfcraft_engine::Hidden::FormFields).unwrap();
+        let fields = d.found.iter().find(|f| f.0 == visionpdf_engine::Hidden::FormFields).unwrap();
         assert_eq!((fields.1, fields.2), (5, true), "five fields, checked");
     }
     h.get_by_label("Remove").click();

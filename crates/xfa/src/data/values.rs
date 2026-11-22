@@ -73,9 +73,9 @@ fn radio_widgets(doc: &Document, f: &FieldDatum) -> Vec<(Option<String>, Option<
 
 /// An on-state name's bytes in the spelling a radio group's AcroForm value has, so the two can
 /// be compared: UTF-8 names read as themselves, other bytes (Shift-JIS states) and `#` are
-/// written `#XX`, as in PDF name syntax. This is `pdfcraft_forms::name_text`, which this crate
+/// written `#XX`, as in PDF name syntax. This is `visionpdf_forms::name_text`, which this crate
 /// can't depend on; the value saving gets is read through it, and the state opening returns is
-/// written back through its inverse, `pdfcraft_forms::name_bytes`.
+/// written back through its inverse, `visionpdf_forms::name_bytes`.
 /// The engine checks that the two spell names alike (`xfa_and_forms_spell_names_alike`).
 pub fn name_text(bytes: &[u8]) -> String {
     let escape = |b: u8| format!("#{b:02X}");

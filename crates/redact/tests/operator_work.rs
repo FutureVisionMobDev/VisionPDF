@@ -8,10 +8,10 @@
 use std::sync::{Arc, Mutex, PoisonError};
 use std::time::{Duration, Instant};
 
-use pdfcraft_annot::{Meta, NewAnnotation, Shape, Style, add_annotation, rect_quad};
-use pdfcraft_cos::Document;
-use pdfcraft_redact::apply;
-use pdfcraft_testkit::{Pdf, stream_obj};
+use visionpdf_annot::{Meta, NewAnnotation, Shape, Style, add_annotation, rect_quad};
+use visionpdf_cos::Document;
+use visionpdf_redact::apply;
+use visionpdf_testkit::{Pdf, stream_obj};
 
 /// One page with `resources` and `extra` objects (from object 5 on), drawing a word under a mark
 /// (so the redaction rewrites the page) and then `ops`.

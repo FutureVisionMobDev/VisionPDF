@@ -13,7 +13,7 @@
 //!   the CPU when `CRYPTO_library_init` is called instead of in a static initializer before
 //!   `main`.
 //! - [`run_without_cpu_override`], the first thing each executable's `main` does, runs the
-//!   program again without the variable. Then `main` calls `pdfcraft_sign::init_crypto`, so the
+//!   program again without the variable. Then `main` calls `visionpdf_sign::init_crypto`, so the
 //!   CPU is detected at start as before, and every operation gets its fast code.
 //!
 //! Removing the variable from this process instead wouldn't work: aws-lc reads it through the C
@@ -27,7 +27,7 @@ use std::io::Write as _;
 pub const IA32CAP: &str = "OPENSSL_ia32cap";
 
 /// Set in the program started again to the value it was started without, for its log.
-pub const DROPPED: &str = "PDFCRAFT_DROPPED_OPENSSL_IA32CAP";
+pub const DROPPED: &str = "VISIONPDF_DROPPED_OPENSSL_IA32CAP";
 
 /// When `OPENSSL_ia32cap` is set: run this executable again, with the same arguments and
 /// standard streams but without the variable, and return its exit code once it ends.

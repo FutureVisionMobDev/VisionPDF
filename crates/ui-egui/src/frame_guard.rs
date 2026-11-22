@@ -35,7 +35,7 @@ impl VisionPDFApp {
 
     /// Run one part of the frame (`logic` or `ui`) under the guard.
     pub(crate) fn guarded_frame(&mut self, part: impl FnOnce(&mut VisionPDFApp)) {
-        if let Err(message) = pdfcraft_engine::guard(|| part(self)) {
+        if let Err(message) = visionpdf_engine::guard(|| part(self)) {
             self.after_frame_panic(&message);
         }
     }
@@ -49,7 +49,7 @@ impl VisionPDFApp {
             self.panicking_frames = self.panicking_frames.saturating_add(1);
         }
         // Now, not at the next autosave tick. Guarded too: the session may be what panicked.
-        if let Err(e) = pdfcraft_engine::guard(|| self.autosave_now()) {
+        if let Err(e) = visionpdf_engine::guard(|| self.autosave_now()) {
             log::error!("snapshotting unsaved documents after a frame panic failed: {e}");
         }
         if self.panicking_frames >= MAX_PANICKING_FRAMES {
@@ -71,7 +71,7 @@ impl VisionPDFApp {
     /// snapshot doesn't hold (a text being typed) is lost. If even that panics, the close is
     /// cancelled; the user can close again.
     pub(crate) fn close_after_panic(&mut self, ctx: &egui::Context) {
-        if ctx.input(|i| i.viewport().close_requested()) && pdfcraft_engine::guard(|| self.hold_close_for_unsaved(ctx)).is_err() {
+        if ctx.input(|i| i.viewport().close_requested()) && visionpdf_engine::guard(|| self.hold_close_for_unsaved(ctx)).is_err() {
             ctx.send_viewport_cmd(egui::ViewportCommand::CancelClose);
         }
     }
@@ -107,14 +107,14 @@ mod tests {
     use super::*;
     use crate::{Dialog, RecoveryStore};
     use egui_kittest::Harness;
-    use pdfcraft_engine::{Edit, Session};
+    use visionpdf_engine::{Edit, Session};
 
     /// A recovery folder of its own, removed on drop.
     struct Store(RecoveryStore);
 
     impl Store {
         fn new(tag: &str) -> Store {
-            let dir = std::env::temp_dir().join(format!("pdfcraft-frame-guard-{tag}-{}", std::process::id()));
+            let dir = std::env::temp_dir().join(format!("visionpdf-frame-guard-{tag}-{}", std::process::id()));
             let _ = std::fs::remove_dir_all(&dir);
             Store(RecoveryStore::new(dir))
         }

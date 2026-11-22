@@ -7,7 +7,7 @@ use egui::{Color32, CornerRadius, Stroke};
 
 use crate::VisionPDFApp;
 use crate::canvas::{DocView, PageXform};
-use pdfcraft_render::DocInfo;
+use visionpdf_render::DocInfo;
 
 /// The selected picture: page, index in `page_images` and its box in user space, and the
 /// document's edit generation when it was picked (any later edit may have removed or renumbered it).
@@ -31,7 +31,7 @@ pub(crate) fn page_input(
     xf: &PageXform,
     page: usize,
     info: &DocInfo,
-    doc: &pdfcraft_engine::Document,
+    doc: &visionpdf_engine::Document,
     ptr: &crate::page_pointer::PagePointer,
     pick: bool,
     view: &mut DocView,
@@ -62,7 +62,7 @@ pub(crate) fn page_input(
     } else if let Some(pictures) = view.pictures.get(&resp.ctx, doc, page) {
         // Where the click was on the page now: the view may have moved while the page was read.
         let point = xf.user_rect_f64(info, page, [at[0], at[1], at[0], at[1]]).center();
-        view.picked_image = pdfcraft_engine::picture_at(pictures, at).and_then(|(index, i)| {
+        view.picked_image = visionpdf_engine::picture_at(pictures, at).and_then(|(index, i)| {
             let screen_rect = crate::canvas::image_screen_rect(i, xf, info, page);
             (screen_rect.is_positive() && screen_rect.contains(point)).then(|| PickedImage {
                 page,
@@ -88,9 +88,9 @@ type PictureKey = (usize, u64);
 #[derive(Default)]
 pub(crate) struct PagePictures {
     /// The pictures of the key's page.
-    ready: Option<(PictureKey, Vec<pdfcraft_engine::PagePicture>)>,
+    ready: Option<(PictureKey, Vec<visionpdf_engine::PagePicture>)>,
     /// The search under way. One at a time: each is a full read of a page.
-    job: Option<(PictureKey, std::sync::mpsc::Receiver<Vec<pdfcraft_engine::PagePicture>>)>,
+    job: Option<(PictureKey, std::sync::mpsc::Receiver<Vec<visionpdf_engine::PagePicture>>)>,
 }
 
 impl PagePictures {
@@ -98,7 +98,7 @@ impl PagePictures {
     const SMALL_FILE: usize = 8 * 1024 * 1024;
 
     /// The pictures on `page`, or `None` while they are being found (a repaint follows the answer).
-    pub(crate) fn get(&mut self, ctx: &egui::Context, doc: &pdfcraft_engine::Document, page: usize) -> Option<&[pdfcraft_engine::PagePicture]> {
+    pub(crate) fn get(&mut self, ctx: &egui::Context, doc: &visionpdf_engine::Document, page: usize) -> Option<&[visionpdf_engine::PagePicture]> {
         let key = (page, doc.edit_generation());
         self.poll();
         if self.job.is_none() && !self.ready.as_ref().is_some_and(|(k, _)| *k == key) {
@@ -112,7 +112,7 @@ impl PagePictures {
         self.ready.as_ref().filter(|(k, _)| *k == key).map(|(_, pictures)| pictures.as_slice())
     }
 
-    fn start(&mut self, ctx: &egui::Context, key: PictureKey, work: impl FnOnce() -> Vec<pdfcraft_engine::PagePicture> + Send + 'static) {
+    fn start(&mut self, ctx: &egui::Context, key: PictureKey, work: impl FnOnce() -> Vec<visionpdf_engine::PagePicture> + Send + 'static) {
         let (send, answer) = std::sync::mpsc::channel();
         let ctx = ctx.clone();
         let run = move || {
@@ -254,7 +254,7 @@ mod picture_tests {
     /// they don't come while the returned sender lives.
     fn click_still_being_looked_into(
         h: &mut egui_kittest::Harness<'static, VisionPDFApp>,
-    ) -> std::sync::mpsc::Sender<Vec<pdfcraft_engine::PagePicture>> {
+    ) -> std::sync::mpsc::Sender<Vec<visionpdf_engine::PagePicture>> {
         let id = h.state().views[0].id;
         let generation = h.state().session.get(id).expect("the document").edit_generation();
         let (send, answer) = std::sync::mpsc::channel();
@@ -313,7 +313,7 @@ mod picture_tests {
 /// Forget the selected picture once the document has been edited since it was picked: Edit text &
 /// images (or Undo) may have deleted or moved it, and its highlight would stay behind on an empty
 /// spot of the page.
-pub(crate) fn drop_stale(doc: &pdfcraft_engine::Document, view: &mut DocView) {
+pub(crate) fn drop_stale(doc: &visionpdf_engine::Document, view: &mut DocView) {
     if view.picked_image.is_some_and(|p| p.generation != doc.edit_generation()) {
         view.picked_image = None;
     }
@@ -340,8 +340,8 @@ pub(crate) fn safe_name(s: &str) -> String {
 /// The per-user folder that holds the file of the last Copy Image in Original Format: `Clipboard`
 /// in the portable data folder in portable mode ([`crate::portable`]), otherwise the platform's
 /// per-user cache folder: `~/Library/Caches/VisionPDF/Clipboard` (macOS),
-/// `%LOCALAPPDATA%\VisionPDF\Clipboard` (Windows), or `$XDG_CACHE_HOME/pdfcraft/clipboard` /
-/// `~/.cache/pdfcraft/clipboard` (others). Never the shared temporary folder, where another user
+/// `%LOCALAPPDATA%\VisionPDF\Clipboard` (Windows), or `$XDG_CACHE_HOME/visionpdf/clipboard` /
+/// `~/.cache/visionpdf/clipboard` (others). Never the shared temporary folder, where another user
 /// could plant a link or a folder of their own.
 #[cfg(not(target_arch = "wasm32"))]
 fn clipboard_dir() -> Option<std::path::PathBuf> {
@@ -355,7 +355,7 @@ fn clipboard_dir() -> Option<std::path::PathBuf> {
     } else if cfg!(windows) {
         env("LOCALAPPDATA").map(|d| d.join("VisionPDF").join("Clipboard"))
     } else {
-        env("XDG_CACHE_HOME").or_else(|| env("HOME").map(|h| h.join(".cache"))).map(|d| d.join("pdfcraft/clipboard"))
+        env("XDG_CACHE_HOME").or_else(|| env("HOME").map(|h| h.join(".cache"))).map(|d| d.join("visionpdf/clipboard"))
     }
 }
 
@@ -518,7 +518,7 @@ mod tests {
     #[test]
     #[cfg(not(target_arch = "wasm32"))]
     fn clipboard_folder_only_replaces_our_own_copies() {
-        let dir = std::env::temp_dir().join(format!("pdfcraft-clipboard-test-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("visionpdf-clipboard-test-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
         std::fs::write(dir.join("keep.txt"), b"other").unwrap();
@@ -542,7 +542,7 @@ mod tests {
             assert!(write_clipboard_file(&dir, "Link p1 img1.png", b"x").is_err(), "writing never follows a link");
             assert_eq!(std::fs::read(&target).unwrap(), b"other");
             // A link in place of the folder is refused.
-            let linked = std::env::temp_dir().join(format!("pdfcraft-clipboard-test-link-{}", std::process::id()));
+            let linked = std::env::temp_dir().join(format!("visionpdf-clipboard-test-link-{}", std::process::id()));
             let _ = std::fs::remove_file(&linked);
             std::os::unix::fs::symlink(&dir, &linked).unwrap();
             assert!(write_clipboard_file(&linked, "X p1 img1.png", b"x").is_err());

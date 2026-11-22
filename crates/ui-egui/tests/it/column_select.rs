@@ -3,7 +3,7 @@
 
 use egui::{Event, Modifiers, PointerButton, Pos2, vec2};
 use egui_kittest::Harness;
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_ui_egui::VisionPDFApp;
 
 /// One 300×200 page with a three-row table, "Name Qty / Apple 12 / Pear 7". Its columns sit far
 /// enough apart that reading order takes one column, then the other: glyphs 0–3 "Name", 4–8
@@ -100,7 +100,7 @@ fn alt_drag_selects_only_the_text_inside_the_rectangle() {
 #[test]
 fn the_column_select_tool_needs_no_modifier() {
     let mut h = harness(|app| assert!(app.execute("edit.column_select")));
-    assert_eq!(h.state().quick_tool, pdfcraft_ui_egui::QuickTool::ColumnSelect);
+    assert_eq!(h.state().quick_tool, visionpdf_ui_egui::QuickTool::ColumnSelect);
     let (from, to) = top_two_rows(&h);
     drag(&mut h, from, to, Modifiers::NONE);
     assert_eq!(text(&h).as_deref(), Some("Name\tQty\nApple\t12"));

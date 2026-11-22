@@ -1,10 +1,10 @@
 //! Bookmarks ▸ New bookmarks from text styles (#1693): for documents whose headings aren't
 //! tagged, a style per bookmark level (the chapters' font and size for level 1, the sections'
 //! for level 2, …), and every line set in it becomes a bookmark of that level
-//! ([`pdfcraft_engine::text_style_bookmarks`]).
+//! ([`visionpdf_engine::text_style_bookmarks`]).
 
-use pdfcraft_engine::text_style_bookmarks::{TextStyle, TextStyleUse};
-use pdfcraft_engine::{DocId, Edit};
+use visionpdf_engine::text_style_bookmarks::{TextStyle, TextStyleUse};
+use visionpdf_engine::{DocId, Edit};
 
 use crate::theme::{self, Tokens};
 use crate::{VisionPDFApp, widgets};

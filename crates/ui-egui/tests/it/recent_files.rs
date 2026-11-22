@@ -5,7 +5,7 @@ use egui::Key;
 use egui::accesskit::Role;
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::{Dialog, VisionPDFApp, RECENT_FILES_DEFAULT, RecentFile};
+use visionpdf_ui_egui::{Dialog, VisionPDFApp, RECENT_FILES_DEFAULT, RecentFile};
 
 use crate::support;
 
@@ -197,7 +197,7 @@ fn settings_saved_while_preferences_is_open_already_leave_the_rest_out() {
 
 #[test]
 fn the_limit_is_saved_and_restored_and_cuts_a_longer_list() {
-    let dir = std::env::temp_dir().join(format!("pdfcraft-recent-limit-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-recent-limit-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let paths: Vec<String> = ["a.pdf", "b.pdf", "c.pdf"]
         .iter()
@@ -226,7 +226,7 @@ fn the_limit_is_saved_and_restored_and_cuts_a_longer_list() {
 /// is there stays.
 #[test]
 fn restoring_settings_does_not_check_recent_files_and_a_frame_drops_the_gone_ones() {
-    let dir = std::env::temp_dir().join(format!("pdfcraft-recent-restore-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-recent-restore-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let here = dir.join("here.pdf");
     std::fs::write(&here, PDF).unwrap();

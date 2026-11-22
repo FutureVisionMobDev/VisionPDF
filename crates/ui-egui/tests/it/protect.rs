@@ -2,7 +2,7 @@
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::{Dialog, VisionPDFApp};
+use visionpdf_ui_egui::{Dialog, VisionPDFApp};
 
 const FIXTURE: &[u8] = b"%PDF-1.7
 1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj
@@ -51,7 +51,7 @@ fn protecting_for_viewing_requires_matching_passwords_and_saves_encrypted() {
     assert!(doc.security_summary().unwrap().pending);
     // What Save writes needs the password.
     let bytes = h.state().session.save_bytes(id).unwrap();
-    let mut s = pdfcraft_engine::Session::new();
+    let mut s = visionpdf_engine::Session::new();
     assert!(s.open("p.pdf", None, bytes.clone(), None).is_err());
     assert!(s.open("p.pdf", None, bytes, Some("Open-Sesame-42")).is_ok());
     // Remove security is now offered, and undo also takes the protection back.

@@ -7,8 +7,8 @@
 //! bold, italic and bold italic, in WinAnsiEncoding): a font that isn't one of them is drawn in
 //! Helvetica, as before. Symbol and ZapfDingbats are not text faces for this purpose.
 
-use pdfcraft_cos::{Dict, Document, Object};
-use pdfcraft_fonts::{Std14, Std14Match as Match};
+use visionpdf_cos::{Dict, Document, Object};
+use visionpdf_fonts::{Std14, Std14Match as Match};
 
 use crate::Rgb;
 use crate::appearance::parse_da;
@@ -332,7 +332,7 @@ fn css_color(v: &str) -> Option<Rgb> {
 
 #[cfg(test)]
 mod tests {
-    use pdfcraft_cos::PdfString;
+    use visionpdf_cos::PdfString;
 
     use super::*;
 
@@ -381,7 +381,7 @@ mod tests {
 
     /// VisionPDF writes `/DS` from `/DA` (8-bit colour): `/DA`'s exact colour, size and face stay.
     #[test]
-    fn pdfcraft_written_ds_matches_da() {
+    fn visionpdf_written_ds_matches_da() {
         let s = text_style(&dict("0.1 0.2 0.3 rg /Helv 12.5 Tf", Some("font: Helvetica 12.5pt; text-align:left; color:#1A334D")), None);
         assert_eq!(s, TextStyle { face: Std14::Helvetica, size: 12.5, color: [0.1, 0.2, 0.3] });
     }

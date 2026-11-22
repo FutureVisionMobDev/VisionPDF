@@ -3,8 +3,8 @@
 use super::*;
 use crate::font_names::{distinct, distinct_within, renamed_sfnt};
 use crate::spool::spooled_pdf;
-use pdfcraft_cos::DecodeBudget;
-use pdfcraft_render::{PageRenderer, RenderConfig, RenderRequest, RequestKind};
+use visionpdf_cos::DecodeBudget;
+use visionpdf_render::{PageRenderer, RenderConfig, RenderRequest, RequestKind};
 use skrifa::raw::TableProvider as _;
 use skrifa::string::StringId;
 use skrifa::{FontRef, MetadataProvider as _};
@@ -57,7 +57,7 @@ fn print_ready() -> Vec<u8> {
     let mut resources = Dict::new();
     resources.set(b"Font".to_vec(), Object::Dict(fonts));
     let contents = doc.add(Object::Stream(Stream::flate(Dict::new(), b"BT /F1 40 Tf 10 200 Td (Hola) Tj ET BT /F2 40 Tf 10 100 Td (Hola) Tj ET")));
-    let page = pdfcraft_model::pages(&doc)[0].obj;
+    let page = visionpdf_model::pages(&doc)[0].obj;
     doc.update_dict(page, |d| {
         d.remove(b"Annots");
         d.set(b"Resources".to_vec(), Object::Dict(resources));
@@ -173,7 +173,7 @@ fn a_program_that_cannot_be_rewritten_keeps_its_name_in_the_pdf_too() {
     fonts.set(b"F2".to_vec(), Object::Ref(broken));
     let mut resources = Dict::new();
     resources.set(b"Font".to_vec(), Object::Dict(fonts));
-    let page = pdfcraft_model::pages(&doc)[0].obj;
+    let page = visionpdf_model::pages(&doc)[0].obj;
     doc.update_dict(page, |d| d.set(b"Resources".to_vec(), Object::Dict(resources))).unwrap();
     let pdf = write_full(&doc, &SaveOptions::default()).unwrap();
 
@@ -250,12 +250,12 @@ fn a_cidfont_written_inside_its_type0_font_is_renamed_with_it() {
     }
     let mut resources = Dict::new();
     resources.set(b"Font".to_vec(), Object::Dict(fonts));
-    let page = pdfcraft_model::pages(&doc)[0].obj;
+    let page = visionpdf_model::pages(&doc)[0].obj;
     doc.update_dict(page, |d| d.set(b"Resources".to_vec(), Object::Dict(resources))).unwrap();
     let pdf = write_full(&doc, &SaveOptions::default()).unwrap();
 
     let renamed = Document::open(Arc::new(distinct(&pdf).unwrap().unwrap())).unwrap();
-    let page = renamed.dict(&Object::Ref(pdfcraft_model::pages(&renamed)[0].obj)).unwrap();
+    let page = renamed.dict(&Object::Ref(visionpdf_model::pages(&renamed)[0].obj)).unwrap();
     let fonts = renamed.dict(renamed.dict(page.get(b"Resources").unwrap()).unwrap().get(b"Font").unwrap()).unwrap();
     let name = |d: &Dict, key: &[u8]| String::from_utf8(d.name(key).unwrap().to_vec()).unwrap();
     let simple = renamed.dict(fonts.get(b"F1").unwrap()).unwrap();
@@ -310,13 +310,13 @@ fn fonts_sharing_a_program_share_its_name_and_type0_fonts_follow_their_cidfont()
     }
     let mut resources = Dict::new();
     resources.set(b"Font".to_vec(), Object::Dict(fonts));
-    let page = pdfcraft_model::pages(&doc)[0].obj;
+    let page = visionpdf_model::pages(&doc)[0].obj;
     doc.update_dict(page, |d| d.set(b"Resources".to_vec(), Object::Dict(resources))).unwrap();
     let pdf = write_full(&doc, &SaveOptions::default()).unwrap();
 
     // The file is written anew, so the fonts are found again through the page.
     let renamed = Document::open(Arc::new(distinct(&pdf).unwrap().unwrap())).unwrap();
-    let page = renamed.dict(&Object::Ref(pdfcraft_model::pages(&renamed)[0].obj)).unwrap();
+    let page = renamed.dict(&Object::Ref(visionpdf_model::pages(&renamed)[0].obj)).unwrap();
     let fonts = renamed.dict(renamed.dict(page.get(b"Resources").unwrap()).unwrap().get(b"Font").unwrap()).unwrap();
     let font = |key: &[u8]| renamed.dict(fonts.get(key).unwrap()).unwrap();
     let base_font = |d: &Dict| String::from_utf8(d.name(b"BaseFont").unwrap().to_vec()).unwrap();

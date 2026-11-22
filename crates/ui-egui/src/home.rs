@@ -2,7 +2,7 @@
 //! another app's list).
 
 use egui::{Align2, CornerRadius, Rect, Sense, Stroke, vec2};
-use pdfcraft_engine::catalog;
+use visionpdf_engine::catalog;
 
 use crate::theme::{self, Tokens};
 use crate::{VisionPDFApp, icons, panels::human_size, widgets};

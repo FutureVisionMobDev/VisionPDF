@@ -4,11 +4,11 @@
 
 use std::sync::Arc;
 
-use pdfcraft_cos::Document;
-use pdfcraft_sign::der::{self, Time, tag};
-use pdfcraft_sign::pkcs12::DigitalId;
-use pdfcraft_sign::x509::{Certificate, Name, build_chain, build_chain_noted};
-use pdfcraft_sign::{PrivateKey, SignOptions, Status, TrustStore, signatures};
+use visionpdf_cos::Document;
+use visionpdf_sign::der::{self, Time, tag};
+use visionpdf_sign::pkcs12::DigitalId;
+use visionpdf_sign::x509::{Certificate, Name, build_chain, build_chain_noted};
+use visionpdf_sign::{PrivateKey, SignOptions, Status, TrustStore, signatures};
 
 fn time(year: u32) -> Time {
     Time { year, month: 6, day: 1, hour: 12, minute: 0, second: 0 }
@@ -188,7 +188,7 @@ fn verdict(leaf: Party, embedded: Vec<Certificate>, anchor: &Certificate) -> (St
     let id = DigitalId { key: leaf.key, certificate: leaf.cert, chain: embedded, friendly_name: None };
     let doc = Document::open(Arc::new(fixture())).unwrap();
     let opts = SignOptions { page: 0, rect: None, date: "D:20260601120000Z".into(), ..SignOptions::default() };
-    let signed = pdfcraft_sign::sign(&doc, &id, &opts).unwrap();
+    let signed = visionpdf_sign::sign(&doc, &id, &opts).unwrap();
     let trust = TrustStore { certs: vec![anchor.clone()] };
     let s = signatures(&Document::open(Arc::new(signed.clone())).unwrap(), &signed, &trust).into_iter().rfind(|s| s.signed).unwrap();
     // The details as they read in English; what an interface says in another language is checked in

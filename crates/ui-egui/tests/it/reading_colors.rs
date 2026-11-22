@@ -4,8 +4,8 @@
 use egui::accesskit::Role;
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_render::ReadingColors;
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_render::ReadingColors;
+use visionpdf_ui_egui::VisionPDFApp;
 
 /// One valid page (proper xref, so no repair banner covers the dialog): black text on white.
 fn pdf() -> Vec<u8> {
@@ -38,7 +38,7 @@ fn pending_pages_use_document_reading_background() {
             // race the assertion or hide the pending-page background.
             let mut output =
                 ctx.run_ui(RawInput { screen_rect: Some(Rect::from_min_size(pos2(0.0, 0.0), vec2(900.0, 600.0))), ..Default::default() }, |ui| {
-                    pdfcraft_ui_egui::canvas::document_area(&mut app, 0, ui);
+                    visionpdf_ui_egui::canvas::document_area(&mut app, 0, ui);
                 });
             output.textures_delta.clear();
             let view = &app.views[0];
@@ -127,7 +127,7 @@ fn reading_presets_follow_appearance_and_do_not_change_the_interface_theme() {
         assert_eq!(h.state().theme_preference, theme);
         assert_eq!(h.query_by_label("Original").is_some(), expected.params.is_none());
     }
-    if let Ok(path) = std::env::var("PDFCRAFT_READING_SHOT") {
+    if let Ok(path) = std::env::var("VISIONPDF_READING_SHOT") {
         h.render().unwrap().save(path).unwrap();
     }
 }
@@ -155,7 +155,7 @@ fn reading_colours_seed_on_open() {
     // incremental save.
     {
         let s = &mut h.state_mut().session;
-        s.apply(id, pdfcraft_engine::Edit::SetInfo { key: "Title".into(), value: "Second".into() }).unwrap();
+        s.apply(id, visionpdf_engine::Edit::SetInfo { key: "Title".into(), value: "Second".into() }).unwrap();
         let saved = s.save_bytes(id).unwrap();
         s.mark_saved(id, saved, None).unwrap();
     }

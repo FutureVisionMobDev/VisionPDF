@@ -2,10 +2,10 @@
 //! closing it. The tab, the undo history and the view stay as they are; Recent files, Reopen Closed
 //! Tab and the file watcher follow the new name. A document with unsaved changes is saved first
 //! ("Save and Rename"), so the renamed file is always the version on screen (Acrobat on macOS asks
-//! the same). The name's rules are the engine's ([`pdfcraft_engine::new_file_name`]).
+//! the same). The name's rules are the engine's ([`visionpdf_engine::new_file_name`]).
 
 use egui::{Align, Layout};
-use pdfcraft_engine::DocId;
+use visionpdf_engine::DocId;
 
 use crate::{Dialog, VisionPDFApp, theme, widgets};
 
@@ -132,7 +132,7 @@ pub(crate) fn body(app: &mut VisionPDFApp, ui: &mut egui::Ui) -> (bool, bool) {
         field.request_focus();
     }
     // Checked as it is typed: the reason shows under the field and Rename waits for a usable name.
-    let check = pdfcraft_engine::rename_target(std::path::Path::new(&path), &draft.name);
+    let check = visionpdf_engine::rename_target(std::path::Path::new(&path), &draft.name);
     let t = theme::Tokens::get(ui.ctx());
     match &check {
         Err(e) => {
@@ -206,7 +206,7 @@ mod tests {
 
     #[test]
     fn rename_from_the_tab_menu_moves_the_file_and_keeps_the_tab() {
-        let dir = std::env::temp_dir().join(format!("pdfcraft-rename-ui-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("visionpdf-rename-ui-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
         std::fs::write(dir.join("taken.pdf"), b"other").unwrap();
@@ -237,12 +237,12 @@ mod tests {
 
     #[test]
     fn unsaved_changes_are_saved_before_the_rename() {
-        let dir = std::env::temp_dir().join(format!("pdfcraft-rename-ui-save-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("visionpdf-rename-ui-save-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
         let mut h = harness(&dir);
         let id = h.state().views[0].id;
-        h.state_mut().apply_edit(pdfcraft_engine::Edit::SetInfo { key: "Title".into(), value: "Saved first".into() });
+        h.state_mut().apply_edit(visionpdf_engine::Edit::SetInfo { key: "Title".into(), value: "Saved first".into() });
         h.run_steps(3);
         assert!(h.state().session.get(id).unwrap().dirty);
         open_rename(&mut h, "first.pdf (edited)"); // an edited tab says so to assistive technology
@@ -261,12 +261,12 @@ mod tests {
 
     #[test]
     fn a_save_that_fails_keeps_the_typed_name() {
-        let dir = std::env::temp_dir().join(format!("pdfcraft-rename-ui-fail-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("visionpdf-rename-ui-fail-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
         let mut h = harness(&dir);
         let id = h.state().views[0].id;
-        h.state_mut().apply_edit(pdfcraft_engine::Edit::SetInfo { key: "Title".into(), value: "Unsaved".into() });
+        h.state_mut().apply_edit(visionpdf_engine::Edit::SetInfo { key: "Title".into(), value: "Unsaved".into() });
         h.run_steps(3);
         open_rename(&mut h, "first.pdf (edited)");
         type_name(&mut h, "second");

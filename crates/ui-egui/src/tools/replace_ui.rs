@@ -1,10 +1,10 @@
 //! Find and replace from the find bar (Edit text mode): the engine plans the change
-//! ([`pdfcraft_engine::Document::plan_replace`]) and it is applied as one edit, so Replace all
+//! ([`visionpdf_engine::Document::plan_replace`]) and it is applied as one edit, so Replace all
 //! is one undo step; what was left alone is said, never skipped silently.
 
 use std::collections::BTreeMap;
 
-use pdfcraft_engine::find_replace::{Replace, Replacement, Which};
+use visionpdf_engine::find_replace::{Replace, Replacement, Which};
 
 use crate::VisionPDFApp;
 

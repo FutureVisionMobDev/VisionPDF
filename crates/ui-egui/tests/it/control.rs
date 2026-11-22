@@ -5,9 +5,9 @@ use std::sync::{Arc, Mutex};
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_render::{PageRenderer, RenderRequest, RequestKind};
-use pdfcraft_ui_egui::VisionPDFApp;
-use pdfcraft_ui_egui::control::{ControlClient, Reply};
+use visionpdf_render::{PageRenderer, RenderRequest, RequestKind};
+use visionpdf_ui_egui::VisionPDFApp;
+use visionpdf_ui_egui::control::{ControlClient, Reply};
 use serde_json::{Value, json};
 
 /// The text each page shows, in order, as the app's session holds it.
@@ -265,7 +265,7 @@ fn production_key_release_survives_the_focus_change_its_press_causes() {
 #[test]
 fn production_drag_releases_the_button_after_the_press_moves_focus() {
     let (mut h, c) = harness_pages(2);
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::AddBookmark { parent: vec![], index: 0, title: "Target".into(), page: 0, left: None, top: None });
+    h.state_mut().apply_edit(visionpdf_engine::Edit::AddBookmark { parent: vec![], index: 0, title: "Target".into(), page: 0, left: None, top: None });
     ok(&mut h, &c, "ui.set", json!({"key": "panel", "value": "bookmarks"}));
     let field = ok(&mut h, &c, "ui.inspect", json!({"query": "Search", "role": "TextInput"}));
     let rect = field["widgets"][0]["rect"].as_array().expect("the search field has a rect");
@@ -297,7 +297,7 @@ fn control_button_focus_preserves_document_undo_redo_shortcuts() {
 #[test]
 fn control_text_focus_retains_text_undo_ownership() {
     let (mut h, c) = harness_pages(2);
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::AddBookmark { parent: vec![], index: 0, title: "Target".into(), page: 0, left: None, top: None });
+    h.state_mut().apply_edit(visionpdf_engine::Edit::AddBookmark { parent: vec![], index: 0, title: "Target".into(), page: 0, left: None, top: None });
     ok(&mut h, &c, "ui.command", json!({"id": "page.insert_blank"}));
     ok(&mut h, &c, "ui.set", json!({"key": "panel", "value": "bookmarks"}));
     let widgets = ok(&mut h, &c, "ui.inspect", json!({"query": "Search", "role": "TextInput"}));
@@ -397,7 +397,7 @@ fn open_unsaved(h: &mut Harness<'static, VisionPDFApp>, name: &str) {
     let app = h.state_mut();
     app.open_bytes(name, None, fixture(1)).unwrap();
     app.active = Some(app.views.len() - 1);
-    app.apply_edit(pdfcraft_engine::Edit::RotatePages { pages: vec![0], degrees: 90 });
+    app.apply_edit(visionpdf_engine::Edit::RotatePages { pages: vec![0], degrees: 90 });
 }
 
 /// An agent quits while another app is in front, then answers the prompts itself. Quitting asks
@@ -442,7 +442,7 @@ fn control_quit_clean_document_requests_normal_window_close() {
 fn bookmark_titles_can_be_searched_over_control() {
     let (mut h, c) = harness();
     for (index, title, page) in [(0, "Background", 0), (1, "Target chapter", 3)] {
-        h.state_mut().apply_edit(pdfcraft_engine::Edit::AddBookmark { parent: vec![], index, title: title.into(), page, left: None, top: None });
+        h.state_mut().apply_edit(visionpdf_engine::Edit::AddBookmark { parent: vec![], index, title: title.into(), page, left: None, top: None });
     }
     ok(&mut h, &c, "ui.set", json!({ "key": "panel", "value": "bookmarks" }));
     h.run_steps(3);
@@ -456,14 +456,14 @@ fn bookmark_titles_can_be_searched_over_control() {
     assert!(h.query_by_label("Background").is_none());
     ok(&mut h, &c, "ui.click", json!({ "label": "Target chapter" }));
     assert_eq!(h.state().views[0].current, 3);
-    if let Ok(dir) = std::env::var("PDFCRAFT_BOOKMARK_SHOTS") {
+    if let Ok(dir) = std::env::var("VISIONPDF_BOOKMARK_SHOTS") {
         let _gpu = crate::gpu();
         h.render().unwrap().save(format!("{dir}/control-filtered-bookmarks.png")).unwrap();
     }
     ok(&mut h, &c, "ui.click", json!({ "label": "Clear" }));
     h.get_by_label("Background");
     h.get_by_label("Target chapter");
-    if let Ok(dir) = std::env::var("PDFCRAFT_BOOKMARK_SHOTS") {
+    if let Ok(dir) = std::env::var("VISIONPDF_BOOKMARK_SHOTS") {
         let _gpu = crate::gpu();
         h.render().unwrap().save(format!("{dir}/control-cleared-bookmarks.png")).unwrap();
     }
@@ -540,10 +540,10 @@ fn language_switch_preserves_document_and_command_ids() {
     if crate::support::skip_without_catalogs("language_switch_preserves_document_and_command_ids") {
         return;
     }
-    use pdfcraft_ui_egui::i18n;
+    use visionpdf_ui_egui::i18n;
     let (mut h, c) = harness();
     let doc = h.state().views[0].id;
-    h.state_mut().session.apply(doc, pdfcraft_engine::Edit::RotatePages { pages: vec![0], degrees: 90 }).unwrap();
+    h.state_mut().session.apply(doc, visionpdf_engine::Edit::RotatePages { pages: vec![0], degrees: 90 }).unwrap();
     let documents = ok(&mut h, &c, "ui.state", json!({}))["documents"].clone();
     assert_eq!(documents[0]["dirty"], true);
     let commands = ok(&mut h, &c, "ui.commands", json!({}));
@@ -675,7 +675,7 @@ fn moving_before_middle_button_release_keeps_scrolling_without_starting_page_too
     h.state_mut().views[0].go_to_page(0);
     h.run_steps(2);
     // A middle drag must not also draw with a selected tool (egui accepts any drag button).
-    h.state_mut().quick_tool = pdfcraft_ui_egui::QuickTool::Crop;
+    h.state_mut().quick_tool = visionpdf_ui_egui::QuickTool::Crop;
     let p = h.state().views[0].viewport_rect().center();
     let top = h.state().views[0].page_screen_rect(0).unwrap().top();
     ok(&mut h, &c, "ui.drag", json!({ "from": [p.x, p.y], "to": [p.x, p.y + 60.0], "steps": 12, "button": "middle" }));
@@ -863,7 +863,7 @@ fn autoscroll_is_scoped_to_the_active_view_and_cannot_start_under_a_dialog() {
     h.run_steps(2);
     assert!(!h.state().views[0].auto_scrolling(), "returning to the tab must not resume");
     start_autoscroll(&mut h, &c);
-    h.state_mut().dialog = Some(pdfcraft_ui_egui::Dialog::About);
+    h.state_mut().dialog = Some(visionpdf_ui_egui::Dialog::About);
     h.run_steps(2);
     assert!(!h.state().views[0].auto_scrolling());
     ok(&mut h, &c, "ui.click", json!({ "x": p.x, "y": p.y, "button": "middle" }));
@@ -937,7 +937,7 @@ fn middle_button_pans_while_held_outside_linux() {
     h.run_steps(3);
     h.state_mut().views[0].go_to_page(1);
     h.run_steps(2);
-    h.state_mut().quick_tool = pdfcraft_ui_egui::QuickTool::Crop;
+    h.state_mut().quick_tool = visionpdf_ui_egui::QuickTool::Crop;
     let p = h.state().views[0].viewport_rect().center();
     let top = h.state().views[0].page_screen_rect(1).unwrap().top();
     ok(&mut h, &c, "ui.drag", json!({ "from": [p.x, p.y], "to": [p.x, p.y - 60.0], "steps": 12, "button": "middle" }));
@@ -1095,7 +1095,7 @@ fn ukrainian_preferences_and_search_keep_command_ids() {
         assert!(found["count"].as_u64().unwrap() > 0, "{dialog}: {found}");
     }
     ok(&mut h, &c, "ui.set", json!({ "key": "dialog", "value": "none" }));
-    assert!(!h.state_mut().apply_edit(pdfcraft_engine::Edit::DeletePages { pages: vec![0, 1, 2, 3, 4] }));
+    assert!(!h.state_mut().apply_edit(visionpdf_engine::Edit::DeletePages { pages: vec![0, 1, 2, 3, 4] }));
     let state = ok(&mut h, &c, "ui.state", json!({}));
     assert_eq!(state["language"], "uk");
     assert_eq!(state["notice"], "Помилка «Видалити сторінки»: a document must keep at least one page");
@@ -1121,8 +1121,8 @@ fn preferences_menu_and_shortcut_allow_switching_interface_languages() {
     // Titles and rows carry their mnemonic ("編集(E)", "環境設定(P)…"), so match by the start of
     // the label.
     let (menu, preferences) = if cfg!(target_os = "macos") {
-        let ja = pdfcraft_ui_egui::i18n::Lang::from_code("ja").unwrap();
-        ("VisionPDF", pdfcraft_ui_egui::i18n::tr(ja, "Settings…").trim_end_matches('…'))
+        let ja = visionpdf_ui_egui::i18n::Lang::from_code("ja").unwrap();
+        ("VisionPDF", visionpdf_ui_egui::i18n::tr(ja, "Settings…").trim_end_matches('…'))
     } else {
         ("編集", "環境設定")
     };
@@ -1187,13 +1187,13 @@ fn japanese_dialogs_errors_and_custom_action_names() {
         assert!(found["count"].as_u64().unwrap() > 0, "{dialog}: {found}");
     }
     ok(&mut h, &c, "ui.set", json!({"key": "dialog", "value": "none"}));
-    assert!(!h.state_mut().apply_edit(pdfcraft_engine::Edit::DeletePages { pages: vec![0, 1, 2, 3, 4] }));
+    assert!(!h.state_mut().apply_edit(visionpdf_engine::Edit::DeletePages { pages: vec![0, 1, 2, 3, 4] }));
     let state = ok(&mut h, &c, "ui.state", json!({}));
     // The frame is translated; the engine's own error text is shown as it is.
     assert_eq!(state["notice"], "操作「ページを削除」に失敗しました: a document must keep at least one page");
     assert_eq!(ok(&mut h, &c, "ui.state", json!({}))["documents"][0]["name"], "doc.pdf");
 
-    h.state_mut().custom_actions.push(pdfcraft_engine::actions::Action {
+    h.state_mut().custom_actions.push(visionpdf_engine::actions::Action {
         name: "Save".to_string(),
         description: "Print".to_string(),
         steps: Vec::new(),
@@ -1272,7 +1272,7 @@ fn simplified_chinese_signature_prompts_and_errors_keep_document_state() {
     let drawn = ok(&mut h, &c, "ui.inspect", json!({"query": "请在下方绘制您的签名。"}));
     assert!(drawn["count"].as_u64().unwrap() > 0, "{drawn}");
     ok(&mut h, &c, "ui.click", json!({"label": "取消"}));
-    assert!(!h.state_mut().apply_edit(pdfcraft_engine::Edit::DeletePages { pages: vec![0, 1, 2, 3, 4] }));
+    assert!(!h.state_mut().apply_edit(visionpdf_engine::Edit::DeletePages { pages: vec![0, 1, 2, 3, 4] }));
     let state = ok(&mut h, &c, "ui.state", json!({}));
     assert_eq!(state["notice"], "删除页面失败：a document must keep at least one page");
     assert_eq!(state["documents"], documents, "a language change and failed edit must preserve the document");
@@ -1429,7 +1429,7 @@ fn organize_overview_is_reachable_through_the_control_channel() {
 #[test]
 fn saved_signature_can_be_changed_through_the_control_channel() {
     let (mut h, c) = harness();
-    h.state_mut().signature = Some(pdfcraft_ui_egui::fill_sign::SavedSig::Typed("Ada Lovelace".into()));
+    h.state_mut().signature = Some(visionpdf_ui_egui::fill_sign::SavedSig::Typed("Ada Lovelace".into()));
     ok(&mut h, &c, "ui.command", json!({ "id": "sign.fill.signature.change" }));
     h.run_steps(3);
     assert_eq!(h.state().signature_draft.text, "Ada Lovelace");
@@ -1441,11 +1441,11 @@ fn saved_signature_can_be_changed_through_the_control_channel() {
     ok(&mut h, &c, "ui.key", json!({ "key": "A", "modifiers": ["command"] }));
     ok(&mut h, &c, "ui.type", json!({ "text": "Grace Hopper" }));
     ok(&mut h, &c, "ui.click", json!({ "label": "Apply" }));
-    assert_eq!(h.state().signature, Some(pdfcraft_ui_egui::fill_sign::SavedSig::Typed("Grace Hopper".into())));
+    assert_eq!(h.state().signature, Some(visionpdf_ui_egui::fill_sign::SavedSig::Typed("Grace Hopper".into())));
     assert_eq!(ok(&mut h, &c, "ui.state", json!({}))["quick_tool"], "fill-signature");
     ok(&mut h, &c, "ui.command", json!({ "id": "sign.fill.signature.remove" }));
     assert_eq!(h.state().signature, None);
-    h.state_mut().initials = Some(pdfcraft_ui_egui::fill_sign::SavedSig::Typed("GH".into()));
+    h.state_mut().initials = Some(visionpdf_ui_egui::fill_sign::SavedSig::Typed("GH".into()));
     ok(&mut h, &c, "ui.command", json!({ "id": "sign.fill.initials.remove" }));
     assert_eq!(h.state().initials, None);
 }
@@ -1497,7 +1497,7 @@ fn screenshots_of_window_and_region() {
 fn loopback_transport_requires_the_token() {
     use std::io::{BufRead, BufReader, Write};
     let (mut h, c) = harness();
-    let ep = pdfcraft_ui_egui::control::serve(c).unwrap();
+    let ep = visionpdf_ui_egui::control::serve(c).unwrap();
     let talk = |lines: Vec<Value>| {
         let port = ep.port;
         std::thread::spawn(move || {
@@ -1573,7 +1573,7 @@ fn measurement_tools_draw_live_calibrate_save_and_export() {
     ok(&mut h, &c, "ui.command", json!({"id":"measure.scale"}));
     h.run_steps(3);
     h.state_mut().views[0].measure.drawing_points = 10.0;
-    h.state_mut().views[0].measure.page_unit = Some(pdfcraft_engine::measure::PageUnit::Pt);
+    h.state_mut().views[0].measure.page_unit = Some(visionpdf_engine::measure::PageUnit::Pt);
     h.state_mut().views[0].measure.real_distance = 1.0;
     h.state_mut().views[0].measure.unit = "m".into();
     h.get_by_label("Apply scale").click();
@@ -1609,7 +1609,7 @@ fn measurement_tools_draw_live_calibrate_save_and_export() {
     assert_eq!(h.state().session.get(doc).unwrap().measurements().unwrap().measurements.len(), 2);
     ok(&mut h, &c, "ui.command", json!({"id":"edit.redo"}));
     h.run_steps(2);
-    let dir = std::env::temp_dir().join(format!("pdfcraft-measure-ui-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-measure-ui-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     h.state_mut().export_dir_override = Some(dir.to_string_lossy().into());
     ok(&mut h, &c, "ui.command", json!({"id":"measure.export"}));
@@ -1626,7 +1626,7 @@ fn measurement_tools_draw_live_calibrate_save_and_export() {
 fn a_1_to_50_scale_in_millimetres_measures_a_10_mm_line_as_500_mm() {
     // #2752: a plan drawn at 1:50 is "1 mm = 50 mm". The page side of the scale was fixed in
     // points, so this stored 1 pt = 50 mm, 72 / 25.4 = 2.835 times too big.
-    use pdfcraft_engine::measure::{self, Kind};
+    use visionpdf_engine::measure::{self, Kind};
     let (mut h, c) = harness_pages(1);
     let doc = h.state().views[0].id;
     h.state_mut().set_option("zoom", "100").unwrap();
@@ -1667,7 +1667,7 @@ fn a_1_to_50_scale_in_millimetres_measures_a_10_mm_line_as_500_mm() {
 
 #[test]
 fn a_plan_scale_picked_or_typed_applies_at_once() {
-    use pdfcraft_engine::measure::{self, Kind};
+    use visionpdf_engine::measure::{self, Kind};
     let (mut h, c) = harness_pages(1);
     let doc = h.state().views[0].id;
     ok(&mut h, &c, "ui.command", json!({"id":"measure.scale"}));
@@ -1805,7 +1805,7 @@ fn home_and_combine_hide_the_side_panel_without_forgetting_it() {
         }
         h.run_steps(4);
         assert!(h.query_by_label("This document has no bookmarks.").is_none());
-        assert_eq!(h.state().right, Some(pdfcraft_ui_egui::RightPanel::Bookmarks));
+        assert_eq!(h.state().right, Some(visionpdf_ui_egui::RightPanel::Bookmarks));
         assert_eq!(ok(&mut h, &c, "ui.state", json!({}))["side_panels"], before);
         h.state_mut().active = Some(0);
         h.state_mut().combine_tab.focused = false;
@@ -1819,8 +1819,8 @@ fn home_and_combine_hide_the_side_panel_without_forgetting_it() {
 fn malformed_panel_settings_preserve_other_preferences() {
     let mut app = VisionPDFApp::new();
     app.restore(r#"{"docking":{"layout":{"root":null,"floating":[]},"hidden":[]},"default_mode":"edit","flatten_fill_sign":true}"#);
-    assert_eq!(app.default_mode, pdfcraft_ui_egui::Mode::Edit);
-    assert_eq!(app.side_panels, pdfcraft_ui_egui::side_panels::SidePanels::default());
+    assert_eq!(app.default_mode, visionpdf_ui_egui::Mode::Edit);
+    assert_eq!(app.side_panels, visionpdf_ui_egui::side_panels::SidePanels::default());
     let saved: Value = serde_json::from_str(&app.persist()).unwrap();
     assert_eq!(saved["default_mode"], "edit");
     assert_eq!(saved["flatten_fill_sign"], true);
@@ -1846,13 +1846,13 @@ fn rail_opens_a_panel_then_closes_the_open_one() {
 #[test]
 fn control_quit_retains_inactive_fill_sign_typing_after_cancel() {
     let (mut h, c) = harness();
-    h.state_mut().views[0].fill_text = Some(pdfcraft_ui_egui::fill_sign::TypeBox {
+    h.state_mut().views[0].fill_text = Some(visionpdf_ui_egui::fill_sign::TypeBox {
         page: 0,
         at: [40.0, 200.0],
         text: "Unsaved signature note".into(),
         size: 10.0,
         color: [0.0; 3],
-        border: pdfcraft_ui_egui::fill_sign::TextBorder::NONE,
+        border: visionpdf_ui_egui::fill_sign::TextBorder::NONE,
         focus: false,
     });
     h.state_mut().active = None;
@@ -1895,16 +1895,16 @@ fn read_mode_retains_existing_rail_click_to_close_policy() {
     ok(&mut h, &c, "ui.set", json!({"key":"panel", "value":"bookmarks"}));
     ok(&mut h, &c, "ui.set", json!({"key":"mode", "value":"read"}));
     h.run_steps(3);
-    assert_eq!(h.state().right, Some(pdfcraft_ui_egui::RightPanel::Bookmarks));
+    assert_eq!(h.state().right, Some(visionpdf_ui_egui::RightPanel::Bookmarks));
     h.get_by_role_and_label(egui::accesskit::Role::Button, "Bookmarks").click();
     h.run_steps(3);
     assert_eq!(h.state().right, None);
-    assert_eq!(h.state().mode, pdfcraft_ui_egui::Mode::Read);
+    assert_eq!(h.state().mode, visionpdf_ui_egui::Mode::Read);
 }
 
 #[test]
 fn control_open_of_an_already_open_file_replies_ok_and_focuses_its_tab() {
-    let dir = std::env::temp_dir().join(format!("pdfcraft-ui-open-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-ui-open-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let a = dir.join("a.pdf").to_string_lossy().into_owned();
     let b = dir.join("b.pdf").to_string_lossy().into_owned();
@@ -1945,7 +1945,7 @@ fn control_open_of_an_already_open_file_replies_ok_and_focuses_its_tab() {
 /// the open completes, and opening the file again then focuses that tab.
 #[test]
 fn control_open_replies_pending_while_the_worker_opens_and_focuses_once_it_has() {
-    let dir = std::env::temp_dir().join(format!("pdfcraft-ui-open-pending-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-ui-open-pending-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let a = dir.join("pending.pdf").to_string_lossy().into_owned();
     std::fs::write(&a, fixture(2)).unwrap();
@@ -2112,7 +2112,7 @@ fn page_size_shows_while_the_pointer_is_in_the_bottom_left_quadrant() {
     h.event(egui::Event::PointerMoved(area.left_bottom() + egui::vec2(80.0, -80.0)));
     h.run_steps(3);
     assert!(shown(&h), "bottom-left: shown");
-    if let Ok(dir) = std::env::var("PDFCRAFT_SHOT_DIR") {
+    if let Ok(dir) = std::env::var("VISIONPDF_SHOT_DIR") {
         let _gpu = crate::gpu();
         h.render().unwrap().save(format!("{dir}/page-size-hint.png")).unwrap();
     }
@@ -2196,7 +2196,7 @@ fn routine_continuous_scrolling_does_not_add_navigation_history() {
 /// aren't pinned, and states other than on and off, are refused with the reason.
 #[test]
 fn control_collapses_and_expands_a_pinned_folder() {
-    let dir = std::env::temp_dir().join(format!("pdfcraft-ui-fold-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-ui-fold-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     std::fs::write(dir.join("inside.pdf"), fixture(1)).unwrap();
@@ -2237,7 +2237,7 @@ fn accessible_labels_on_format_text_and_pin_dialog() {
     let (mut h, c) = harness();
 
     // 1. Check Dialog::PinTool accessibility labels
-    h.state_mut().dialog = Some(pdfcraft_ui_egui::Dialog::PinTool);
+    h.state_mut().dialog = Some(visionpdf_ui_egui::Dialog::PinTool);
     h.run_steps(3);
 
     let search = ok(&mut h, &c, "ui.inspect", json!({"role": "TextInput", "query": "Search tools…"}));

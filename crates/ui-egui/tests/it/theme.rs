@@ -2,8 +2,8 @@
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::VisionPDFApp;
-use pdfcraft_ui_egui::theme::{ThemeKind, ThemePreference, Tokens};
+use visionpdf_ui_egui::VisionPDFApp;
+use visionpdf_ui_egui::theme::{ThemeKind, ThemePreference, Tokens};
 
 fn harness() -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1100.0, 800.0)).build_eframe(|_cc| {

@@ -11,7 +11,7 @@
 // Outside the browser only the tests drive the job; the app itself prints through the spooler.
 #![cfg_attr(not(target_arch = "wasm32"), allow(dead_code))]
 
-use pdfcraft_engine::export::{ExportSource, Exporter};
+use visionpdf_engine::export::{ExportSource, Exporter};
 
 /// The printer the web build lists: the browser's print dialog, which reaches the printers the
 /// operating system knows. An id, never shown; the dialog shows [`browser_printer_label`].

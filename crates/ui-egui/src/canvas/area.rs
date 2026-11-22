@@ -3,14 +3,14 @@ use super::{Color32, HashSet, LayerOp, VisionPDFApp, Pos2, Rect, Tokens, Vec2, i
 /// A validation badge drawn over a signature widget: the widget rectangle (user space), the verdict it shows, and its hover text.
 pub(crate) struct SignatureBadge {
     pub rect: [f64; 4],
-    pub status: pdfcraft_engine::SignatureStatus,
+    pub status: visionpdf_engine::SignatureStatus,
     pub summary: &'static str,
 }
 
 /// The validation badges drawn over one page's signature widgets: signed, visible widgets
 /// on this page with coordinates that survive the cast to screen space. Hostile files can
 /// carry NaN, infinite or gigantic rectangles, which must never reach the painter.
-pub(crate) fn signature_badges(signatures: &[pdfcraft_engine::SignatureInfo], page: usize) -> Vec<SignatureBadge> {
+pub(crate) fn signature_badges(signatures: &[visionpdf_engine::SignatureInfo], page: usize) -> Vec<SignatureBadge> {
     signatures
         .iter()
         // A signature whose appearance draws its state keeps the badge too: the document controls
@@ -34,8 +34,8 @@ pub(crate) fn signature_badges(signatures: &[pdfcraft_engine::SignatureInfo], pa
 /// of that name is a signature field that isn't read-only, with a shown widget at that place
 /// that isn't read-only on its own.
 pub(crate) fn sign_tabs<'a>(
-    signatures: &'a [pdfcraft_engine::SignatureInfo],
-    form: &[pdfcraft_engine::FormField],
+    signatures: &'a [visionpdf_engine::SignatureInfo],
+    form: &[visionpdf_engine::FormField],
     page: usize,
     can_fill: bool,
 ) -> Vec<(&'a str, [f64; 4])> {
@@ -51,7 +51,7 @@ pub(crate) fn sign_tabs<'a>(
     // a file with thousands of fields costs no more per frame than the field hit test does.
     let signable: HashSet<(&str, [u64; 4])> = form
         .iter()
-        .filter(|f| f.kind == pdfcraft_engine::FormFieldKind::Signature && !f.read_only())
+        .filter(|f| f.kind == visionpdf_engine::FormFieldKind::Signature && !f.read_only())
         .flat_map(|f| {
             f.widgets.iter().filter(|w| w.page == Some(page) && !w.hidden && !w.read_only).map(move |w| (f.name.as_str(), w.rect.map(f64::to_bits)))
         })
@@ -161,8 +161,8 @@ pub(super) fn page_scroll<R>(
 }
 
 /// Run a push button's action (the ones that need no JavaScript engine).
-pub(super) fn run_button(app: &mut VisionPDFApp, index: usize, name: &str, identity: u64, action: pdfcraft_engine::form_scripts::ButtonAction) {
-    use pdfcraft_engine::form_scripts::ButtonAction as B;
+pub(super) fn run_button(app: &mut VisionPDFApp, index: usize, name: &str, identity: u64, action: visionpdf_engine::form_scripts::ButtonAction) {
+    use visionpdf_engine::form_scripts::ButtonAction as B;
     let pages = app.session.get(app.views[index].id).map_or(0, |d| d.info.pages.len());
     match action {
         B::Reset { fields, exclude } => {
@@ -174,7 +174,7 @@ pub(super) fn run_button(app: &mut VisionPDFApp, index: usize, name: &str, ident
                 (false, true) => Some(all.iter().filter(|n| !listed(n)).cloned().collect()),
             };
             app.views[index].forms.focus = None;
-            app.views[index].pending_edit = Some(pdfcraft_engine::Edit::ResetForm { names });
+            app.views[index].pending_edit = Some(visionpdf_engine::Edit::ResetForm { names });
         }
         B::Named(n) => match n.as_str() {
             "Print" => app.open_print(),
@@ -192,13 +192,13 @@ pub(super) fn run_button(app: &mut VisionPDFApp, index: usize, name: &str, ident
         B::ShowHide { fields, hide } => {
             let listed = |n: &String| fields.iter().any(|f| n == f || n.starts_with(&format!("{f}.")));
             // `display.hidden` 1, `display.visible` 0, as a script setting `field.display` would.
-            let changes: Vec<pdfcraft_engine::FieldChange> = app
+            let changes: Vec<visionpdf_engine::FieldChange> = app
                 .session
                 .get(app.views[index].id)
                 .map(|d| d.form.iter().filter(|f| listed(&f.name)).map(|f| f.name.clone()).collect::<Vec<_>>())
                 .unwrap_or_default()
                 .into_iter()
-                .map(|name| pdfcraft_engine::FieldChange {
+                .map(|name| visionpdf_engine::FieldChange {
                     name,
                     value: None,
                     formatted: false,
@@ -214,11 +214,11 @@ pub(super) fn run_button(app: &mut VisionPDFApp, index: usize, name: &str, ident
             if !changes.is_empty() {
                 let label = if hide { "Hide a field" } else { "Show a field" };
                 app.views[index].pending_edit =
-                    Some(pdfcraft_engine::Edit::Batch { label: label.into(), edits: vec![pdfcraft_engine::Edit::ApplyScriptChanges { changes }] });
+                    Some(visionpdf_engine::Edit::Batch { label: label.into(), edits: vec![visionpdf_engine::Edit::ApplyScriptChanges { changes }] });
             }
         }
         B::SetLayers { changes, preserve_rb } => {
-            use pdfcraft_engine::form_scripts::LayerOp as Op;
+            use visionpdf_engine::form_scripts::LayerOp as Op;
             let changes: Vec<(LayerOp, (u32, u16))> = changes
                 .into_iter()
                 .map(|(op, ocg)| {

@@ -4,7 +4,7 @@
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_ui_egui::VisionPDFApp;
 
 /// A one-page PDF whose page has `/Annots [6 0 R …]` for each of `annots` (objects from 6 on)
 /// and whose AcroForm lists the widgets among them.
@@ -62,7 +62,7 @@ fn push_buttons_alone_show_no_form_bar_and_a_screen_annotation_is_not_a_comment(
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
         assert_eq!(doc.info.fields.len(), 3, "the frames are still fields");
-        assert!(doc.info.fields.iter().all(|f| f.kind == pdfcraft_render::FieldKind::PushButton));
+        assert!(doc.info.fields.iter().all(|f| f.kind == visionpdf_render::FieldKind::PushButton));
         assert!(doc.info.annotations.is_empty(), "no comments: {:?}", doc.info.annotations);
     }
     assert!(h.query_by_label_contains("interactive form fields").is_none(), "nothing to fill in, so no form bar");

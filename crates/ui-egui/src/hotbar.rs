@@ -1,7 +1,7 @@
 //! A movable, persistent set of shortcuts to the shared command registry and core document tools.
 use egui::{Color32, CornerRadius, Rect, Sense, Stroke, vec2};
-use pdfcraft_engine::Edit;
-use pdfcraft_engine::commands::{COMMANDS, command};
+use visionpdf_engine::Edit;
+use visionpdf_engine::commands::{COMMANDS, command};
 use serde::{Deserialize, Serialize};
 
 use crate::{VisionPDFApp, QuickTool, comments, icons, theme, theme::Tokens};
@@ -183,7 +183,7 @@ fn popup_align_for(dock: Option<&str>, vertical: bool) -> egui::RectAlign {
 
 /// Whether `spec` matches the hotbar picker search query across the translated label, canonical
 /// English label, or command identifier (case-insensitively).
-fn matches_search(spec: &pdfcraft_engine::commands::CommandSpec, query: &str) -> bool {
+fn matches_search(spec: &visionpdf_engine::commands::CommandSpec, query: &str) -> bool {
     let search = query.to_lowercase();
     tl!(spec.label).to_lowercase().contains(&search) || spec.label.to_lowercase().contains(&search) || spec.id.to_lowercase().contains(&search)
 }
@@ -421,7 +421,7 @@ fn fill_text_border_controls(ui: &mut egui::Ui, app: &mut VisionPDFApp, picked: 
             .selected_text(tl!(was.shape.name()))
             .width(96.0)
             .show_ui(ui, |ui| {
-                for shape in pdfcraft_engine::BorderShape::ALL {
+                for shape in visionpdf_engine::BorderShape::ALL {
                     ui.selectable_value(&mut border.shape, shape, tl!(shape.name()));
                 }
             })
@@ -431,7 +431,7 @@ fn fill_text_border_controls(ui: &mut egui::Ui, app: &mut VisionPDFApp, picked: 
     // No border, no shape: an oval or a circle left without its line would
     // keep its box grown around a shape that isn't drawn.
     if border.width <= 0.0 {
-        border.shape = pdfcraft_engine::BorderShape::Rectangle;
+        border.shape = visionpdf_engine::BorderShape::Rectangle;
     }
     match selected {
         Some((page, index, _)) => {

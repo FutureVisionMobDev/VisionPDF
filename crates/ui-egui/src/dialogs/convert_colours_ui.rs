@@ -1,7 +1,7 @@
 //! Print production ▸ Convert colours (Acrobat's Convert Colors): the target
 //! space, what to convert, the pages. Convert counts first and says what changed.
 
-use pdfcraft_engine::{ColourTarget, ConvertColours, DocId, Edit};
+use visionpdf_engine::{ColourTarget, ConvertColours, DocId, Edit};
 
 use crate::pageboxes::Range;
 use crate::theme::{self, Tokens};

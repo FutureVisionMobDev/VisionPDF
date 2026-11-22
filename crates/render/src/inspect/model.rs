@@ -228,7 +228,7 @@ pub enum LinkTarget {
     Page(usize, DestView),
     /// A URI action's address, resolved against the catalog's `/URI /Base` when it is a relative
     /// reference ([`crate::resolve_uri`]); not yet checked, as the opener must
-    /// (`pdfcraft_engine::links::document_url`).
+    /// (`visionpdf_engine::links::document_url`).
     Uri(String),
     /// Source of a JavaScript action, decoded with a bounded stream reader (never run while
     /// inspecting).
@@ -367,7 +367,7 @@ pub struct Annotation {
     /// `/IT`, the intent: `FreeTextCallout`, `PolygonCloud`, `FreeTextTypeWriter`…
     pub intent: Option<String>,
     /// A Fill & Sign mark: typed text, a check, cross, dot or line, or a typed, drawn or picture
-    /// signature or initials (the rules of `pdfcraft_annot::is_fill_sign`).
+    /// signature or initials (the rules of `visionpdf_annot::is_fill_sign`).
     pub fill_sign: bool,
     /// The NoRotate flag (`/F` bit 5), set on sticky notes and attachments: on a turned page the
     /// appearance stays upright, turned about the upper-left corner of `rect`
@@ -544,7 +544,7 @@ fn rect_from_upright(shown: [f64; 4], rotation: u16) -> [f64; 4] {
 /// the engine's list after an edit) run this.
 ///
 /// Only comments can be parents: both readers leave links, form widgets, pop-ups and other
-/// non-markup annotations out of `annotations` (`pdfcraft_annot::is_comment_subtype`), so an
+/// non-markup annotations out of `annotations` (`visionpdf_annot::is_comment_subtype`), so an
 /// `/IRT` to one of those finds no parent here. Pop-ups are skipped again in case a caller's list
 /// has them.
 pub fn link_replies(annotations: &mut [Annotation]) {
@@ -586,7 +586,7 @@ pub fn link_replies(annotations: &mut [Annotation]) {
     // reply to it. ISO 32000-2 §12.5.6.2 doesn't limit a group to a page, but Acrobat (desktop and
     // iPad) and PDF-XChange all delete the primary without such a subordinate, and Acrobat desktop
     // lists it on its own. Keep in step with
-    // `pdfcraft_annot::summaries`.
+    // `visionpdf_annot::summaries`.
     for a in annotations.iter_mut() {
         if a.grouped && a.parent.is_some_and(|(page, _)| page != a.page) {
             a.parent = None;

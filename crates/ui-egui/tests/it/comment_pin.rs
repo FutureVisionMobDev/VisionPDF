@@ -2,7 +2,7 @@
 
 use egui::{Pos2, pos2};
 use egui_kittest::{Harness, kittest::Queryable};
-use pdfcraft_ui_egui::{VisionPDFApp, QuickTool, comments::CommentTool};
+use visionpdf_ui_egui::{VisionPDFApp, QuickTool, comments::CommentTool};
 use serde_json::{Value, json};
 
 // Contributor-original blank page: no document assets or fonts are needed.
@@ -59,7 +59,7 @@ fn callout(h: &mut Harness<'static, VisionPDFApp>, y: f32) {
 
 /// Optional private visual evidence, kept outside the repository by the test runner.
 fn shot(h: &mut Harness<'static, VisionPDFApp>, name: &str) {
-    if let Ok(dir) = std::env::var("PDFCRAFT_PIN_SHOTS") {
+    if let Ok(dir) = std::env::var("VISIONPDF_PIN_SHOTS") {
         h.render().unwrap().save(std::path::Path::new(&dir).join(name)).unwrap();
     }
 }

@@ -2,7 +2,7 @@
 //! marks, the line weight, whether to widen the page to make room, and the pages. The marks are
 //! a removable page mark (Remove printer marks takes them off; adding again replaces them).
 
-use pdfcraft_engine::{Edit, PrinterMarks};
+use visionpdf_engine::{Edit, PrinterMarks};
 
 use crate::pageboxes::Range;
 use crate::theme::{self, Tokens};

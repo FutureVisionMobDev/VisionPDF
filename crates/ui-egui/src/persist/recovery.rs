@@ -170,7 +170,7 @@ impl RecoveryStore {
     /// `Recovery` in the portable data folder in portable mode ([`crate::portable`]), otherwise
     /// the platform's per-user data folder: `~/Library/Application Support/VisionPDF/Recovery`
     /// (macOS), `%LOCALAPPDATA%\VisionPDF\Recovery` (Windows), or
-    /// `$XDG_DATA_HOME/pdfcraft/recovery` / `~/.local/share/pdfcraft/recovery` (others).
+    /// `$XDG_DATA_HOME/visionpdf/recovery` / `~/.local/share/visionpdf/recovery` (others).
     pub fn default_dir() -> Option<PathBuf> {
         if let Some(dir) = crate::portable::data_dir() {
             return Some(dir.join("Recovery"));
@@ -181,7 +181,7 @@ impl RecoveryStore {
         } else if cfg!(windows) {
             env("LOCALAPPDATA").map(|d| d.join("VisionPDF").join("Recovery"))
         } else {
-            env("XDG_DATA_HOME").or_else(|| env("HOME").map(|h| h.join(".local/share"))).map(|d| d.join("pdfcraft/recovery"))
+            env("XDG_DATA_HOME").or_else(|| env("HOME").map(|h| h.join(".local/share"))).map(|d| d.join("visionpdf/recovery"))
         }
     }
 
@@ -204,7 +204,7 @@ pub fn default_dictionary_dir() -> Option<PathBuf> {
     } else if cfg!(windows) {
         env("LOCALAPPDATA").map(|d| d.join("VisionPDF").join("Dictionary"))
     } else {
-        env("XDG_DATA_HOME").or_else(|| env("HOME").map(|h| h.join(".local/share"))).map(|d| d.join("pdfcraft/dictionary"))
+        env("XDG_DATA_HOME").or_else(|| env("HOME").map(|h| h.join(".local/share"))).map(|d| d.join("visionpdf/dictionary"))
     }
 }
 
@@ -364,7 +364,7 @@ impl VisionPDFApp {
     }
 
     /// Drop a document's recovery entry (it was saved, discarded or closed).
-    pub(crate) fn forget_recovery(&mut self, doc: pdfcraft_engine::DocId) {
+    pub(crate) fn forget_recovery(&mut self, doc: visionpdf_engine::DocId) {
         // Saved (to a destination the user chose), closed or reloaded from its file: the path is
         // no longer only what the sidecar said.
         self.recovered_paths.remove(&doc);
@@ -376,7 +376,7 @@ impl VisionPDFApp {
     /// Replace a document's recovery snapshot with its current state now. After an edit that takes
     /// content out (Apply Redactions, Sanitize, Remove Hidden Information), the last snapshot still
     /// holds what went, until the next autosave, and for good if the app is killed before then.
-    pub(crate) fn renew_recovery(&mut self, doc: pdfcraft_engine::DocId) {
+    pub(crate) fn renew_recovery(&mut self, doc: visionpdf_engine::DocId) {
         self.forget_recovery(doc);
         self.autosave_now();
     }
@@ -514,7 +514,7 @@ mod idle_tests {
             static NEXT: AtomicU64 = AtomicU64::new(0);
             let n = NEXT.fetch_add(1, Ordering::Relaxed);
             let nonce = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
-            let path = std::env::temp_dir().join(format!("pdfcraft-idle-recovery-{}-{nonce}-{n}", std::process::id()));
+            let path = std::env::temp_dir().join(format!("visionpdf-idle-recovery-{}-{nonce}-{n}", std::process::id()));
             std::fs::create_dir(&path).unwrap();
             Self(path)
         }
@@ -640,7 +640,7 @@ mod idle_tests {
         }
         assert_eq!(delay, Duration::MAX);
 
-        app.session.apply(id, pdfcraft_engine::Edit::SetInfo { key: "Title".into(), value: "Second edit".into() }).unwrap();
+        app.session.apply(id, visionpdf_engine::Edit::SetInfo { key: "Title".into(), value: "Second edit".into() }).unwrap();
         assert!(app.session.has_pending_autosave());
         for _ in 0..4 {
             delay = frame(&mut app, &ctx, base + Duration::from_secs(75));
@@ -655,7 +655,7 @@ mod idle_tests {
         assert_eq!(entries[0].key, key);
         let second = store.read(&key).unwrap();
         assert_ne!(second, first);
-        let mut recovered = pdfcraft_engine::Session::new();
+        let mut recovered = visionpdf_engine::Session::new();
         let restored = recovered.open("Snapshot.pdf", None, second.into(), None).unwrap();
         assert_eq!(recovered.get(restored).unwrap().info_value("Title"), Some("Second edit".into()));
         assert!(app.session.get(id).unwrap().dirty);
@@ -712,7 +712,7 @@ mod sidecar_tests {
             crashed.enable_recovery(store.clone());
             let bytes = crashed.session.create_blank(200.0, 300.0, 1).unwrap();
             crashed.open_bytes("work.pdf", Some(named.to_string_lossy().into_owned()), bytes.to_vec()).unwrap();
-            assert!(crashed.apply_edit(pdfcraft_engine::Edit::RotatePages { pages: vec![0], degrees: 90 }));
+            assert!(crashed.apply_edit(visionpdf_engine::Edit::RotatePages { pages: vec![0], degrees: 90 }));
             crashed.autosave_now();
         }
 
@@ -733,7 +733,7 @@ mod sidecar_tests {
 
         // The chosen file is the document's file now: the next Save writes it without asking.
         app.pick_override = None;
-        assert!(app.apply_edit(pdfcraft_engine::Edit::RotatePages { pages: vec![0], degrees: 90 }));
+        assert!(app.apply_edit(visionpdf_engine::Edit::RotatePages { pages: vec![0], degrees: 90 }));
         assert!(app.save_active(SaveTarget::InPlace));
     }
 

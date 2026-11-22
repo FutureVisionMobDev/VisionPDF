@@ -3,8 +3,8 @@
 use egui::{Pos2, pos2};
 use egui_kittest::Harness;
 use egui_kittest::kittest::{NodeT, Queryable};
-use pdfcraft_ui_egui::fill_sign::{FillTool, SavedSig};
-use pdfcraft_ui_egui::{Dialog, VisionPDFApp, QuickTool, SaveTarget};
+use visionpdf_ui_egui::fill_sign::{FillTool, SavedSig};
+use visionpdf_ui_egui::{Dialog, VisionPDFApp, QuickTool, SaveTarget};
 
 const FIXTURE: &[u8] = b"%PDF-1.7
 1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj
@@ -37,7 +37,7 @@ fn harness_bytes(fixture: &[u8]) -> Harness<'static, VisionPDFApp> {
 fn at(h: &Harness<'static, VisionPDFApp>, x: f32, y: f32) -> Pos2 {
     let s = h.state();
     let page = &s.session.get(s.views[0].id).unwrap().info.pages[0];
-    let xf = pdfcraft_ui_egui::canvas::PageXform {
+    let xf = visionpdf_ui_egui::canvas::PageXform {
         rect: s.views[0].page_screen_rect(0).expect("on screen"),
         rot: s.views[0].rotation,
         pw: page.width,
@@ -52,7 +52,7 @@ fn at(h: &Harness<'static, VisionPDFApp>, x: f32, y: f32) -> Pos2 {
 fn shown(h: &Harness<'static, VisionPDFApp>, x: f32, y: f32, dx: f32, dy: f32) -> Pos2 {
     let s = h.state();
     let page = &s.session.get(s.views[0].id).unwrap().info.pages[0];
-    let xf = pdfcraft_ui_egui::canvas::PageXform {
+    let xf = visionpdf_ui_egui::canvas::PageXform {
         rect: s.views[0].page_screen_rect(0).expect("on screen"),
         rot: s.views[0].rotation,
         pw: page.width,
@@ -102,7 +102,7 @@ fn the_line_mark_runs_across_turned_pages() {
         {
             let s = h.state_mut();
             let id = s.views[0].id;
-            s.session.apply(id, pdfcraft_engine::Edit::RotatePages { pages: vec![0], degrees }).unwrap();
+            s.session.apply(id, visionpdf_engine::Edit::RotatePages { pages: vec![0], degrees }).unwrap();
         }
         h.run_steps(4);
         assert!(h.state_mut().execute("sign.fill.line"));
@@ -403,7 +403,7 @@ fn the_toolbar_shows_and_changes_the_selected_texts_border() {
     };
     h.state_mut().views[0].comments.selected = Some((page, index));
     // As Comment Properties ▸ Thickness does.
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::StyleAnnotation { page, index, color: None, opacity: None, width: Some(2.0), endings: None });
+    h.state_mut().apply_edit(visionpdf_engine::Edit::StyleAnnotation { page, index, color: None, opacity: None, width: Some(2.0), endings: None });
     h.run_steps(3);
     assert!(shows(&h, "2 pt"), "the toolbar shows the selected text's border");
     assert_eq!(h.state().fill_text_border, 0.0, "new text keeps none");
@@ -431,7 +431,7 @@ fn the_toolbar_shows_and_changes_the_selected_texts_border() {
 /// for the selected text, and shows the selected text's own. The text stays where it was typed.
 #[test]
 fn typed_text_takes_an_oval_or_a_circle_from_the_toolbar() {
-    use pdfcraft_engine::BorderShape;
+    use visionpdf_engine::BorderShape;
     let mut h = harness();
     h.state_mut().execute("sign.fill.text");
     h.run_steps(2);
@@ -465,7 +465,7 @@ fn typed_text_takes_an_oval_or_a_circle_from_the_toolbar() {
     assert!(((r[2] - r[0]) - (r[3] - r[1])).abs() < 0.01, "a circle's square box: {r:?}");
     // Snug around "12" at 10 pt: its box no wider than the text needs (not the 40 pt a box to type
     // into keeps), so the circle is as wide as that box, where it was 50 pt around the wider one.
-    let w = pdfcraft_engine::annot_text::text_width("12", 10.0) + 10.0;
+    let w = visionpdf_engine::annot_text::text_width("12", 10.0) + 10.0;
     let across = f64::from(r[2] - r[0]);
     assert!((across - w.max(20.0)).abs() < 0.01, "the circle is {across} pt across, not {w}: {r:?}");
     // Selected, an oval from the toolbar: one undo step.
@@ -484,7 +484,7 @@ fn typed_text_takes_an_oval_or_a_circle_from_the_toolbar() {
     assert_eq!(h.state().session.get(h.state().views[0].id).unwrap().can_undo(), Some("Change comment properties"));
     assert_eq!(h.state().fill_text_border_shape, BorderShape::Circle, "new text keeps the circle");
     // As Comment Properties does: the toolbar shows it.
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::BorderShapeAnnotation { page, index, shape: BorderShape::Rectangle });
+    h.state_mut().apply_edit(visionpdf_engine::Edit::BorderShapeAnnotation { page, index, shape: BorderShape::Rectangle });
     h.run_steps(3);
     assert!(h.query_all_by_role(egui::accesskit::Role::ComboBox).any(|n| n.value().as_deref() == Some("Rectangle")), "the selected text's own");
 
@@ -502,7 +502,7 @@ fn typed_text_takes_an_oval_or_a_circle_from_the_toolbar() {
 /// text: without one, the text's box stayed grown around a shape that isn't drawn.
 #[test]
 fn no_border_takes_the_oval_or_circle_away_too() {
-    use pdfcraft_engine::BorderShape;
+    use visionpdf_engine::BorderShape;
     let mut h = harness();
     h.state_mut().execute("sign.fill.text");
     h.state_mut().fill_text_border = 1.0;
@@ -606,7 +606,7 @@ fn fill_text_border_frames_new_and_selected_text() {
 /// border, and keeps it across launches.
 #[test]
 fn typed_text_made_default_is_what_new_text_gets() {
-    use pdfcraft_engine::{BorderShape, Edit};
+    use visionpdf_engine::{BorderShape, Edit};
     let mut h = harness();
     h.state_mut().execute("sign.fill.text");
     let type_at = |h: &mut Harness<'static, VisionPDFApp>, y: f32, text: &str| {
@@ -756,7 +756,7 @@ fn typed_signatures_and_initials() {
     assert_eq!(h.state().signature_draft.text, "Grace Hopper");
     h.get_by_label("Apply").click();
     h.run_steps(3);
-    assert_eq!(h.state().signature, Some(pdfcraft_ui_egui::fill_sign::SavedSig::Typed("Grace Hopper".into())));
+    assert_eq!(h.state().signature, Some(visionpdf_ui_egui::fill_sign::SavedSig::Typed("Grace Hopper".into())));
     click(&mut h, 60.0, 100.0);
     assert!(items(&h).iter().any(|(t, _)| t == "Stamp"), "typed signatures are filled outlines");
     assert_eq!(h.state().quick_tool, QuickTool::Select);
@@ -775,7 +775,7 @@ fn typed_signatures_and_initials() {
     again.set_option("language", "en").unwrap();
     again.restore(&saved);
     assert_eq!(again.signature, h.state().signature);
-    assert_eq!(again.initials, Some(pdfcraft_ui_egui::fill_sign::SavedSig::Typed("GH".into())));
+    assert_eq!(again.initials, Some(visionpdf_ui_egui::fill_sign::SavedSig::Typed("GH".into())));
 }
 
 #[test]
@@ -896,7 +896,7 @@ fn saved_signature_cards_remove_and_add_without_changing_the_document() {
     h.state_mut().execute("sign.fill.signature");
     click(&mut h, 40.0, 300.0);
     let original = format!("{:?}", h.state().session.get(h.state().views[0].id).unwrap().info.annotations);
-    h.state_mut().left = pdfcraft_ui_egui::LeftPanel::Tool("fill_sign");
+    h.state_mut().left = visionpdf_ui_egui::LeftPanel::Tool("fill_sign");
     h.state_mut().left_open = true;
     h.run_steps(3);
     h.get_by_label("Use signature").click();
@@ -931,13 +931,13 @@ fn saved_signature_cards_remove_and_add_without_changing_the_document() {
 fn long_typed_names_fit_the_placed_signature_and_keep_every_outline() {
     let text = "Alexandria Catherine Elizabeth Montgomery-Wellington";
     let sig = SavedSig::Typed(text.into());
-    let page = pdfcraft_render::PageInfo { width: 300.0, height: 400.0, label: String::new(), crop: [0.0, 0.0, 300.0, 400.0], rotation: 0 };
-    let pdfcraft_engine::Edit::AddAnnotation(a) = pdfcraft_ui_egui::fill_sign::place(0, &page, [40.0, 200.0], &sig, false, "").unwrap() else {
+    let page = visionpdf_render::PageInfo { width: 300.0, height: 400.0, label: String::new(), crop: [0.0, 0.0, 300.0, 400.0], rotation: 0 };
+    let visionpdf_engine::Edit::AddAnnotation(a) = visionpdf_ui_egui::fill_sign::place(0, &page, [40.0, 200.0], &sig, false, "").unwrap() else {
         panic!("expected annotation");
     };
-    let pdfcraft_engine::Shape::TypedSignature { rect, contours } = a.shape else { panic!("expected typed signature") };
+    let visionpdf_engine::Shape::TypedSignature { rect, contours } = a.shape else { panic!("expected typed signature") };
     assert!((rect[2] - rect[0] - 150.0).abs() < 0.001, "long names shrink to fit: {rect:?}");
-    assert_eq!(contours.len(), pdfcraft_engine::script_outline(text).contours.len());
+    assert_eq!(contours.len(), visionpdf_engine::script_outline(text).contours.len());
     assert!(contours.iter().flatten().all(|p| p.iter().all(|v| (0.0..=1.0).contains(v))), "all ink stays inside the appearance bounds");
     let mut h = harness();
     h.state_mut().signature = Some(sig.clone());
@@ -960,7 +960,7 @@ fn signature_file(test: &str) -> std::path::PathBuf {
 /// A 120 x 40 signature: a stroke across the middle and a block above it at the columns `mark`
 /// (the rest is transparent), so a turned or flipped picture shows.
 fn signature_file_with_mark(test: &str, mark: std::ops::Range<u32>) -> std::path::PathBuf {
-    let path = std::env::temp_dir().join(format!("pdfcraft-signature-{test}-{}.png", std::process::id()));
+    let path = std::env::temp_dir().join(format!("visionpdf-signature-{test}-{}.png", std::process::id()));
     let image = image::RgbaImage::from_fn(120, 40, |x, y| {
         if (10..110).contains(&x) && (15..25).contains(&y) || mark.contains(&x) && (5..15).contains(&y) {
             image::Rgba([20, 30, 40, 255])
@@ -991,7 +991,7 @@ fn image_signatures_and_initials_can_be_imported_placed_and_remembered() {
         assert!(h.state().signature_draft.saved().is_none(), "Apply needs an image");
         browse_image(&mut h, &path);
         assert!(h.state().signature_draft.image.is_some());
-        if !initials && let Ok(dir) = std::env::var("PDFCRAFT_SHOTS") {
+        if !initials && let Ok(dir) = std::env::var("VISIONPDF_SHOTS") {
             h.render().unwrap().save(format!("{dir}/image-signature-dialog.png")).unwrap();
         }
         assert_eq!(items(&h).len(), usize::from(initials), "importing doesn't edit the PDF");
@@ -1038,7 +1038,7 @@ fn image_signatures_and_initials_can_be_imported_placed_and_remembered() {
     h.run_steps(3);
     h.get_by_label("Use signature");
     h.get_by_label("Use initials");
-    if let Ok(dir) = std::env::var("PDFCRAFT_SHOTS") {
+    if let Ok(dir) = std::env::var("VISIONPDF_SHOTS") {
         h.render().unwrap().save(format!("{dir}/image-signatures.png")).unwrap();
     }
     std::fs::remove_file(path).unwrap();
@@ -1049,14 +1049,14 @@ fn image_signature_preview_follows_pointer_at_page_size_with_zoom_and_rotation()
     let _gpu = gpu();
     // The block above the stroke is at its right end, away from the pointer's own cursor.
     let path = signature_file_with_mark("pointer", 100..110);
-    let image = pdfcraft_engine::SignatureImage::read(std::fs::File::open(&path).unwrap()).unwrap();
+    let image = visionpdf_engine::SignatureImage::read(std::fs::File::open(&path).unwrap()).unwrap();
     let mut h = harness();
     // A link under the placement point must not replace the image with a hand cursor.
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::AddLink {
+    h.state_mut().apply_edit(visionpdf_engine::Edit::AddLink {
         page: 0,
         rect: [30.0, 230.0, 60.0, 270.0],
-        action: pdfcraft_engine::LinkAction::Page { page: 0, zoom: pdfcraft_engine::LinkZoom::FitPage },
-        style: pdfcraft_engine::LinkStyle::default(),
+        action: visionpdf_engine::LinkAction::Page { page: 0, zoom: visionpdf_engine::LinkZoom::FitPage },
+        style: visionpdf_engine::LinkStyle::default(),
     });
     h.state_mut().signature = Some(SavedSig::Image(image));
     h.state_mut().execute("sign.fill.signature");
@@ -1066,7 +1066,7 @@ fn image_signature_preview_follows_pointer_at_page_size_with_zoom_and_rotation()
     for (document_rotation, view_rotation, zoom) in [(0, 0, "150"), (90, 0, "100"), (0, 90, "100"), (90, 90, "75"), (0, 180, "75"), (0, 270, "100")] {
         let delta = document_rotation - previous_document_rotation;
         if delta != 0 {
-            assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::RotatePages { pages: vec![0], degrees: delta }));
+            assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::RotatePages { pages: vec![0], degrees: delta }));
         }
         previous_document_rotation = document_rotation;
         while h.state().views[0].rotation != view_rotation {
@@ -1100,7 +1100,7 @@ fn image_signature_preview_follows_pointer_at_page_size_with_zoom_and_rotation()
             if document_rotation == 0
                 && view_rotation == 0
                 && y == 250.0
-                && let Ok(dir) = std::env::var("PDFCRAFT_SHOTS")
+                && let Ok(dir) = std::env::var("VISIONPDF_SHOTS")
             {
                 pixels.save(format!("{dir}/image-signature-pointer.png")).unwrap();
             }
@@ -1118,7 +1118,7 @@ fn image_signature_preview_follows_pointer_at_page_size_with_zoom_and_rotation()
 fn image_signature_placement_selects_resize_handles_and_requires_reselecting_to_repeat() {
     let _gpu = gpu();
     let path = signature_file("resize");
-    let image = pdfcraft_engine::SignatureImage::read(std::fs::File::open(&path).unwrap()).unwrap();
+    let image = visionpdf_engine::SignatureImage::read(std::fs::File::open(&path).unwrap()).unwrap();
     let mut h = harness();
     h.state_mut().signature = Some(SavedSig::Image(image.clone()));
     h.state_mut().initials = Some(SavedSig::Image(image));
@@ -1128,7 +1128,7 @@ fn image_signature_placement_selects_resize_handles_and_requires_reselecting_to_
     assert_eq!(h.state().quick_tool, QuickTool::Select, "signatures place once even when comment tools are pinned");
     assert_eq!(h.state().views[0].comments.selected, Some((0, 0)));
     let placed = rendered_ink(&mut h, 90.0, 250.0);
-    if let Ok(dir) = std::env::var("PDFCRAFT_SHOTS") {
+    if let Ok(dir) = std::env::var("VISIONPDF_SHOTS") {
         placed.save(format!("{dir}/image-signature-selected.png")).unwrap();
     }
     // The bottom-right handle is ready without another selection click.
@@ -1195,7 +1195,7 @@ fn image_signature_live_resize_and_move_preserve_background_and_hide_moving_hand
     const GREEN_PAGE: &[u8] = b"%PDF-1.7\n1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 /MediaBox [0 0 300 400] >> endobj\n3 0 obj << /Type /Page /Parent 2 0 R /Contents 4 0 R >> endobj\n4 0 obj << /Length 36 >> stream\n0.8 1 0.7 rg 0 0 300 400 re f\nendstream\nendobj\ntrailer << /Root 1 0 R >>\n%%EOF";
     let mut h = harness_bytes(GREEN_PAGE);
     let path = signature_file("live");
-    let image = pdfcraft_engine::SignatureImage::read(std::fs::File::open(&path).unwrap()).unwrap();
+    let image = visionpdf_engine::SignatureImage::read(std::fs::File::open(&path).unwrap()).unwrap();
     h.state_mut().signature = Some(SavedSig::Image(image));
     h.state_mut().execute("sign.fill.signature");
     click(&mut h, 40.0, 250.0);
@@ -1222,7 +1222,7 @@ fn image_signature_live_resize_and_move_preserve_background_and_hide_moving_hand
     assert_eq!(doc.edit_generation(), generation, "pointer frames never edit the document");
     assert_eq!(doc.can_undo(), Some("Add signature"));
     assert_rect(doc.info.annotations[0].rect, [40.0, 234.0, 136.0, 266.0]);
-    if let Ok(dir) = std::env::var("PDFCRAFT_SHOTS") {
+    if let Ok(dir) = std::env::var("VISIONPDF_SHOTS") {
         resized.save(format!("{dir}/image-signature-live-resize.png")).unwrap();
     }
     h.drop_at(end);
@@ -1253,7 +1253,7 @@ fn image_signature_live_resize_and_move_preserve_background_and_hide_moving_hand
         }
         assert_eq!(h.state().session.get(h.state().views[0].id).unwrap().can_undo(), Some("Resize comment"));
         if y == 140.0
-            && let Ok(dir) = std::env::var("PDFCRAFT_SHOTS")
+            && let Ok(dir) = std::env::var("VISIONPDF_SHOTS")
         {
             moving.save(format!("{dir}/image-signature-live-move.png")).unwrap();
         }
@@ -1268,7 +1268,7 @@ fn image_signature_live_resize_and_move_preserve_background_and_hide_moving_hand
     assert_eq!(doc.edit_generation(), generation + 2, "one edit for each completed gesture");
     assert_rect(doc.info.annotations[0].rect, [60.0, 110.0, 240.0, 170.0]);
     assert_eq!(h.state().views[0].comments.selected, Some((0, 0)));
-    if let Ok(dir) = std::env::var("PDFCRAFT_SHOTS") {
+    if let Ok(dir) = std::env::var("VISIONPDF_SHOTS") {
         released.save(format!("{dir}/image-signature-move-released.png")).unwrap();
     }
     h.state_mut().undo();
@@ -1305,10 +1305,10 @@ fn image_signature_live_resize_and_move_preserve_background_and_hide_moving_hand
 fn embedded_image_signature_live_gestures_follow_document_and_view_rotation() {
     let _gpu = gpu();
     let path = signature_file("live-rotations");
-    let image = pdfcraft_engine::SignatureImage::read(std::fs::File::open(&path).unwrap()).unwrap();
+    let image = visionpdf_engine::SignatureImage::read(std::fs::File::open(&path).unwrap()).unwrap();
     for (document_rotation, view_rotation) in [(90, 0), (0, 90), (90, 270)] {
         let mut h = harness();
-        h.state_mut().apply_edit(pdfcraft_engine::Edit::RotatePages { pages: vec![0], degrees: document_rotation });
+        h.state_mut().apply_edit(visionpdf_engine::Edit::RotatePages { pages: vec![0], degrees: document_rotation });
         while h.state().views[0].rotation != view_rotation {
             h.state_mut().views[0].rotate_view(true);
         }
@@ -1371,7 +1371,7 @@ fn embedded_image_signature_live_gestures_follow_document_and_view_rotation() {
 fn image_signature_corners_restore_original_aspect_after_edge_resize_and_reopen() {
     let _gpu = gpu();
     let path = signature_file("aspect");
-    let image = pdfcraft_engine::SignatureImage::read(std::fs::File::open(&path).unwrap()).unwrap();
+    let image = visionpdf_engine::SignatureImage::read(std::fs::File::open(&path).unwrap()).unwrap();
     let mut h = harness();
     h.state_mut().signature = Some(SavedSig::Image(image));
     h.state_mut().execute("sign.fill.signature");
@@ -1418,7 +1418,7 @@ fn image_signature_corners_restore_original_aspect_after_edge_resize_and_reopen(
         assert_rect(doc.info.annotations[0].rect, [70.0, 170.0, 214.0, 226.0]);
         if hx > 0.0
             && hy < 0.0
-            && let Ok(dir) = std::env::var("PDFCRAFT_SHOTS")
+            && let Ok(dir) = std::env::var("VISIONPDF_SHOTS")
         {
             pixels.save(format!("{dir}/image-signature-aspect-corner.png")).unwrap();
         }
@@ -1504,11 +1504,11 @@ fn flatten_on_save_is_off_by_default_and_round_trips() {
 
 #[test]
 fn saving_flattens_fill_and_sign_only_when_the_preference_is_on() {
-    use pdfcraft_engine::{Edit, FillMark, NewAnnotation, Shape, Style};
-    use pdfcraft_ui_egui::SaveTarget;
-    use pdfcraft_ui_egui::fill_sign::TypeBox;
+    use visionpdf_engine::{Edit, FillMark, NewAnnotation, Shape, Style};
+    use visionpdf_ui_egui::SaveTarget;
+    use visionpdf_ui_egui::fill_sign::TypeBox;
 
-    let dir = std::env::temp_dir().join(format!("pdfcraft-fill-flatten-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-fill-flatten-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let mark = Edit::AddAnnotation(NewAnnotation {
@@ -1529,7 +1529,7 @@ fn saving_flattens_fill_and_sign_only_when_the_preference_is_on() {
         text: "Typed".into(),
         size: 10.0,
         color: [0.0; 3],
-        border: pdfcraft_ui_egui::fill_sign::TextBorder::NONE,
+        border: visionpdf_ui_egui::fill_sign::TextBorder::NONE,
         focus: false,
     });
     let kept = dir.join("kept.pdf");
@@ -1548,7 +1548,7 @@ fn saving_flattens_fill_and_sign_only_when_the_preference_is_on() {
         text: "More".into(),
         size: 10.0,
         color: [0.0; 3],
-        border: pdfcraft_ui_egui::fill_sign::TextBorder::NONE,
+        border: visionpdf_ui_egui::fill_sign::TextBorder::NONE,
         focus: false,
     });
     app.flatten_fill_sign_on_save = true;
@@ -1573,24 +1573,24 @@ fn drawn_and_typed_signatures_stay_upright_on_rotated_pages() {
     // (signature, initials, displayed left-centre point)
     let cases = [(&drawn, false, [40.0_f32, 60.0]), (&typed, false, [40.0, 140.0]), (&typed, true, [40.0, 230.0])];
     let ink_mask = |rotation: i64| {
-        let mut session = pdfcraft_engine::Session::new();
+        let mut session = visionpdf_engine::Session::new();
         let blank = session.create_blank(300.0, 400.0, 1).unwrap();
         let id = session.open_new("form.pdf", blank).unwrap();
         if rotation != 0 {
-            session.apply(id, pdfcraft_engine::Edit::RotatePages { pages: vec![0], degrees: rotation }).unwrap();
+            session.apply(id, visionpdf_engine::Edit::RotatePages { pages: vec![0], degrees: rotation }).unwrap();
         }
         let page = session.get(id).unwrap().info.pages[0].clone();
         assert_eq!(i64::from(page.rotation), rotation);
         for (sig, initials, shown) in cases {
             let at = page.view_to_user(shown[0], shown[1]);
-            let edit = pdfcraft_ui_egui::fill_sign::place(0, &page, [f64::from(at[0]), f64::from(at[1])], sig, initials, "Ada").unwrap();
+            let edit = visionpdf_ui_egui::fill_sign::place(0, &page, [f64::from(at[0]), f64::from(at[1])], sig, initials, "Ada").unwrap();
             session.apply(id, edit).unwrap();
         }
         let annotations = &session.get(id).unwrap().info.annotations;
         assert_eq!(annotations.len(), cases.len());
         let bytes = session.get(id).unwrap().bytes.clone();
-        let mut renderer = pdfcraft_render::PageRenderer::new(bytes, Default::default());
-        let out = renderer.render(pdfcraft_render::RenderRequest { page: 0, scale: 1.0, ..Default::default() });
+        let mut renderer = visionpdf_render::PageRenderer::new(bytes, Default::default());
+        let out = renderer.render(visionpdf_render::RenderRequest { page: 0, scale: 1.0, ..Default::default() });
         assert!(out.error.is_none(), "{:?}", out.error);
         let shown_size = if rotation % 180 == 0 { (300, 400) } else { (400, 300) };
         assert_eq!((out.width, out.height), shown_size, "rendered as displayed");
@@ -1731,10 +1731,10 @@ fn fill_and_sign_tools_pick_up_placed_marks_to_move_and_resize_them() {
     h.state_mut().execute("sign.fill.signature");
     click(&mut h, 40.0, 250.0);
     let id = h.state().views[0].id;
-    let square = pdfcraft_engine::Shape::Rectangle { rect: [100.0, 80.0, 200.0, 140.0] };
-    let style = pdfcraft_engine::Style::default_for(&square);
-    let new = pdfcraft_engine::NewAnnotation { page: 0, shape: square, style, contents: String::new(), author: "Ada".into() };
-    h.state_mut().session.apply(id, pdfcraft_engine::Edit::AddAnnotation(new)).unwrap();
+    let square = visionpdf_engine::Shape::Rectangle { rect: [100.0, 80.0, 200.0, 140.0] };
+    let style = visionpdf_engine::Style::default_for(&square);
+    let new = visionpdf_engine::NewAnnotation { page: 0, shape: square, style, contents: String::new(), author: "Ada".into() };
+    h.state_mut().session.apply(id, visionpdf_engine::Edit::AddAnnotation(new)).unwrap();
     h.run_steps(2);
     h.state_mut().execute("sign.fill.check");
     click(&mut h, 60.0, 100.0);
@@ -1807,7 +1807,7 @@ fn lines_grow_and_shrink_with_their_handles_before_release() {
         };
         let mut h = harness();
         if document_rotation != 0 {
-            h.state_mut().apply_edit(pdfcraft_engine::Edit::RotatePages { pages: vec![0], degrees: document_rotation });
+            h.state_mut().apply_edit(visionpdf_engine::Edit::RotatePages { pages: vec![0], degrees: document_rotation });
         }
         while h.state().views[0].rotation != view_rotation {
             h.state_mut().views[0].rotate_view(true);
@@ -1848,7 +1848,7 @@ fn lines_grow_and_shrink_with_their_handles_before_release() {
         }
         let doc = h.state().session.get(h.state().views[0].id).unwrap();
         assert_eq!((doc.edit_generation(), doc.can_undo()), (generation, Some("Add line")), "{rot:?}: pointer frames never edit the document");
-        if let Ok(dir) = std::env::var("PDFCRAFT_SHOTS") {
+        if let Ok(dir) = std::env::var("VISIONPDF_SHOTS") {
             grown.save(format!("{dir}/line-live-grow-{document_rotation}-{view_rotation}.png")).unwrap();
             shrunk.save(format!("{dir}/line-live-shrink-{document_rotation}-{view_rotation}.png")).unwrap();
         }
@@ -1875,7 +1875,7 @@ fn select_tool_picks_up_a_signature_over_a_form_field() {
     let id = h.state().views[0].id;
     let index = h.state().session.get(id).unwrap().info.annotations[0].index;
     let dy = (190.0 - mid_y) as f64;
-    h.state_mut().session.apply(id, pdfcraft_engine::Edit::MoveAnnotation { page: 0, index, dx: 0.0, dy }).unwrap();
+    h.state_mut().session.apply(id, visionpdf_engine::Edit::MoveAnnotation { page: 0, index, dx: 0.0, dy }).unwrap();
     h.state_mut().views[0].comments.selected = None;
     h.state_mut().quick_tool = QuickTool::Select;
     h.run_steps(3);
@@ -1906,7 +1906,7 @@ fn select_tool_picks_up_a_signature_over_a_form_field() {
 /// A synthetic phone photo of a signature on paper: a dark table along the left edge, a sheet
 /// with a lighting gradient and a soft shadow, and a ballpoint-blue signature in two words.
 fn signature_photo(test: &str) -> std::path::PathBuf {
-    let path = std::env::temp_dir().join(format!("pdfcraft-signature-photo-{test}-{}.png", std::process::id()));
+    let path = std::env::temp_dir().join(format!("visionpdf-signature-photo-{test}-{}.png", std::process::id()));
     let image = image::RgbImage::from_fn(800, 600, |x, y| {
         if x < 60 {
             return image::Rgb([70, 55, 45]);
@@ -1946,7 +1946,7 @@ fn settle_scan(h: &mut Harness<'static, VisionPDFApp>) {
 }
 
 /// A transparent signature in the ink's colour: no paper, table or shadow is left.
-fn assert_clean_signature(image: &pdfcraft_engine::SignatureImage) {
+fn assert_clean_signature(image: &visionpdf_engine::SignatureImage) {
     let [w, h] = image.size();
     assert!(w > 200 && w > h * 2, "both words are framed and trimmed: {w}×{h}");
     let rgba = image.rgba();
@@ -1973,7 +1973,7 @@ fn scanned_signatures_are_framed_cleaned_adjusted_placed_and_remembered() {
     let frame = scan.frame;
     assert!(frame.x > 60 && frame.x < 190 && frame.x + frame.width > 630, "the frame holds both words, not the table: {frame:?}");
     assert_clean_signature(h.state().signature_draft.image.as_ref().expect("a cleaned signature"));
-    if let Ok(dir) = std::env::var("PDFCRAFT_SHOTS") {
+    if let Ok(dir) = std::env::var("VISIONPDF_SHOTS") {
         h.render().unwrap().save(format!("{dir}/scan-signature-dialog.png")).unwrap();
     }
 
@@ -2016,7 +2016,7 @@ fn scanned_signatures_are_framed_cleaned_adjusted_placed_and_remembered() {
     {
         let d = &mut h.state_mut().signature_draft;
         let scan = d.scan.as_mut().unwrap();
-        scan.frame = pdfcraft_engine::PhotoRect { x: 650, y: 40, width: 120, height: 100 };
+        scan.frame = visionpdf_engine::PhotoRect { x: 650, y: 40, width: 120, height: 100 };
         scan.rescan(&mut d.image, true);
     }
     h.run_steps(2);
@@ -2067,7 +2067,7 @@ fn scan_cancel_errors_and_stale_answers_preserve_saved_signatures() {
     choose_photo(&mut h, &path);
     let loaded = h.state().signature_draft.clone();
     assert!(loaded.image.is_some());
-    let broken = std::env::temp_dir().join(format!("pdfcraft-signature-photo-broken-{}.jpg", std::process::id()));
+    let broken = std::env::temp_dir().join(format!("visionpdf-signature-photo-broken-{}.jpg", std::process::id()));
     std::fs::write(&broken, b"\xFF\xD8\xFF not a JPEG").unwrap();
     choose_photo(&mut h, &broken);
     assert_eq!(h.state().signature_draft, loaded, "an invalid photo keeps the previous one");
@@ -2141,7 +2141,7 @@ fn photos_and_images_dropped_on_the_signature_pad_are_imported_not_opened() {
 /// does (review on #2348).
 #[test]
 fn the_first_save_after_placing_a_signature_asks_to_lock_it() {
-    let out = std::env::temp_dir().join(format!("pdfcraft-lock-signature-{}.pdf", std::process::id()));
+    let out = std::env::temp_dir().join(format!("visionpdf-lock-signature-{}.pdf", std::process::id()));
     let mut h = harness();
     h.state_mut().save_override = Some(out.to_string_lossy().into_owned());
     h.state_mut().signature = Some(SavedSig::Typed("Ada Lovelace".into()));
@@ -2187,7 +2187,7 @@ fn the_first_save_after_placing_a_signature_asks_to_lock_it() {
     h.key_press(egui::Key::Escape);
     h.run_steps(2);
     assert!(h.query_by_label("Lock into the page when saving").is_none(), "the panel is closed");
-    h.state_mut().left = pdfcraft_ui_egui::LeftPanel::Tool("fill_sign");
+    h.state_mut().left = visionpdf_ui_egui::LeftPanel::Tool("fill_sign");
     h.state_mut().left_open = true;
     h.run_steps(3);
     h.get_by_label("Use signature");
@@ -2202,8 +2202,8 @@ fn the_first_save_after_placing_a_signature_asks_to_lock_it() {
 /// save that succeeds does. When the save after the answer fails, the next save asks again.
 #[test]
 fn a_save_that_fails_after_the_lock_question_asks_again() {
-    let bad = std::env::temp_dir().join(format!("pdfcraft-no-such-dir-{}", std::process::id())).join("out.pdf");
-    let good = std::env::temp_dir().join(format!("pdfcraft-lock-retry-{}.pdf", std::process::id()));
+    let bad = std::env::temp_dir().join(format!("visionpdf-no-such-dir-{}", std::process::id())).join("out.pdf");
+    let good = std::env::temp_dir().join(format!("visionpdf-lock-retry-{}.pdf", std::process::id()));
     let mut h = harness();
     h.state_mut().save_override = Some(bad.to_string_lossy().into_owned());
     h.state_mut().signature = Some(SavedSig::Typed("Ada Lovelace".into()));
@@ -2231,7 +2231,7 @@ fn a_save_that_fails_after_the_lock_question_asks_again() {
 /// doesn't ask to lock one, even when the saved file holds an earlier Fill & Sign signature.
 #[test]
 fn reverting_forgets_a_signature_just_placed() {
-    let out = std::env::temp_dir().join(format!("pdfcraft-lock-revert-{}.pdf", std::process::id()));
+    let out = std::env::temp_dir().join(format!("visionpdf-lock-revert-{}.pdf", std::process::id()));
     let mut h = harness();
     h.state_mut().save_override = Some(out.to_string_lossy().into_owned());
     h.state_mut().signature = Some(SavedSig::Typed("Ada Lovelace".into()));
@@ -2263,7 +2263,7 @@ fn reverting_forgets_a_signature_just_placed() {
 #[test]
 fn placing_a_signature_offers_to_lock_it_now() {
     const NOTICE: &str = "Signature added. Others can move it until it's locked.";
-    let out = std::env::temp_dir().join(format!("pdfcraft-lock-now-{}.pdf", std::process::id()));
+    let out = std::env::temp_dir().join(format!("visionpdf-lock-now-{}.pdf", std::process::id()));
     let place = |h: &mut Harness<'static, VisionPDFApp>, y: f32| {
         h.state_mut().signature = Some(SavedSig::Typed("Ada Lovelace".into()));
         h.state_mut().execute("sign.fill.signature");
@@ -2326,8 +2326,8 @@ fn placing_a_signature_offers_to_lock_it_now() {
         let app = h.state_mut();
         let id = app.views[0].id;
         let p12 = std::fs::read(concat!(env!("CARGO_MANIFEST_DIR"), "/../sign/tests/data/ec-p256.p12")).unwrap();
-        let digital_id = pdfcraft_engine::sign::pkcs12::open(&p12, "test").unwrap();
-        let opts = pdfcraft_engine::SignOptions { page: 0, rect: Some([20.0, 20.0, 160.0, 50.0]), ..Default::default() };
+        let digital_id = visionpdf_engine::sign::pkcs12::open(&p12, "test").unwrap();
+        let opts = visionpdf_engine::SignOptions { page: 0, rect: Some([20.0, 20.0, 160.0, 50.0]), ..Default::default() };
         app.session.sign(id, &digital_id, opts).expect("signs")
     };
     let mut h = harness_bytes(&std::mem::take(&mut doc));
@@ -2357,10 +2357,10 @@ fn locking_a_signature_clears_the_comment_selection() {
 /// remembered.
 #[test]
 fn a_lock_that_fails_keeps_the_question() {
-    let out = std::env::temp_dir().join(format!("pdfcraft-lock-fails-{}.pdf", std::process::id()));
-    let mut doc = pdfcraft_cos::Document::open(std::sync::Arc::new(FIXTURE.to_vec())).unwrap();
-    doc.set_encryption(&pdfcraft_cos::NewEncryption {
-        algorithm: pdfcraft_cos::Algorithm::Aes256,
+    let out = std::env::temp_dir().join(format!("visionpdf-lock-fails-{}.pdf", std::process::id()));
+    let mut doc = visionpdf_cos::Document::open(std::sync::Arc::new(FIXTURE.to_vec())).unwrap();
+    doc.set_encryption(&visionpdf_cos::NewEncryption {
+        algorithm: visionpdf_cos::Algorithm::Aes256,
         user_password: "",
         owner_password: "owner",
         // Everything but bit 4, modifying the document.
@@ -2369,7 +2369,7 @@ fn a_lock_that_fails_keeps_the_question() {
         seed: [4; 32],
     })
     .unwrap();
-    let mut h = harness_bytes(&pdfcraft_cos::write_full(&doc, &Default::default()).unwrap());
+    let mut h = harness_bytes(&visionpdf_cos::write_full(&doc, &Default::default()).unwrap());
     h.state_mut().save_override = Some(out.to_string_lossy().into_owned());
     h.state_mut().signature = Some(SavedSig::Typed("Ada Lovelace".into()));
     h.state_mut().execute("sign.fill.signature");
@@ -2407,7 +2407,7 @@ fn the_lock_question_is_skipped_or_kept_where_it_must_be() {
         click(h, 40.0, 300.0);
     };
     // A file that changed on disk.
-    let path = std::env::temp_dir().join(format!("pdfcraft-lock-changed-{}.pdf", std::process::id()));
+    let path = std::env::temp_dir().join(format!("visionpdf-lock-changed-{}.pdf", std::process::id()));
     std::fs::write(&path, FIXTURE).unwrap();
     let mut h = harness_bytes(FIXTURE);
     h.state_mut().close_tab(0);
@@ -2430,7 +2430,7 @@ fn the_lock_question_is_skipped_or_kept_where_it_must_be() {
     let _ = std::fs::remove_file(&path);
 
     // Placed, then undone: nothing to lock, so the save just saves.
-    let out = std::env::temp_dir().join(format!("pdfcraft-lock-undone-{}.pdf", std::process::id()));
+    let out = std::env::temp_dir().join(format!("visionpdf-lock-undone-{}.pdf", std::process::id()));
     let mut h = harness();
     h.state_mut().save_override = Some(out.to_string_lossy().into_owned());
     place(&mut h);
@@ -2445,8 +2445,8 @@ fn the_lock_question_is_skipped_or_kept_where_it_must_be() {
         let app = h.state_mut();
         let id = app.views[0].id;
         let p12 = std::fs::read(concat!(env!("CARGO_MANIFEST_DIR"), "/../sign/tests/data/ec-p256.p12")).unwrap();
-        let digital_id = pdfcraft_engine::sign::pkcs12::open(&p12, "test").unwrap();
-        let opts = pdfcraft_engine::SignOptions { page: 0, rect: Some([20.0, 20.0, 160.0, 50.0]), ..Default::default() };
+        let digital_id = visionpdf_engine::sign::pkcs12::open(&p12, "test").unwrap();
+        let opts = visionpdf_engine::SignOptions { page: 0, rect: Some([20.0, 20.0, 160.0, 50.0]), ..Default::default() };
         app.session.sign(id, &digital_id, opts).expect("signs")
     };
     let mut h = harness_bytes(&std::mem::take(&mut doc));
@@ -2461,7 +2461,7 @@ fn the_lock_question_is_skipped_or_kept_where_it_must_be() {
 /// #2149: Cancel saves nothing, and Keep editable with Don't ask again turns the question off.
 #[test]
 fn cancelling_the_lock_question_saves_nothing() {
-    let out = std::env::temp_dir().join(format!("pdfcraft-lock-cancel-{}.pdf", std::process::id()));
+    let out = std::env::temp_dir().join(format!("visionpdf-lock-cancel-{}.pdf", std::process::id()));
     let _ = std::fs::remove_file(&out);
     let mut h = harness();
     h.state_mut().save_override = Some(out.to_string_lossy().into_owned());
@@ -2534,7 +2534,7 @@ fn mode_tabs_keep_the_hand_over_a_type_box_scrolled_under_them() {
     assert!(h.state_mut().execute("sign.fill.text"));
     h.state_mut().set_option("left", "closed").unwrap();
     // The page across the window, so the box reaches under the tabs.
-    h.state_mut().views[0].fit = pdfcraft_ui_egui::canvas::Fit::Width;
+    h.state_mut().views[0].fit = visionpdf_ui_egui::canvas::Fit::Width;
     h.run_steps(4);
     assert_eq!(h.state().quick_tool, QuickTool::Fill(FillTool::Text));
     click(&mut h, 10.0, 360.0);
@@ -2548,7 +2548,7 @@ fn mode_tabs_keep_the_hand_over_a_type_box_scrolled_under_them() {
     h.run_steps(1);
     h.drop_at(convert);
     h.run_steps(3);
-    assert_eq!(h.state().mode, pdfcraft_ui_egui::Mode::Convert, "the tab takes the click, not the text box");
+    assert_eq!(h.state().mode, visionpdf_ui_egui::Mode::Convert, "the tab takes the click, not the text box");
 }
 
 fn place_selected_text(h: &mut Harness<'static, VisionPDFApp>, text: &str) {
@@ -2842,7 +2842,7 @@ fn fill_key(h: &mut Harness<'static, VisionPDFApp>, key: egui::Key) {
 
 #[test]
 fn fill_sign_enter_adds_lines_outside_click_commits_and_escape_cancels() {
-    let shots = std::env::var_os("PDFCRAFT_FILL_SIGN_SHOTS").is_some();
+    let shots = std::env::var_os("VISIONPDF_FILL_SIGN_SHOTS").is_some();
     let _gpu = shots.then(gpu);
     let mut h = harness();
     assert!(h.state_mut().execute("sign.fill.text"));
@@ -2877,7 +2877,7 @@ fn fill_sign_enter_adds_lines_outside_click_commits_and_escape_cancels() {
     assert_eq!(items(&h), [("FreeText".to_owned(), Some(text.to_owned()))]);
     let id = h.state().views[0].id;
     let saved = h.state().session.save_bytes(id).unwrap();
-    let mut session = pdfcraft_engine::Session::new();
+    let mut session = visionpdf_engine::Session::new();
     let reopened = session.open("again.pdf", None, saved.clone(), None).unwrap();
     let annot = &session.get(reopened).unwrap().info.annotations[0];
     assert_eq!(annot.contents.as_deref(), Some(text));

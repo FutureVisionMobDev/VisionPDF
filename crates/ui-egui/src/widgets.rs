@@ -496,7 +496,7 @@ fn wrapped_lines(ui: &egui::Ui, text: &str, font: &egui::FontId, width: f32, tru
     let mut hasher = std::collections::hash_map::DefaultHasher::new();
     (text, font, width.to_bits(), ui.ctx().pixels_per_point().to_bits(), truncate).hash(&mut hasher);
     let key = hasher.finish();
-    let cache_id = egui::Id::unique("pdfcraft-rtl-wrap-cache");
+    let cache_id = egui::Id::unique("visionpdf-rtl-wrap-cache");
     if let Some(hit) = ui.ctx().data_mut(|d| d.get_temp_mut_or_default::<WrapCache>(cache_id).lines.get(&key).cloned()) {
         return hit;
     }
@@ -691,32 +691,31 @@ pub fn progress_notice(app: &VisionPDFApp, ctx: &egui::Context) -> bool {
     cancel
 }
 
-/// VisionPDF's original document mark, drawn from UI primitives so it scales cleanly.
+/// VisionPDF's supplied square logo, embedded so it is available in every build.
 pub fn visionpdf_mark(ui: &mut egui::Ui, size: f32) -> Response {
-    let (rect, response) = ui.allocate_exact_size(vec2(size, size), egui::Sense::hover());
-    response.widget_info(|| egui::WidgetInfo::labeled(egui::Role::Image, false, "VisionPDF"));
-    let painter = ui.painter();
-    let tile = rect.shrink(size * 0.025);
-    painter.rect_filled(tile, egui::CornerRadius::same((size * 0.22) as u8), egui::Color32::from_rgb(27, 56, 103));
-    let page = egui::Rect::from_min_max(
-        egui::pos2(tile.left() + size * 0.25, tile.top() + size * 0.16),
-        egui::pos2(tile.right() - size * 0.22, tile.bottom() - size * 0.15),
-    );
-    painter.rect_filled(page, egui::CornerRadius::same((size * 0.07) as u8), egui::Color32::WHITE);
-    let blue = egui::Color32::from_rgb(47, 128, 237);
-    let stroke = egui::Stroke::new(size * 0.075, blue);
-    painter.line_segment([egui::pos2(page.left() + size * 0.12, page.center().y), egui::pos2(page.center().x, page.bottom() - size * 0.13)], stroke);
-    painter.line_segment([egui::pos2(page.center().x, page.bottom() - size * 0.13), egui::pos2(page.right() - size * 0.10, page.top() + size * 0.20)], stroke);
-    response
+    ui.add(
+        egui::Image::from_bytes("bytes://visionpdf-icon.png", include_bytes!("../../../assets/app-icon/visionpdf-icon.png"))
+            .fit_to_exact_size(vec2(size, size))
+            .alt_text("VisionPDF"),
+    )
 }
 
-/// Buttons for every community link (`pdfcraft_engine::links`), Discord first and prominent.
+/// The supplied VisionPDF wordmark, sized by its height.
+pub fn visionpdf_logo(ui: &mut egui::Ui, height: f32) -> Response {
+    ui.add(
+        egui::Image::from_bytes("bytes://visionpdf-logo.png", include_bytes!("../../../assets/app-icon/visionpdf-logo.png"))
+            .max_height(height)
+            .alt_text("VisionPDF"),
+    )
+}
+
+/// Buttons for every community link (`visionpdf_engine::links`), support first and prominent.
 /// Returns the registry command of the one clicked.
 pub fn community_links(ui: &mut egui::Ui) -> Option<&'static str> {
     let mut clicked = None;
     ui.horizontal_wrapped(|ui| {
         ui.spacing_mut().item_spacing = vec2(8.0, 8.0);
-        for (i, l) in pdfcraft_engine::links::LINKS.iter().enumerate() {
+        for (i, l) in visionpdf_engine::links::LINKS.iter().enumerate() {
             let resp = if i == 0 { icon_pill(ui, l.icon, tl!("Get VisionPDF support"), true) } else { icon_pill(ui, l.icon, tl!(l.label), false) };
             if resp.on_hover_text(l.url).clicked() {
                 clicked = Some(l.command);
@@ -943,7 +942,7 @@ mod tests {
         let ctx = egui::Context::default();
         ctx.set_fonts(theme::font_definitions());
         let cache_len =
-            |ctx: &egui::Context| ctx.data_mut(|d| d.get_temp_mut_or_default::<WrapCache>(egui::Id::unique("pdfcraft-rtl-wrap-cache")).lines.len());
+            |ctx: &egui::Context| ctx.data_mut(|d| d.get_temp_mut_or_default::<WrapCache>(egui::Id::unique("visionpdf-rtl-wrap-cache")).lines.len());
         let persian = "این یک نظر طولانی به زبان فارسی است که باید در چند خط شکسته شود";
         let long = persian.repeat(2_000);
         let mut first = None;
@@ -1008,7 +1007,7 @@ mod tests {
     /// and put `PDF` at the visual left. Assert the actual painted positions instead.
     #[test]
     fn wrapped_rtl_line_starting_with_latin_keeps_its_rtl_base() {
-        if pdfcraft_fonts::ui_arabic_fonts().is_empty() {
+        if visionpdf_fonts::ui_arabic_fonts().is_empty() {
             return;
         }
         let ctx = egui::Context::default();

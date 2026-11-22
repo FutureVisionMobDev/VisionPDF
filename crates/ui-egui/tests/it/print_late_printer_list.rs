@@ -2,9 +2,9 @@
 //! the printer it names is the one the dialog already has.
 
 use egui_kittest::Harness;
-use pdfcraft_engine::print::spool::Printer;
-use pdfcraft_engine::print::{PAPERS, SizeMode};
-use pdfcraft_ui_egui::{VisionPDFApp, PrinterSetup};
+use visionpdf_engine::print::spool::Printer;
+use visionpdf_engine::print::{PAPERS, SizeMode};
+use visionpdf_ui_egui::{VisionPDFApp, PrinterSetup};
 use std::sync::{Arc, Mutex};
 
 fn harness() -> Harness<'static, VisionPDFApp> {

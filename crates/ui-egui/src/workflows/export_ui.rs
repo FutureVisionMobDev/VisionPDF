@@ -6,7 +6,7 @@
 use std::sync::{Arc, Mutex};
 
 use egui::{Align, Layout};
-use pdfcraft_engine::export::{ExportSource, Exporter, ImageFormat};
+use visionpdf_engine::export::{ExportSource, Exporter, ImageFormat};
 
 use crate::marks_ui::PageRange;
 use crate::theme::{self, Tokens};
@@ -149,12 +149,12 @@ fn run(task: ExportTask<'_>, mut sink: impl FnMut(&str, Vec<u8>) -> Result<(), S
     };
     if kind == ExportKind::AllImages {
         set(0, None);
-        let out = match pdfcraft_engine::export::extract_images(&src, &pages, min_side) {
+        let out = match visionpdf_engine::export::extract_images(&src, &pages, min_side) {
             Ok(o) => o,
             Err(e) => return crate::i18n::fmt(tl!("Export stopped: {e}"), &[("e", &e.to_string())]),
         };
         for (k, img) in out.images.iter().enumerate() {
-            if let Err(e) = sink(&pdfcraft_engine::export::image_file_name(&stem, img, k + 1, src.pages), img.data.clone()) {
+            if let Err(e) = sink(&visionpdf_engine::export::image_file_name(&stem, img, k + 1, src.pages), img.data.clone()) {
                 return crate::i18n::fmt(tl!("Export stopped: {e}"), &[("e", &e.to_string())]);
             }
         }
@@ -261,7 +261,7 @@ impl VisionPDFApp {
                 if inline {
                     work(); // tests and automation: synchronous
                 } else {
-                    std::thread::Builder::new().name("pdfcraft-export".into()).spawn(work).ok();
+                    std::thread::Builder::new().name("visionpdf-export".into()).spawn(work).ok();
                 }
                 app.export_status = Some(status);
             };

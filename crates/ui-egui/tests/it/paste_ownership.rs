@@ -4,8 +4,8 @@ use egui_kittest::{
     Harness,
     kittest::{NodeT, Queryable},
 };
-use pdfcraft_engine::{AddedContent, AddedImage, Edit};
-use pdfcraft_ui_egui::{Clip, VisionPDFApp};
+use visionpdf_engine::{AddedContent, AddedImage, Edit};
+use visionpdf_ui_egui::{Clip, VisionPDFApp};
 
 fn fixture(rotation: u16, cropped: bool, shared: bool) -> Vec<u8> {
     fixture_at(rotation, cropped, shared, false)
@@ -84,7 +84,7 @@ fn check_placement(rotation: u16, cropped: bool, view_rotation: u16, shared: boo
         image::RgbImage::from_pixel(40, 40, image::Rgb([0, 0, 255])).write_to(&mut std::io::Cursor::new(&mut png), image::ImageFormat::Png).unwrap();
         h.state_mut().add_image("existing.png".into(), png);
         assert_eq!(h.state().session.get(h.state().views[0].id).unwrap().added().len(), 1);
-        h.state_mut().quick_tool = pdfcraft_ui_egui::QuickTool::Select;
+        h.state_mut().quick_tool = visionpdf_ui_egui::QuickTool::Select;
         h.state_mut().views[0].image_selection = None;
         h.state_mut().views[0].content.selected = None;
     }
@@ -242,7 +242,7 @@ fn whole_page_actions_do_not_require_a_selection() {
 fn whole_page_actions_still_require_copy_permission() {
     let mut app = VisionPDFApp::new();
     app.open_bytes("source.pdf", None, fixture(0, false, false)).unwrap();
-    assert!(app.apply_edit(Edit::Protect(pdfcraft_engine::Protection { permissions_password: Some("owner".into()), ..Default::default() })));
+    assert!(app.apply_edit(Edit::Protect(visionpdf_engine::Protection { permissions_password: Some("owner".into()), ..Default::default() })));
     let bytes = app.session.save_bytes(app.views[0].id).unwrap();
     let mut h = harness(bytes.as_ref().clone());
     right_click(&mut h, [210.0, 80.0]);
@@ -260,11 +260,11 @@ fn legacy_text_delete_survives_switching_out_of_the_image_tool() {
     assert!(h.state().views[0].image_selection.is_some());
     assert!(h.state_mut().apply_edit(Edit::AddText {
         page: 0,
-        text: pdfcraft_engine::AddedText { text: "note".into(), rect: [100.0, 100.0, 180.0, 130.0], ..Default::default() }
+        text: visionpdf_engine::AddedText { text: "note".into(), rect: [100.0, 100.0, 180.0, 130.0], ..Default::default() }
     }));
     assert_eq!(h.state().session.get(h.state().views[0].id).unwrap().added().len(), 1);
     h.state_mut().views[0].content.selected = Some((0, 0));
-    h.state_mut().quick_tool = pdfcraft_ui_egui::QuickTool::Select;
+    h.state_mut().quick_tool = visionpdf_ui_egui::QuickTool::Select;
     h.key_press(Key::Delete);
     h.run_steps(3);
     let saved = reopened(h.state_mut());
@@ -293,7 +293,7 @@ fn leaving_image_controller_cannot_leave_hidden_image_owning_delete() {
     assert!(h.state().views[0].image_selection.is_some());
     h.key_press(Key::V);
     h.run_steps(2);
-    assert_eq!(h.state().quick_tool, pdfcraft_ui_egui::QuickTool::Select);
+    assert_eq!(h.state().quick_tool, visionpdf_ui_egui::QuickTool::Select);
     assert!(h.state().views[0].image_selection.is_none());
     h.key_press(Key::Delete);
     h.run_steps(3);

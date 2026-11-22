@@ -2,8 +2,8 @@
 //! the JavaScript console (⌘J), Document JavaScripts, and Preferences ▸ JavaScript.
 
 use egui::{Align, Layout};
-use pdfcraft_engine::js::{JsOutput, Message, MessageIcon, Panel, Request};
-use pdfcraft_engine::{DocId, Edit};
+use visionpdf_engine::js::{JsOutput, Message, MessageIcon, Panel, Request};
+use visionpdf_engine::{DocId, Edit};
 
 use crate::theme::{self, Tokens};
 use crate::{VisionPDFApp, widgets};
@@ -125,7 +125,7 @@ impl VisionPDFApp {
     fn focus_script_field(&mut self, id: DocId, view: Option<usize>, name: &str, object_id: Option<u64>) {
         if let Some(i) = view
             && let Some(f) = self.session.get(id).and_then(|d| {
-                d.form.iter().find(|f| object_id.map_or_else(|| f.name == name, |key| pdfcraft_engine::js::field_object_id(f.obj) == key))
+                d.form.iter().find(|f| object_id.map_or_else(|| f.name == name, |key| visionpdf_engine::js::field_object_id(f.obj) == key))
             })
             && let Some((wi, widget)) = f.widgets.iter().enumerate().find(|(_, w)| !w.hidden && w.page.is_some())
         {
@@ -156,7 +156,7 @@ impl VisionPDFApp {
     /// PDF, and otherwise offered to save. Other files aren't launched in other programs.
     fn open_script_attachment(&mut self, id: DocId, name: &str, open: bool) {
         let Some(doc) = self.session.get(id) else { return };
-        let keyed = |a: &pdfcraft_render::Attachment| matches!(&a.source, pdfcraft_render::AttachmentSource::Document { key } if key == name);
+        let keyed = |a: &visionpdf_render::Attachment| matches!(&a.source, visionpdf_render::AttachmentSource::Document { key } if key == name);
         let index = doc.info.attachments.iter().position(keyed).or_else(|| doc.info.attachments.iter().position(|a| a.name == name));
         let Some(i) = index else {
             // The name is the form's own text: shortened, as file names are elsewhere.
@@ -261,7 +261,7 @@ impl VisionPDFApp {
     /// Run document `id`'s catalog JavaScript for `event` (Will Save before a save, Will Print
     /// before printing) and show what it said. What it changed is part of what is saved or
     /// printed. A failing script is reported and the save or print still goes ahead.
-    pub(crate) fn run_document_actions(&mut self, id: DocId, event: pdfcraft_engine::js::DocumentScriptEvent) {
+    pub(crate) fn run_document_actions(&mut self, id: DocId, event: visionpdf_engine::js::DocumentScriptEvent) {
         let before = self.session.get(id).map(|d| d.edit_generation());
         let out = self.session.run_document_actions(id, event);
         if self.session.get(id).map(|d| d.edit_generation()) != before
@@ -320,10 +320,10 @@ impl VisionPDFApp {
             return;
         }
         let source = self.session.get(id).and_then(|d| d.path.clone());
-        match pdfcraft_engine::js::resolve_javascript_document_path(source.as_deref().map(std::path::Path::new), path) {
+        match visionpdf_engine::js::resolve_javascript_document_path(source.as_deref().map(std::path::Path::new), path) {
             Ok(path) => {
                 self.pending_remote_link =
-                    Some(crate::PendingRemoteLink { source: id, path, destination: pdfcraft_render::RemoteDestination::Default })
+                    Some(crate::PendingRemoteLink { source: id, path, destination: visionpdf_render::RemoteDestination::Default })
             }
             Err(e) => self.notify_fmt("Couldn't follow linked PDF: {reason}", &[("reason", &e.to_string())]),
         }
@@ -538,13 +538,13 @@ mod tests {
         if !crate::i18n::needs_catalogs() {
             return;
         }
-        let date_language = |code: &str| pdfcraft_engine::dates::DATE_LANGUAGES.iter().find(|l| l.code == code).expect("date language");
+        let date_language = |code: &str| visionpdf_engine::dates::DATE_LANGUAGES.iter().find(|l| l.code == code).expect("date language");
         let hindi = date_language("hi");
         assert_eq!(date_language_picker_name(hindi, |_| true), hindi.name, "the native name is kept when it can be drawn");
         assert_eq!(date_language_picker_name(hindi, |_| false), "Hindi", "no Devanagari face: show the English name");
         let chinese = date_language("zh-hans");
         assert_eq!(date_language_picker_name(chinese, |_| false), "Simplified Chinese");
-        for language in &pdfcraft_engine::dates::DATE_LANGUAGES {
+        for language in &visionpdf_engine::dates::DATE_LANGUAGES {
             assert!(!date_language_picker_name(language, |_| false).is_empty(), "{}", language.code);
         }
     }

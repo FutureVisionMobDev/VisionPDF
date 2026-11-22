@@ -5,7 +5,7 @@ use craft_xfdf::grammar::fdf_annot_skip_key;
 
 fn pdf_string(s: &str) -> Vec<u8> {
     let mut v = Vec::new();
-    pdfcraft_cos::serialize(&Object::String(PdfString::text(s)), &mut v);
+    visionpdf_cos::serialize(&Object::String(PdfString::text(s)), &mut v);
     v
 }
 
@@ -197,14 +197,14 @@ impl<'a> FdfCopy<'a> {
             } else {
                 match doc.try_get(source.num) {
                     Ok(value) => value,
-                    Err(pdfcraft_cos::CosError::MissingObject(_)) => std::sync::Arc::new(Object::Null),
+                    Err(visionpdf_cos::CosError::MissingObject(_)) => std::sync::Arc::new(Object::Null),
                     Err(error) => return Err(error.into()),
                 }
             };
             let copied = match &*value {
                 Object::Stream(stream) => {
                     self.charge(stream.raw.len())?;
-                    Object::Stream(pdfcraft_cos::Stream { dict: self.dict(&stream.dict, 0)?, raw: stream.raw.clone() })
+                    Object::Stream(visionpdf_cos::Stream { dict: self.dict(&stream.dict, 0)?, raw: stream.raw.clone() })
                 }
                 other => self.copy(other, 0)?,
             };
@@ -228,7 +228,7 @@ pub fn export_fdf(doc: &Document, comments: bool, fields: bool, file: &str) -> R
     // Comment dictionaries, written after the root as objects 2, 3, …
     if fields {
         body.extend_from_slice(b"/Fields [");
-        for f in pdfcraft_forms::fields(doc) {
+        for f in visionpdf_forms::fields(doc) {
             if matches!(f.kind, FieldKind::PushButton | FieldKind::Signature) {
                 continue;
             }
@@ -246,10 +246,10 @@ pub fn export_fdf(doc: &Document, comments: bool, fields: bool, file: &str) -> R
             match f.kind {
                 FieldKind::CheckBox | FieldKind::Radio => {
                     let v = f.export_values().first().cloned().unwrap_or_else(|| "Off".into());
-                    pdfcraft_cos::serialize(&Object::Name(pdfcraft_forms::name_bytes(&v)), &mut body);
+                    visionpdf_cos::serialize(&Object::Name(visionpdf_forms::name_bytes(&v)), &mut body);
                 }
                 FieldKind::List if f.value.len() > 1 => {
-                    pdfcraft_cos::serialize(&Object::Array(f.value.iter().map(|v| Object::String(PdfString::text(v))).collect()), &mut body);
+                    visionpdf_cos::serialize(&Object::Array(f.value.iter().map(|v| Object::String(PdfString::text(v))).collect()), &mut body);
                 }
                 _ => body.extend(pdf_string(f.value.first().map(String::as_str).unwrap_or(""))),
             }
@@ -260,7 +260,7 @@ pub fn export_fdf(doc: &Document, comments: bool, fields: bool, file: &str) -> R
     if comments {
         // Keep the page/array owners once. Handles retain positions, never annotation
         // bodies: the document cache can evict and reparse even a repeated source reference.
-        let pages = pdfcraft_model::pages(doc);
+        let pages = visionpdf_model::pages(doc);
         // Page discovery accepts a leaf with no /Type: the export keeps these out by reference too.
         copy.source_pages = pages.iter().map(|p| p.obj).collect();
         let mut arrays = Vec::new();
@@ -332,7 +332,7 @@ pub fn export_fdf(doc: &Document, comments: bool, fields: bool, file: &str) -> R
     for (i, object) in copy.objects.into_iter().enumerate() {
         offsets.push(out.len());
         let _ = writeln!(out, "{} 0 obj", i + 2);
-        pdfcraft_cos::serialize(&object, &mut out);
+        visionpdf_cos::serialize(&object, &mut out);
         out.extend_from_slice(b"\nendobj\n");
     }
     let xref = out.len();
@@ -416,7 +416,7 @@ fn deep(
                 path.pop();
                 let Object::Dict(mut dict) = dict? else { return Ok(Object::Null) };
                 dict.remove(b"Length");
-                let copied = dst.doc.add(Object::Stream(pdfcraft_cos::Stream { dict, raw: stream.raw.clone() }));
+                let copied = dst.doc.add(Object::Stream(visionpdf_cos::Stream { dict, raw: stream.raw.clone() }));
                 dst.streams.insert(*r, copied);
                 return Ok(Object::Ref(copied));
             }
@@ -487,7 +487,7 @@ pub(crate) fn walk_fdf(
             };
             match &*v {
                 Object::String(s) => keep(&mut vals, s.to_text(), budget)?,
-                Object::Name(n) => keep(&mut vals, pdfcraft_forms::name_text(n), budget)?,
+                Object::Name(n) => keep(&mut vals, visionpdf_forms::name_text(n), budget)?,
                 Object::Array(a) => {
                     budget.spend(a.len(), 0)?;
                     for x in a {
@@ -535,7 +535,7 @@ pub(crate) fn import_fdf(doc: &mut Document, bytes: &[u8]) -> Result<Report, Dat
         walk_fdf(&fdf, &list, "", &mut values, 0, &mut Vec::new(), &mut budget)?;
     }
     // Comments: parents first, then replies (whose /IRT needs the parent's new reference).
-    let pages: Vec<ObjRef> = pdfcraft_model::pages(doc).iter().map(|p| p.obj).collect();
+    let pages: Vec<ObjRef> = visionpdf_model::pages(doc).iter().map(|p| p.obj).collect();
     let mut placed: HashMap<ObjRef, ObjRef> = HashMap::new();
     let mut later: HashMap<ObjRef, (Option<ObjRef>, Option<String>)> = HashMap::new();
     let mut copied_streams: HashMap<ObjRef, ObjRef> = HashMap::new();

@@ -121,7 +121,7 @@ fn candidates_walk_from_specific_to_general() {
 /// Brazilian, Chinese by region), which the crate's matching doesn't all make.
 #[cfg(not(target_arch = "wasm32"))]
 #[test]
-fn locale_variables_pick_the_language_with_pdfcraft_mappings() {
+fn locale_variables_pick_the_language_with_visionpdf_mappings() {
     let env = |vars: &'static [(&'static str, &'static str)]| move |name: &str| vars.iter().find(|(k, _)| *k == name).map(|(_, v)| v.to_string());
     assert_eq!(env_lang(env(&[])), None);
     assert_eq!(env_lang(env(&[("LANG", "en_US.UTF-8")])), Some(Lang::EN));
@@ -385,7 +385,7 @@ fn ui_literals() -> std::collections::BTreeSet<String> {
 #[test]
 fn signature_appearance_labels_keep_their_separator() {
     needs_catalogs!();
-    let english = pdfcraft_engine::sign::AppearanceLabels::default();
+    let english = visionpdf_engine::sign::AppearanceLabels::default();
     for lang in Lang::all().filter(|l| *l != Lang::EN) {
         for (field, label) in english.fields() {
             let said = tr(lang, label);
@@ -400,7 +400,7 @@ fn signature_appearance_labels_keep_their_separator() {
 /// and with BIZ UDPGothic Regular alone (the web build's only Japanese face).
 #[test]
 fn japanese_labels_have_glyphs() {
-    let craft = pdfcraft_fonts::ui_japanese_fonts();
+    let craft = visionpdf_fonts::ui_japanese_fonts();
     let Some(web) = craft.iter().find(|f| f.family == "BIZ UDPGothic" && f.style == "Regular") else {
         eprintln!("skipping Japanese glyph checks: build with CRAFT_FONTS_DIR to run them");
         return;
@@ -410,7 +410,7 @@ fn japanese_labels_have_glyphs() {
     let web_name = web.name();
     let mut web_only = crate::theme::font_definitions();
     for family in web_only.families.values_mut() {
-        family.retain(|name| !pdfcraft_fonts::CRAFT_FONTS.iter().any(|face| face.name() == *name) || *name == web_name);
+        family.retain(|name| !visionpdf_fonts::CRAFT_FONTS.iter().any(|face| face.name() == *name) || *name == web_name);
     }
     use egui::epaint::text::{Fonts, TextOptions};
     for (build, defs) in [("desktop", crate::theme::font_definitions()), ("web", web_only)] {
@@ -461,7 +461,7 @@ fn an_id_row_that_changes_the_label_s_shape_is_not_used() {
 /// apps' command ids (in Bulgarian its `file.close` row is the id itself). The Undo/Redo phrases
 /// are used only as a pair: a shared "Undo {action}" comes without its "Redo {action}".
 #[test]
-fn command_ids_and_undo_phrases_come_from_pdfcraft_s_own_rows() {
+fn command_ids_and_undo_phrases_come_from_visionpdf_s_own_rows() {
     let fx = fixture_lang(
         "x-own",
         "@id\tfile.close\tClose-FX\n\tUndo {action}\tFX-undo: {action}\n\tClose file\tClose file-FX\n\tUndo\tFX-U\n\tRedo\tFX-R\n",
@@ -521,7 +521,7 @@ fn plurals_and_placeholders() {
 
 /// VisionPDF's plural rules before craft-i18n (form index by count), kept to show the crate's
 /// CLDR categories pick the same form of the same rows.
-fn pdfcraft_plural_rule(code: &str) -> fn(u64) -> usize {
+fn visionpdf_plural_rule(code: &str) -> fn(u64) -> usize {
     fn one_other(n: u64) -> usize {
         usize::from(n != 1)
     }
@@ -616,13 +616,13 @@ fn plural_counts() -> impl Iterator<Item = u64> {
 /// and Turkish have two where VisionPDF had one), the catalog repeats the form, so the text is the
 /// same; the embedded rows are checked for that and any that differ are reported.
 #[test]
-fn plural_forms_follow_the_rules_pdfcraft_had() {
+fn plural_forms_follow_the_rules_visionpdf_had() {
     let mut split = Vec::new();
     // English has no catalog: its own two forms, `one` for 1 alone, as VisionPDF's rule had it.
     assert_eq!(plural_counts().map(|n| trn(Lang::EN, n, "1", "x")).filter(|s| s == "1").count(), 1);
     for info in LANGUAGES.iter().filter(|l| l.code != "en") {
-        let rule = pdfcraft_plural_rule(info.code);
-        let pdfcraft_forms = (0..=1000).map(rule).max().unwrap_or(0) + 1;
+        let rule = visionpdf_plural_rule(info.code);
+        let visionpdf_forms = (0..=1000).map(rule).max().unwrap_or(0) + 1;
         // How many forms CLDR gives this language: the first form count whose row loads.
         let fixture = |forms: usize| {
             let row = (0..forms).map(|i| format!("F{i} {{n}}")).collect::<Vec<_>>().join("|");
@@ -630,9 +630,9 @@ fn plural_forms_follow_the_rules_pdfcraft_had() {
         };
         let (forms, lang) =
             (1..=6).map(|f| (f, fixture(f))).find(|(_, l)| trn(*l, 5, "{n} x", "{n} xs").starts_with('F')).expect("a form count loads");
-        if forms != pdfcraft_forms {
-            split.push((info.code, pdfcraft_forms, forms));
-            assert_eq!(pdfcraft_forms, 1, "{}: VisionPDF listed {pdfcraft_forms} forms, CLDR {forms}", info.code);
+        if forms != visionpdf_forms {
+            split.push((info.code, visionpdf_forms, forms));
+            assert_eq!(visionpdf_forms, 1, "{}: VisionPDF listed {visionpdf_forms} forms, CLDR {forms}", info.code);
             continue;
         }
         for n in plural_counts() {
@@ -723,11 +723,11 @@ fn spanish_keeps_the_holes_in_what_the_engine_says() {
     needs_catalogs!();
     let es = Lang::from_code("es").expect("es registered");
     let lists: [&[&str]; 5] = [
-        pdfcraft_engine::a11y::WORDINGS,
-        pdfcraft_engine::pdfa::WORDINGS,
-        pdfcraft_engine::sign::pdf::WORDINGS,
-        pdfcraft_engine::print::WORDINGS,
-        pdfcraft_engine::field_table::WORDINGS,
+        visionpdf_engine::a11y::WORDINGS,
+        visionpdf_engine::pdfa::WORDINGS,
+        visionpdf_engine::sign::pdf::WORDINGS,
+        visionpdf_engine::print::WORDINGS,
+        visionpdf_engine::field_table::WORDINGS,
     ];
     for wording in lists.into_iter().flatten() {
         let said = tr(es, wording);
@@ -791,7 +791,7 @@ fn contextual_labels_fall_back_to_the_plain_translation() {
 /// it; Telugu labels must not need a Japanese or Arabic face).
 #[test]
 fn telugu_labels_have_glyphs() {
-    let telugu: Vec<String> = pdfcraft_fonts::ui_telugu_fonts().iter().map(|f| f.name()).collect();
+    let telugu: Vec<String> = visionpdf_fonts::ui_telugu_fonts().iter().map(|f| f.name()).collect();
     if telugu.is_empty() {
         eprintln!("skipping Telugu glyph checks: build with CRAFT_FONTS_DIR and a Telugu face to run them");
         return;
@@ -801,7 +801,7 @@ fn telugu_labels_have_glyphs() {
     let labels: String = translations("te").chars().chain(te.name().chars()).filter(|c| !c.is_control()).collect();
     let mut telugu_only = crate::theme::font_definitions();
     for family in telugu_only.families.values_mut() {
-        family.retain(|name| !pdfcraft_fonts::CRAFT_FONTS.iter().any(|face| face.name() == *name) || telugu.contains(name));
+        family.retain(|name| !visionpdf_fonts::CRAFT_FONTS.iter().any(|face| face.name() == *name) || telugu.contains(name));
     }
     use egui::epaint::text::{Fonts, TextOptions};
     for (build, defs) in [("all faces", crate::theme::font_definitions()), ("Telugu face only", telugu_only)] {
@@ -1408,7 +1408,7 @@ fn plural_fixture(code: &'static str, forms: usize) -> impl Fn(u64) -> usize {
 /// it; Arabic labels must not need a Japanese face).
 #[test]
 fn arabic_labels_have_glyphs() {
-    let faces: Vec<String> = pdfcraft_fonts::ui_arabic_fonts().iter().map(|f| f.name()).collect();
+    let faces: Vec<String> = visionpdf_fonts::ui_arabic_fonts().iter().map(|f| f.name()).collect();
     if faces.is_empty() {
         eprintln!("skipping Arabic glyph checks: build with CRAFT_FONTS_DIR and an Arabic face to run them");
         return;
@@ -1418,7 +1418,7 @@ fn arabic_labels_have_glyphs() {
     let labels: String = translations("ar").chars().chain(ar.name().chars()).filter(|c| !c.is_control()).collect();
     let mut arabic_only = crate::theme::font_definitions();
     for family in arabic_only.families.values_mut() {
-        family.retain(|name| !pdfcraft_fonts::CRAFT_FONTS.iter().any(|face| face.name() == *name) || faces.contains(name));
+        family.retain(|name| !visionpdf_fonts::CRAFT_FONTS.iter().any(|face| face.name() == *name) || faces.contains(name));
     }
     use egui::epaint::text::{Fonts, TextOptions};
     for (build, defs) in [("all faces", crate::theme::font_definitions()), ("Arabic face only", arabic_only)] {
@@ -1461,7 +1461,7 @@ fn unused_id_rows() -> String {
             if id == "language.name" {
                 continue;
             }
-            let Some(command) = pdfcraft_engine::commands::command(&id) else {
+            let Some(command) = visionpdf_engine::commands::command(&id) else {
                 out.push(format!("{}: @id {id:?} names a command VisionPDF doesn't have", lang.code()));
                 continue;
             };
@@ -1486,31 +1486,31 @@ fn english_keys() -> std::collections::BTreeSet<(String, String)> {
     let mut add = |s: &str| {
         plain.insert(s.to_string());
     };
-    for command in pdfcraft_engine::commands::COMMANDS {
+    for command in visionpdf_engine::commands::COMMANDS {
         add(command.label);
         command.menu.into_iter().for_each(&mut add);
     }
-    for group in pdfcraft_engine::catalog::TOOL_GROUPS {
+    for group in visionpdf_engine::catalog::TOOL_GROUPS {
         add(group.label);
         for section in group.sections {
             add(section.title);
             section.items.iter().for_each(|item| add(item.label));
         }
     }
-    pdfcraft_engine::catalog::TOOL_CATEGORIES.iter().for_each(|category| add(category.label));
+    visionpdf_engine::catalog::TOOL_CATEGORIES.iter().for_each(|category| add(category.label));
     let engine: [&[&str]; 9] = [
-        pdfcraft_engine::a11y::WORDINGS,
-        pdfcraft_engine::a11y::REPORT_WORDS,
-        pdfcraft_engine::pdfa::WORDINGS,
-        pdfcraft_engine::sign::pdf::WORDINGS,
-        pdfcraft_engine::sign::pdf::kind::ALL,
-        pdfcraft_engine::print::WORDINGS,
-        pdfcraft_engine::EDIT_LABELS,
-        pdfcraft_engine::BATCH_LABELS,
-        pdfcraft_engine::field_table::WORDINGS,
+        visionpdf_engine::a11y::WORDINGS,
+        visionpdf_engine::a11y::REPORT_WORDS,
+        visionpdf_engine::pdfa::WORDINGS,
+        visionpdf_engine::sign::pdf::WORDINGS,
+        visionpdf_engine::sign::pdf::kind::ALL,
+        visionpdf_engine::print::WORDINGS,
+        visionpdf_engine::EDIT_LABELS,
+        visionpdf_engine::BATCH_LABELS,
+        visionpdf_engine::field_table::WORDINGS,
     ];
     engine.into_iter().flatten().for_each(|s| add(s));
-    pdfcraft_engine::sign::AppearanceLabels::default().fields().into_iter().for_each(|(_, label)| add(label));
+    visionpdf_engine::sign::AppearanceLabels::default().fields().into_iter().for_each(|(_, label)| add(label));
     crate::credits::NameMode::ALL.iter().for_each(|mode| add(mode.label()));
     for key in crate::credits::SortKey::ALL {
         let (label, header) = key.label();
@@ -1585,11 +1585,11 @@ const REPORT_END: &str = "=== end of translation gaps ===";
 #[test]
 fn date_languages_are_the_interface_languages() {
     let interface: Vec<&str> = LANGUAGES.iter().map(|l| l.code).collect();
-    let dates: Vec<&str> = pdfcraft_engine::dates::DATE_LANGUAGES.iter().map(|l| l.code).collect();
+    let dates: Vec<&str> = visionpdf_engine::dates::DATE_LANGUAGES.iter().map(|l| l.code).collect();
     assert_eq!(dates, interface);
     needs_catalogs!();
     let interface: Vec<(&str, &str)> = Lang::all().map(|l| (l.code(), l.name())).collect();
-    let dates: Vec<(&str, &str)> = pdfcraft_engine::dates::DATE_LANGUAGES.iter().map(|l| (l.code, l.name)).collect();
+    let dates: Vec<(&str, &str)> = visionpdf_engine::dates::DATE_LANGUAGES.iter().map(|l| (l.code, l.name)).collect();
     assert_eq!(dates, interface);
 }
 

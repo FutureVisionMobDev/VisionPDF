@@ -7,7 +7,7 @@ use std::sync::{
     mpsc,
 };
 
-use pdfcraft_engine::{
+use visionpdf_engine::{
     DocId,
     export::ExportSource,
     word_count::{self, Options, Report},
@@ -165,7 +165,7 @@ mod tests {
     #[test]
     fn word_count_dialog_counts_changes_pages_and_closes() {
         for inline in [true, false] {
-            let bytes = pdfcraft_engine::Session::new().create_from_text("Words", "Hello world\u{c}Another three words").unwrap();
+            let bytes = visionpdf_engine::Session::new().create_from_text("Words", "Hello world\u{c}Another three words").unwrap();
             let mut h = Harness::builder().with_size(egui::vec2(1200.0, 900.0)).build_eframe(|_| {
                 let mut app = VisionPDFApp::new();
                 app.run_inline = inline;
@@ -190,7 +190,7 @@ mod tests {
             h.run_steps(1);
             wait(&mut h);
             assert_eq!(h.state().word_count_draft.result.as_ref().unwrap().as_ref().unwrap().total.words, 2);
-            h.state_mut().apply_edit(pdfcraft_engine::Edit::DeletePages { pages: vec![0] });
+            h.state_mut().apply_edit(visionpdf_engine::Edit::DeletePages { pages: vec![0] });
             h.run_steps(1);
             wait(&mut h);
             assert_eq!(h.state().word_count_draft.result.as_ref().unwrap().as_ref().unwrap().total.words, 3);
@@ -213,7 +213,7 @@ mod tests {
         };
         draft.cancel();
         assert!(cancel.load(Ordering::Relaxed));
-        let bytes = pdfcraft_engine::Session::new().create_blank(200.0, 300.0, 1).unwrap();
+        let bytes = visionpdf_engine::Session::new().create_blank(200.0, 300.0, 1).unwrap();
         let source = || ExportSource { bytes: bytes.clone(), pages: 1, sizes: vec![(200.0, 300.0)], config: Default::default() };
         draft.update(key, source, &egui::Context::default(), true);
         assert!(draft.result.is_none()); // still one worker, no competing replacement

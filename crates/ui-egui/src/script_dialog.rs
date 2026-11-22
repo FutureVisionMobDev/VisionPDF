@@ -1,6 +1,6 @@
 //! Script prompts suspend the document worker, never the egui event loop.
 use crate::VisionPDFApp;
-use pdfcraft_engine::{
+use visionpdf_engine::{
     DocId,
     js::{InteractiveEvent, JsOutput, MenuItem, PendingScript, Prompt},
 };
@@ -49,8 +49,8 @@ fn reply_to_prompt(ctx: &egui::Context, pending: &mut Pending, answer: Option<St
             match prompt {
                 Prompt::Alert(m) => Some(
                     match m.buttons {
-                        pdfcraft_engine::js::MessageButtons::Ok => "1",
-                        pdfcraft_engine::js::MessageButtons::YesNo => "3",
+                        visionpdf_engine::js::MessageButtons::Ok => "1",
+                        visionpdf_engine::js::MessageButtons::YesNo => "3",
                         _ => "2",
                     }
                     .into(),
@@ -79,7 +79,7 @@ impl VisionPDFApp {
     fn start_script_with(
         &mut self,
         id: DocId,
-        start: impl FnOnce(&mut pdfcraft_engine::Session) -> Result<PendingScript, pdfcraft_engine::EditError>,
+        start: impl FnOnce(&mut visionpdf_engine::Session) -> Result<PendingScript, visionpdf_engine::EditError>,
     ) {
         if self.script_pending.is_some() {
             self.notify("Another form script is active; this click was not run");
@@ -237,7 +237,7 @@ impl VisionPDFApp {
                         ui.label(title);
                     }
                     ui.label(&message.text);
-                    use pdfcraft_engine::js::MessageButtons as B;
+                    use visionpdf_engine::js::MessageButtons as B;
                     ui.horizontal(|ui| match message.buttons {
                         B::Ok | B::OkCancel => {
                             if ui.button(tl!("OK")).clicked() {
@@ -360,7 +360,7 @@ mod review13_ui_tests {
             app.run_compare();
             assert!(app.compare.as_ref().unwrap().side_by_side);
             let dir = std::env::temp_dir().join(format!(
-                "pdfcraft-comparison-request-{}-{}",
+                "visionpdf-comparison-request-{}-{}",
                 std::process::id(),
                 std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos()
             ));
@@ -382,7 +382,7 @@ mod review13_ui_tests {
             if request.contains("SaveAs") {
                 assert_eq!(app.active_ids().unwrap().1, new, "Save As need not change the comparison tab");
                 assert_eq!(app.session.get(old).unwrap().path.as_deref(), saved.to_str());
-                let mut reopened = pdfcraft_engine::Session::new();
+                let mut reopened = visionpdf_engine::Session::new();
                 let id = reopened.open("saved.pdf", None, std::sync::Arc::new(std::fs::read(&saved).unwrap()), None).unwrap();
                 assert_eq!(reopened.get(id).unwrap().info.pages.len(), 2, "the saved file is the two-page source, not the one-page active file");
             } else if request == "print();" {
@@ -408,15 +408,15 @@ mod review13_ui_tests {
         app.session
             .apply(
                 id,
-                pdfcraft_engine::Edit::AddField {
+                visionpdf_engine::Edit::AddField {
                     page: 1,
                     rect: [20.0, 20.0, 120.0, 40.0],
-                    kind: pdfcraft_engine::NewField::Text { multiline: false },
+                    kind: visionpdf_engine::NewField::Text { multiline: false },
                     name: Some("later".into()),
                 },
             )
             .unwrap();
-        app.handle_js(id, JsOutput { requests: vec![pdfcraft_engine::js::Request::Focus("later".into())], ..Default::default() });
+        app.handle_js(id, JsOutput { requests: vec![visionpdf_engine::js::Request::Focus("later".into())], ..Default::default() });
         let view = app.views.iter().find(|v| v.id == id).unwrap();
         assert_eq!(view.current, 1);
         assert_eq!(view.forms.focus.as_ref().unwrap().name, "later");

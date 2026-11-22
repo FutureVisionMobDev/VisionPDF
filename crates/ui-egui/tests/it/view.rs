@@ -3,7 +3,7 @@
 use egui::{Key, Modifiers, MouseWheelUnit, TouchPhase};
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_ui_egui::VisionPDFApp;
 
 /// Three 300×400 pt pages. Page 1 links to page 3.
 const PAGES: &[u8] = b"%PDF-1.7
@@ -366,7 +366,7 @@ fn two_up_layout_places_pages_side_by_side() {
 
 #[test]
 fn two_page_view_shows_one_spread_at_a_time_until_continuous() {
-    use pdfcraft_ui_egui::canvas::PageLayout;
+    use visionpdf_ui_egui::canvas::PageLayout;
     // Two-page view without continuous scrolling shows just the current spread; the continuous
     // checkbox reveals the rest (#752).
     let mut h = harness(&[("layout", "two-page"), ("zoom", "50")]);
@@ -693,7 +693,7 @@ fn precise_touchpad_wheel_scrolls_one_to_one() {
 
 #[test]
 fn rapid_wheel_notches_accelerate_and_follow_touchpad_input() {
-    use pdfcraft_ui_egui::scroll_speed::ScrollSpeed;
+    use visionpdf_ui_egui::scroll_speed::ScrollSpeed;
 
     let mut h = harness_stepping(1.0 / 60.0, &[("layout", "continuous"), ("zoom", "300")]);
     h.state_mut().set_option("animation_effects", "off").unwrap();
@@ -740,7 +740,7 @@ fn rapid_wheel_notches_accelerate_and_follow_touchpad_input() {
 
 #[test]
 fn changing_continuous_layout_resets_wheel_acceleration() {
-    use pdfcraft_ui_egui::scroll_speed::ScrollSpeed;
+    use visionpdf_ui_egui::scroll_speed::ScrollSpeed;
 
     let mut h = harness_stepping(1.0 / 60.0, &[("layout", "continuous"), ("zoom", "300")]);
     h.state_mut().set_option("animation_effects", "off").unwrap();
@@ -789,7 +789,7 @@ fn scroll_regression_fractional_lines_preserve_distance_without_an_idle_tail() {
     let at = h.state().views[0].viewport_rect().center();
     h.hover_at(at);
     h.run_steps(2);
-    let line = pdfcraft_ui_egui::scroll_speed::ScrollSpeed::default().line_points();
+    let line = visionpdf_ui_egui::scroll_speed::ScrollSpeed::default().line_points();
     let mut distance = 0.0;
     for _ in 0..24 {
         h.event(wheel(MouseWheelUnit::Line, -0.25, TouchPhase::Move));
@@ -835,7 +835,7 @@ fn scroll_regression_precise_input_resets_coarse_acceleration() {
     scroll_over(&mut h, 2);
     h.event(wheel(MouseWheelUnit::Line, -1.0, TouchPhase::Move));
     let distance = scroll_over(&mut h, 2);
-    let base = pdfcraft_ui_egui::scroll_speed::ScrollSpeed::default().line_points();
+    let base = visionpdf_ui_egui::scroll_speed::ScrollSpeed::default().line_points();
     assert!((distance - base).abs() < 0.5, "a new coarse burst begins at the base distance: {distance}");
 }
 
@@ -849,7 +849,7 @@ fn scroll_regression_key_interrupt_retains_current_wheel_input() {
     h.event(egui::Event::Key { key: Key::Escape, physical_key: None, pressed: true, repeat: false, modifiers: Modifiers::NONE });
     h.event(wheel(MouseWheelUnit::Line, -1.0, TouchPhase::Move));
     let distance = scroll_over(&mut h, 2);
-    let base = pdfcraft_ui_egui::scroll_speed::ScrollSpeed::default().line_points();
+    let base = visionpdf_ui_egui::scroll_speed::ScrollSpeed::default().line_points();
     assert!((distance - base).abs() < 0.5, "new wheel input survives a simultaneous key: {distance}");
 }
 
@@ -972,7 +972,7 @@ const EASED: [(bool, &str); 3] = [(false, "system"), (false, "on"), (true, "on")
 fn a_wheel_notch_scrolls_at_once_with_animation_effects_off() {
     // Eased, egui spreads a notch over about a quarter of a second. At once, the page moves the
     // notch's whole distance in one frame.
-    let notch = pdfcraft_ui_egui::scroll_speed::ScrollSpeed::default().line_points();
+    let notch = visionpdf_ui_egui::scroll_speed::ScrollSpeed::default().line_points();
     for (system_reduced, effects) in AT_ONCE {
         let moved = frames_after_a_notch(system_reduced, effects, false);
         // The frame the notch arrives in scrolls; the next one draws the page where it stays.
@@ -1065,13 +1065,13 @@ fn a_zoom_gesture_zooms_to_its_end_after_its_keys_are_let_go() {
 fn page_display_commands_switch_layouts() {
     let mut h = harness(&[]);
     h.state_mut().execute("view.layout.single");
-    assert_eq!(h.state().views[0].layout, pdfcraft_ui_egui::canvas::PageLayout::Single);
+    assert_eq!(h.state().views[0].layout, visionpdf_ui_egui::canvas::PageLayout::Single);
     // The cover toggle refuses outside two-page view instead of arming a hidden flag.
     assert!(!h.state().views[0].cover);
     assert!(!h.state_mut().execute("view.layout.cover"));
     assert!(!h.state().views[0].cover);
     h.state_mut().execute("view.layout.two_up");
-    assert_eq!(h.state().views[0].layout, pdfcraft_ui_egui::canvas::PageLayout::TwoUp);
+    assert_eq!(h.state().views[0].layout, visionpdf_ui_egui::canvas::PageLayout::TwoUp);
     assert!(h.state_mut().execute("view.layout.cover"));
     assert!(h.state().views[0].cover, "the cover toggle flips");
     assert!(h.state_mut().execute("view.layout.cover"));
@@ -1081,9 +1081,9 @@ fn page_display_commands_switch_layouts() {
     h.state_mut().execute("view.continuous");
     h.run_steps(3);
     assert!(!h.state().views[0].continuous(), "the checkbox turns continuous scrolling off");
-    assert_eq!(h.state().views[0].layout, pdfcraft_ui_egui::canvas::PageLayout::TwoUp, "toggling scrolling leaves the base layout");
+    assert_eq!(h.state().views[0].layout, visionpdf_ui_egui::canvas::PageLayout::TwoUp, "toggling scrolling leaves the base layout");
     h.state_mut().execute("view.layout.single");
-    assert_eq!(h.state().views[0].layout, pdfcraft_ui_egui::canvas::PageLayout::Single);
+    assert_eq!(h.state().views[0].layout, visionpdf_ui_egui::canvas::PageLayout::Single);
     assert!(!h.state().views[0].continuous(), "switching the base layout leaves scrolling off");
 }
 
@@ -1093,7 +1093,7 @@ fn layout_option_rejects_typos() {
     assert!(h.state_mut().set_option("layout", "singel").is_err());
     assert!(h.state_mut().set_option("default-layout", "bogus").is_err());
     assert!(h.state_mut().set_option("cover", "maybe").is_err());
-    assert_eq!(h.state().views[0].layout, pdfcraft_ui_egui::canvas::PageLayout::Single);
+    assert_eq!(h.state().views[0].layout, visionpdf_ui_egui::canvas::PageLayout::Single);
     assert!(h.state().views[0].continuous(), "a rejected typo leaves the default display unchanged");
     assert!(h.state_mut().set_option("cover", "on").is_err(), "cover needs two-page view first");
     h.state_mut().set_option("layout", "two-up").unwrap();
@@ -1108,14 +1108,14 @@ fn view_options_without_a_document() {
     let mut app = VisionPDFApp::new();
     app.set_option("language", "en").unwrap();
     assert!(app.set_option("default-layout", "single").is_ok(), "the default needs no document");
-    assert_eq!(app.view_defaults.layout, pdfcraft_ui_egui::canvas::PageLayout::Single);
+    assert_eq!(app.view_defaults.layout, visionpdf_ui_egui::canvas::PageLayout::Single);
     assert!(app.set_option("cover", "on").is_err(), "cover needs an open document");
     assert!(app.set_option("layout", "single").is_err(), "layout needs an open document");
 }
 
 #[test]
 fn default_page_display_is_used_for_new_documents() {
-    use pdfcraft_ui_egui::canvas::PageLayout;
+    use visionpdf_ui_egui::canvas::PageLayout;
     // The factory default is single page, scrolling continuously, without snap jumps.
     assert_eq!(VisionPDFApp::new().view_defaults.layout, PageLayout::Single);
     assert!(VisionPDFApp::new().view_defaults.continuous);
@@ -1146,7 +1146,7 @@ fn default_page_display_is_used_for_new_documents() {
 
 #[test]
 fn default_zoom_is_used_for_new_documents() {
-    use pdfcraft_ui_egui::canvas::Fit;
+    use visionpdf_ui_egui::canvas::Fit;
     let fit_zoom = |app: &VisionPDFApp, i: usize| (app.views[i].fit, app.views[i].zoom);
     let mut h = harness(&[]);
     // The factory default fits the width.
@@ -1179,7 +1179,7 @@ fn default_zoom_is_used_for_new_documents() {
 fn the_rail_zoom_field_sets_a_typed_zoom() {
     use egui::accesskit::Role;
     use egui_kittest::kittest::Queryable;
-    use pdfcraft_ui_egui::canvas::Fit;
+    use visionpdf_ui_egui::canvas::Fit;
     let mut h = harness(&[]);
     let type_zoom = |h: &mut Harness<'static, VisionPDFApp>, typed: &str, key: Key| {
         h.get_by_role_and_label(Role::TextInput, "Zoom").click();
@@ -1206,7 +1206,7 @@ fn the_rail_zoom_field_sets_a_typed_zoom() {
 
 #[test]
 fn always_use_my_default_zoom_and_page_layout_ignores_what_the_pdf_asks_for() {
-    use pdfcraft_ui_egui::canvas::{Fit, PageLayout};
+    use visionpdf_ui_egui::canvas::{Fit, PageLayout};
     // Opens on page 2 at fit page, two pages side by side.
     let asks = String::from_utf8_lossy(PAGES).replace("/Pages 2 0 R >>", "/Pages 2 0 R /OpenAction [4 0 R /Fit] /PageLayout /TwoPageLeft >>");
     let open = |always: Option<&str>| {
@@ -1264,9 +1264,9 @@ fn preferences_turn_on_always_use_my_default_zoom_and_page_layout_updates_open_d
     h.state_mut().views[1].set_zoom(0.75);
     assert_eq!(h.state().views.len(), 2);
     assert!(!h.state().views[0].continuous());
-    assert_ne!(h.state().views[0].fit, pdfcraft_ui_egui::canvas::Fit::Width);
+    assert_ne!(h.state().views[0].fit, visionpdf_ui_egui::canvas::Fit::Width);
     assert!(!h.state().views[1].continuous());
-    assert_ne!(h.state().views[1].fit, pdfcraft_ui_egui::canvas::Fit::Width);
+    assert_ne!(h.state().views[1].fit, visionpdf_ui_egui::canvas::Fit::Width);
     assert!(h.state_mut().execute("app.preferences"));
     h.run_steps(3);
     h.get_by_label("Always use my default zoom and page layout").scroll_to_me();
@@ -1276,7 +1276,7 @@ fn preferences_turn_on_always_use_my_default_zoom_and_page_layout_updates_open_d
     assert!(h.state().always_default_view);
     for (i, view) in h.state().views.iter().enumerate() {
         assert!(view.continuous(), "continuous scrolling is applied to view {i}");
-        assert_eq!(view.fit, pdfcraft_ui_egui::canvas::Fit::Width, "default fit width is applied to view {i}");
+        assert_eq!(view.fit, visionpdf_ui_egui::canvas::Fit::Width, "default fit width is applied to view {i}");
     }
 }
 
@@ -1299,7 +1299,7 @@ fn preferences_toggle_continuous_scrolling_updates_active_document() {
 #[test]
 fn preferences_during_full_screen_updates_saved_normal_display_and_restores_on_exit() {
     use egui_kittest::kittest::Queryable;
-    use pdfcraft_ui_egui::canvas::Fit;
+    use visionpdf_ui_egui::canvas::Fit;
 
     let mut h = harness(&[("continuous", "off"), ("zoom", "50")]);
     let v0 = &h.state().views[0];
@@ -1341,7 +1341,7 @@ fn preferences_during_full_screen_updates_saved_normal_display_and_restores_on_e
 #[test]
 fn preferences_toggle_continuous_during_full_screen_updates_saved_normal_display() {
     use egui_kittest::kittest::Queryable;
-    use pdfcraft_ui_egui::canvas::Fit;
+    use visionpdf_ui_egui::canvas::Fit;
 
     let mut h = harness(&[("default-continuous", "off"), ("continuous", "off")]);
     assert!(!h.state().views[0].continuous());
@@ -1409,13 +1409,13 @@ fn preferences_set_the_default_zoom() {
     h.get_by_label("Zoom to page level").click();
     h.run_steps(2);
     assert!(h.state_mut().execute("create.blank"));
-    assert_eq!(h.state().views[1].fit, pdfcraft_ui_egui::canvas::Fit::Page);
+    assert_eq!(h.state().views[1].fit, visionpdf_ui_egui::canvas::Fit::Page);
 }
 
 #[test]
 fn rail_page_display_menu_offers_acrobats_view_choices() {
     use egui_kittest::kittest::Queryable;
-    use pdfcraft_ui_egui::canvas::{Fit, PageLayout};
+    use visionpdf_ui_egui::canvas::{Fit, PageLayout};
     let mut h = harness(&[]);
     h.run_steps(4);
     let pick = |h: &mut Harness<'static, VisionPDFApp>, item: &str| {
@@ -1451,7 +1451,7 @@ fn rail_page_display_button_switches_layouts() {
     h.run_steps(3);
     h.get_by_label("Single page").click();
     h.run_steps(4);
-    assert_eq!(h.state().views[0].layout, pdfcraft_ui_egui::canvas::PageLayout::Single);
+    assert_eq!(h.state().views[0].layout, visionpdf_ui_egui::canvas::PageLayout::Single);
 }
 
 #[test]
@@ -1464,7 +1464,7 @@ fn view_menu_page_display_uses_the_same_commands() {
     h.run_steps(3);
     h.get_by_label("Single page").click();
     h.run_steps(4);
-    assert_eq!(h.state().views[0].layout, pdfcraft_ui_egui::canvas::PageLayout::Single);
+    assert_eq!(h.state().views[0].layout, visionpdf_ui_egui::canvas::PageLayout::Single);
 }
 
 #[test]
@@ -1477,7 +1477,7 @@ fn palette_runs_page_display_commands_from_the_keyboard() {
     h.key_press(Key::Enter);
     h.run_steps(3);
     assert!(!h.state().palette_open, "Enter runs the top hit and closes the palette");
-    assert_eq!(h.state().views[0].layout, pdfcraft_ui_egui::canvas::PageLayout::Single);
+    assert_eq!(h.state().views[0].layout, visionpdf_ui_egui::canvas::PageLayout::Single);
 }
 
 #[test]
@@ -1667,7 +1667,7 @@ fn from_viewport_corner(h: &Harness<'static, VisionPDFApp>, page: usize, fx: f32
 #[test]
 fn bookmark_destinations_scroll_to_their_position() {
     use egui_kittest::kittest::Queryable;
-    use pdfcraft_ui_egui::canvas::Fit;
+    use visionpdf_ui_egui::canvas::Fit;
     let mut h = dests_harness();
     // Fit width: the pages are taller than the window, so any point of them can reach its top.
     h.get_by_label("Section 1.1 Shapes").click();
@@ -1701,7 +1701,7 @@ fn bookmark_destinations_scroll_to_their_position() {
 
 #[test]
 fn link_destinations_scroll_to_their_position() {
-    use pdfcraft_ui_egui::canvas::Fit;
+    use visionpdf_ui_egui::canvas::Fit;
     let mut h = dests_harness();
     h.state_mut().set_option("zoom", "100%").unwrap();
     h.run_steps(4);
@@ -1942,7 +1942,7 @@ fn page_actions_and_timers_wait_under_a_dialog() {
         let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("timer.pdf", None, PAGE_TIMER.to_vec()).expect("opens");
-        app.dialog = Some(pdfcraft_ui_egui::Dialog::Shortcuts);
+        app.dialog = Some(visionpdf_ui_egui::Dialog::Shortcuts);
         app
     });
     h.run_steps(3);
@@ -2003,7 +2003,7 @@ fn press_field(h: &mut Harness<'static, VisionPDFApp>, name: &str) {
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
         let f = doc.form.iter().find(|f| f.name == name).unwrap();
-        pdfcraft_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen").center()
+        visionpdf_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen").center()
     };
     h.hover_at(p);
     h.run_steps(1);
@@ -2344,8 +2344,8 @@ fn required_fields_get_a_red_border_when_highlighting() {
     let mut h = form_harness();
     h.state_mut().set_option("panel", "none").unwrap();
     h.state_mut().set_option("fields", "on").unwrap();
-    let props = pdfcraft_engine::FieldProps { required: Some(true), ..Default::default() };
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::SetFieldProps { name: "fullname".into(), props: Box::new(props) });
+    let props = visionpdf_engine::FieldProps { required: Some(true), ..Default::default() };
+    h.state_mut().apply_edit(visionpdf_engine::Edit::SetFieldProps { name: "fullname".into(), props: Box::new(props) });
     crate::support::settle(&mut h);
     let r = rect(&h, 0).expect("page 1");
     // Just inside the left edge of the field (x 50, y 300..330 on a 300×400 page).
@@ -2407,10 +2407,10 @@ fn compare_page_with_raster(h: &mut Harness<'static, VisionPDFApp>, pdf: &[u8], 
     let r = rect(h, 0).expect("page 1");
     let img = h.render().expect("renders");
     let scale = zoom * 96.0 / 72.0 * ppp;
-    let mut renderer = pdfcraft_render::PageRenderer::new(std::sync::Arc::new(pdf.to_vec()), pdfcraft_render::RenderConfig::default());
-    let page = renderer.render(pdfcraft_render::RenderRequest {
+    let mut renderer = visionpdf_render::PageRenderer::new(std::sync::Arc::new(pdf.to_vec()), visionpdf_render::RenderConfig::default());
+    let page = renderer.render(visionpdf_render::RenderRequest {
         page: 0,
-        kind: pdfcraft_render::RequestKind::Pixels,
+        kind: visionpdf_render::RequestKind::Pixels,
         tile: None,
         scale,
         tag: 0,
@@ -2519,7 +2519,7 @@ fn returning_to_a_visited_zoom_reuses_its_cached_tiles() {
 
 #[test]
 fn sidebar_collapse_and_resize_preserves_scroll_position() {
-    use pdfcraft_ui_egui::canvas::Fit;
+    use visionpdf_ui_egui::canvas::Fit;
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
         let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
@@ -2734,7 +2734,7 @@ fn long_view_menu_fits_a_short_window() {
     assert!(row.top() >= 0.0 && row.bottom() <= 400.0, "the Bookmarks submenu row is onscreen: {row:?}");
     bookmarks.click();
     h.run_steps(4);
-    assert_eq!(h.state().right, Some(pdfcraft_ui_egui::RightPanel::Bookmarks));
+    assert_eq!(h.state().right, Some(visionpdf_ui_egui::RightPanel::Bookmarks));
 }
 
 fn click_with(h: &mut Harness<'static, VisionPDFApp>, pos: egui::Pos2, modifiers: Modifiers) {
@@ -2751,7 +2751,7 @@ fn click_with(h: &mut Harness<'static, VisionPDFApp>, pos: egui::Pos2, modifiers
 /// or ← back; Esc brings the display from before it back, at the page reached.
 #[test]
 fn full_screen_shows_one_fitted_page_and_clicks_turn_it() {
-    use pdfcraft_ui_egui::canvas::Fit;
+    use visionpdf_ui_egui::canvas::Fit;
     let mut h = harness(&[("layout", "continuous"), ("zoom", "50")]);
     h.run_steps(4);
     assert!(h.state().views[0].continuous(), "continuous before");
@@ -2797,7 +2797,7 @@ fn full_screen_shows_one_fitted_page_and_clicks_turn_it() {
 /// comes back to that and full screen stays one spread at a time.
 #[test]
 fn full_screen_survives_a_reload_and_keeps_a_new_documents_own_view() {
-    use pdfcraft_ui_egui::canvas::{Fit, PageLayout};
+    use visionpdf_ui_egui::canvas::{Fit, PageLayout};
     let mut h = harness(&[("layout", "continuous"), ("zoom", "50")]);
     h.run_steps(4);
     h.key_press_modifiers(Modifiers::COMMAND, Key::L);
@@ -2831,7 +2831,7 @@ fn full_screen_survives_a_reload_and_keeps_a_new_documents_own_view() {
 /// → turns the spread.
 #[test]
 fn full_screen_keeps_two_page_view_as_spreads() {
-    use pdfcraft_ui_egui::canvas::PageLayout;
+    use visionpdf_ui_egui::canvas::PageLayout;
     let mut h = harness(&[("layout", "two-up")]);
     h.run_steps(4);
     h.key_press_modifiers(Modifiers::COMMAND, Key::L);
@@ -2854,7 +2854,7 @@ fn full_screen_keeps_two_page_view_as_spreads() {
 /// entering it from another tool selects Select, and leaving gives the tool back.
 #[test]
 fn full_screen_clicks_turn_pages_whatever_tool_was_on() {
-    use pdfcraft_ui_egui::QuickTool;
+    use visionpdf_ui_egui::QuickTool;
     let mut h = harness(&[]);
     h.run_steps(4);
     h.state_mut().quick_tool = QuickTool::Hand;
@@ -2909,7 +2909,7 @@ fn the_pages_panel_tools_act_on_the_selected_pages() {
 /// opens Extract for the selection and writes it.
 #[test]
 fn the_pages_panel_tools_insert_from_a_file_and_extract() {
-    let dir = std::env::temp_dir().join(format!("pdfcraft-page-tools-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-page-tools-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let more = dir.join("more.pdf");
@@ -2935,8 +2935,8 @@ fn the_pages_panel_tools_insert_from_a_file_and_extract() {
     h.state_mut().export_dir_override = Some(out.to_string_lossy().into_owned());
     h.state_mut().views[0].select_pages(&[1, 2]);
     tool(&mut h, "Extract the selected pages…");
-    assert_eq!(h.state().dialog, Some(pdfcraft_ui_egui::Dialog::Extract), "Extract opens for the selection");
-    h.state_mut().extract_draft = pdfcraft_ui_egui::ExtractDraft { separate: true, ..Default::default() };
+    assert_eq!(h.state().dialog, Some(visionpdf_ui_egui::Dialog::Extract), "Extract opens for the selection");
+    h.state_mut().extract_draft = visionpdf_ui_egui::ExtractDraft { separate: true, ..Default::default() };
     h.get_all_by_label("Extract").last().unwrap().click();
     h.run_steps(3);
     assert_eq!(std::fs::read_dir(&out).unwrap().count(), 2, "the two selected pages, each a file");
@@ -2951,9 +2951,9 @@ fn the_pages_panel_tools_are_off_without_page_editing_permission() {
     let mut h = harness(&[("panel", "pages")]);
     {
         let app = h.state_mut();
-        app.apply_edit(pdfcraft_engine::Edit::Protect(pdfcraft_engine::Protection {
+        app.apply_edit(visionpdf_engine::Edit::Protect(visionpdf_engine::Protection {
             permissions_password: Some("owner".into()),
-            changes: pdfcraft_engine::Changes::None,
+            changes: visionpdf_engine::Changes::None,
             ..Default::default()
         }));
         let bytes = app.session.save_bytes(app.views[0].id).unwrap();
@@ -3839,7 +3839,7 @@ fn cut_content_pdf() -> Vec<u8> {
 fn a_page_whose_content_was_cut_is_named_in_a_notice() {
     let _gpu = gpu();
     let pdf = cut_content_pdf();
-    let slot: std::sync::Arc<std::sync::Mutex<Option<pdfcraft_ui_egui::control::ControlClient>>> = Default::default();
+    let slot: std::sync::Arc<std::sync::Mutex<Option<visionpdf_ui_egui::control::ControlClient>>> = Default::default();
     let s = slot.clone();
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |cc| {
         let mut app = VisionPDFApp::new();

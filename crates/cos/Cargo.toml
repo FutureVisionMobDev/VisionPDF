@@ -1,5 +1,5 @@
 [package]
-name = "pdfcraft-cos"
+name = "visionpdf-cos"
 description = "PDF object layer: lazy tolerant parsing, copy-on-write edits, incremental and full saving"
 version.workspace = true
 edition.workspace = true
@@ -12,10 +12,10 @@ workspace = true
 craft-pdf = { workspace = true }
 
 [dev-dependencies]
-pdfcraft-crypt = { workspace = true }
-pdfcraft-filters = { workspace = true }
-pdfcraft-oracle = { workspace = true }
-pdfcraft-testkit = { workspace = true }
+visionpdf-crypt = { workspace = true }
+visionpdf-filters = { workspace = true }
+visionpdf-oracle = { workspace = true }
+visionpdf-testkit = { workspace = true }
 serde_json = { workspace = true }
 proptest = { workspace = true }
 hayro-syntax = { workspace = true }

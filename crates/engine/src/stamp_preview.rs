@@ -3,8 +3,8 @@
 
 use std::sync::Arc;
 
-use pdfcraft_cos::{SaveOptions, write_incremental};
-use pdfcraft_render::{PageRenderer, RenderConfig, RenderPool, RenderRequest, RenderedPage};
+use visionpdf_cos::{SaveOptions, write_incremental};
+use visionpdf_render::{PageRenderer, RenderConfig, RenderPool, RenderRequest, RenderedPage};
 
 use crate::{Document, guard};
 
@@ -70,14 +70,14 @@ impl Document {
                 return Ok(None);
             }
             let mut stamp = editor.cos.clone();
-            if !pdfcraft_annot::isolate_annotation(&mut stamp, page, index).map_err(|e| e.to_string())? {
+            if !visionpdf_annot::isolate_annotation(&mut stamp, page, index).map_err(|e| e.to_string())? {
                 return Ok(None);
             }
             let mut background = editor.cos.clone();
-            pdfcraft_annot::lift_annotation(&mut background, page, index).map_err(|e| e.to_string())?;
+            visionpdf_annot::lift_annotation(&mut background, page, index).map_err(|e| e.to_string())?;
             // The page beneath as it is displayed: comments without an appearance get theirs.
-            let background = pdfcraft_annot::with_missing_appearances(&background).unwrap_or(background);
-            let write = |cos: &pdfcraft_cos::Document| write_incremental(cos, &SaveOptions::default()).map(Arc::new).map_err(|e| e.to_string());
+            let background = visionpdf_annot::with_missing_appearances(&background).unwrap_or(background);
+            let write = |cos: &visionpdf_cos::Document| write_incremental(cos, &SaveOptions::default()).map(Arc::new).map_err(|e| e.to_string());
             Ok(Some(StampPreview { page, background: write(&background)?, stamp: write(&stamp)?, config: self.config.clone() }))
         })?
     }
@@ -129,8 +129,8 @@ impl Document {
             if indices.is_empty() || !indices.iter().all(|&i| self.info.annotations.iter().any(|a| a.page == page && a.index == i)) {
                 return Ok(None);
             }
-            let mut alone = pdfcraft_annot::with_missing_appearances(&editor.cos).unwrap_or_else(|| editor.cos.clone());
-            if !pdfcraft_annot::isolate_annotations(&mut alone, page, indices).map_err(|e| e.to_string())? {
+            let mut alone = visionpdf_annot::with_missing_appearances(&editor.cos).unwrap_or_else(|| editor.cos.clone());
+            if !visionpdf_annot::isolate_annotations(&mut alone, page, indices).map_err(|e| e.to_string())? {
                 return Ok(None);
             }
             let bytes = write_incremental(&alone, &SaveOptions::default()).map(Arc::new).map_err(|e| e.to_string())?;

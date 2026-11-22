@@ -213,7 +213,7 @@ mod tests {
         h.run();
         assert!(h.query_by_label("Light theme").is_some() && h.query_by_label("Dark theme").is_some());
         assert_eq!(h.query_all_by_label("Active").count(), 1);
-        if let Ok(path) = std::env::var("PDFCRAFT_APPEARANCE_SHOT") {
+        if let Ok(path) = std::env::var("VISIONPDF_APPEARANCE_SHOT") {
             h.render().unwrap().save(path).unwrap();
         }
 

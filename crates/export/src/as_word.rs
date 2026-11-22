@@ -32,7 +32,7 @@ fn chr(size: f64, bold: bool, italic: bool, color: [f64; 3]) -> CharProps {
 /// RTF readers accept.
 fn push_text(p: &mut Paragraph, text: &str, props: CharProps) {
     // A hard line ending in the text (LF, CR or CRLF) is a line break, the model's `\n`, which the
-    // writers keep inside its paragraph or cell (storytold/pdfcraft#4723).
+    // writers keep inside its paragraph or cell (https://github.com/storytold/pdfcraft#4723).
     let text = text.replace("\r\n", "\n").replace('\r', "\n");
     let text: String = text.chars().filter(|c| allowed(*c)).collect();
     p.push_text(&text, &props);

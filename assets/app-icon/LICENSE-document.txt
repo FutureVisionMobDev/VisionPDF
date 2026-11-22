@@ -1,4 +1,4 @@
-VisionPDF PDF document icon (pdfcraft-document.svg and pdfcraft-document.ico).
+VisionPDF PDF document icon (visionpdf-document.svg and visionpdf-document.ico).
 SPDX-License-Identifier: ISC AND (MIT OR Apache-2.0)
 
 The document outline and fold are adapted from Lucide file-text (lucide-static 1.49.0):

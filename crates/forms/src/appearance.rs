@@ -12,7 +12,7 @@
 //! can't hold (outside WinAnsi in Helvetica, or beyond U+FFFF in a UCS-2 CMap) is drawn as `?`, as
 //! Acrobat keeps a value its field font can't show: the value itself is stored as typed,
 //! [`field_appearance_drawn`] returns the first such character, and the caller marks the widget
-//! (`pdfcraft_fonts::UNDRAWN_MARK`) and asks other viewers to redraw the field
+//! (`visionpdf_fonts::UNDRAWN_MARK`) and asks other viewers to redraw the field
 //! (`/NeedAppearances`). Widths are the field font's own (its `/Widths`, or the standard-14
 //! metrics), Helvetica's when Helvetica stands in, and one em per full-width character in
 //! composite fonts.
@@ -21,10 +21,10 @@
 //! the appearance `/Matrix` so that box lands on the widget rectangle. Any other value is 0, and
 //! rotation 0 leaves `/Matrix` off.
 
-use pdfcraft_cos::{Dict, Document, Object, Stream};
-use pdfcraft_fonts::pdf::Metrics;
-use pdfcraft_fonts::shaped_text::{self, Piece, ShapedFonts};
-use pdfcraft_fonts::{UnicodeCMap, cjk_width, helvetica_width, literal, win_ansi, wrap_with};
+use visionpdf_cos::{Dict, Document, Object, Stream};
+use visionpdf_fonts::pdf::Metrics;
+use visionpdf_fonts::shaped_text::{self, Piece, ShapedFonts};
+use visionpdf_fonts::{UnicodeCMap, cjk_width, helvetica_width, literal, win_ansi, wrap_with};
 
 use crate::{Field, FieldKind, Widget, acroform, flags};
 
@@ -331,7 +331,7 @@ impl FontText {
     /// [`field_appearance_drawn`], so that `?` is never silent (app-agents.md rule 13).
     fn first_unencodable(&self, s: &str) -> Option<char> {
         match self {
-            Self::WinAnsi => pdfcraft_fonts::first_undrawable(s),
+            Self::WinAnsi => visionpdf_fonts::first_undrawable(s),
             Self::Simple(metrics) => {
                 // A whole string that encodes has no such character, in one pass over the font's
                 // ranges. Otherwise each distinct character is asked once (a call scans every range).
@@ -1187,7 +1187,7 @@ pub(crate) fn button_state_shown(doc: &Document, f: &Field, w: &Widget, on: bool
     if on {
         let mk = wd.get(b"MK").map(|m| doc.resolve(m)).and_then(|m| m.as_dict().cloned());
         let caption = mk.as_ref().and_then(|mk| mk.get(b"CA")).and_then(|o| doc.resolve(o).as_string().map(|s| s.to_text()));
-        let dingbats = pdfcraft_fonts::Std14::ZapfDingbats;
+        let dingbats = visionpdf_fonts::Std14::ZapfDingbats;
         // The caption's first character as a ZapfDingbats code, when the font has a glyph there.
         let code = caption
             .and_then(|s| s.chars().next())

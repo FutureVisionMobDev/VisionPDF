@@ -3,8 +3,8 @@
 
 use egui::{Key, Modifiers, Pos2};
 use egui_kittest::Harness;
-use pdfcraft_ui_egui::VisionPDFApp;
-use pdfcraft_ui_egui::panes::Place;
+use visionpdf_ui_egui::VisionPDFApp;
+use visionpdf_ui_egui::panes::Place;
 
 fn harness() -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
@@ -26,7 +26,7 @@ fn field_center(h: &Harness<'static, VisionPDFApp>, view: usize, name: &str) -> 
     let s = h.state();
     let doc = s.session.get(s.views[view].id)?;
     let f = doc.form.iter().find(|f| f.name == name)?;
-    pdfcraft_ui_egui::forms_ui::field_screen_rect(&s.views[view], &doc.info, f, 0).map(|r| r.center())
+    visionpdf_ui_egui::forms_ui::field_screen_rect(&s.views[view], &doc.info, f, 0).map(|r| r.center())
 }
 
 fn value(h: &Harness<'static, VisionPDFApp>, name: &str) -> Vec<String> {
@@ -88,7 +88,7 @@ fn typing_in_one_pane_survives_an_edit_in_the_other() {
 /// and write the file without it.
 #[test]
 fn save_in_the_second_pane_keeps_its_typing() {
-    let dir = std::env::temp_dir().join(format!("pdfcraft-split-save-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-split-save-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let out = dir.join("out.pdf");
     let mut h = harness();

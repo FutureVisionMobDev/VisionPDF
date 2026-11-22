@@ -2,8 +2,8 @@
 //! right-hand panels (Comments, Bookmarks, Pages, Fields, Layers, Attachments).
 
 use egui::{Align, Align2, Color32, CornerRadius, Layout, Rect, Sense, Stroke, pos2, vec2};
-use pdfcraft_engine::catalog::{self, Availability, TOOL_GROUPS, ToolGroup, ToolItem};
-use pdfcraft_render::{DocInfo, FieldKind, OutlineItem};
+use visionpdf_engine::catalog::{self, Availability, TOOL_GROUPS, ToolGroup, ToolItem};
+use visionpdf_render::{DocInfo, FieldKind, OutlineItem};
 
 use crate::theme::{self, Tokens};
 use crate::{LeftPanel, VisionPDFApp, RightPanel, icons, widgets};
@@ -32,9 +32,9 @@ pub(crate) use tools::panel_header;
 pub(crate) enum Nav {
     Page(usize),
     /// A bookmark's destination: its page and where on it.
-    Dest(usize, pdfcraft_render::DestView),
+    Dest(usize, visionpdf_render::DestView),
     /// A bookmark's action that goes nowhere in this document, run as a link's is.
-    Action(pdfcraft_render::LinkTarget),
+    Action(visionpdf_render::LinkTarget),
     Flash(usize, [f32; 4]),
 }
 

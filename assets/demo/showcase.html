@@ -9,7 +9,7 @@
   Placeholders substituted by the xtask:
     {{ASSETS}}          file:// URL of the repository's assets/ directory
     {{MANDELBROT_PNG}}  data: URI of a procedurally generated PNG
-  Links to https://mark.pdfcraft.invalid/<kind>/<id> are *markers*: the xtask
+  Links to https://mark.visionpdf.invalid/<kind>/<id> are *markers*: the xtask
   converts the link rectangles Chrome emits for them into real PDF annotations
   (highlight, sticky note, stamp, ...), so annotation geometry follows the layout.
 -->
@@ -418,7 +418,7 @@ a.box { position: absolute; display: block; color: transparent; font-size: 1pt; 
   <h2 class="sec" id="h-setting">Setting <em>Text</em></h2>
   <p class="dek">Two justified columns with automatic hyphenation, old-style figures, a drop cap and a pull quote &mdash; the everyday machinery of a well-made page.</p>
   <div class="cols">
-    <p class="first">Long before there were screens, a page of type was a negotiation between the width of a column and the length of the words that had to fill it. The compositor adjusted spaces, divided a word at a sensible syllable, and occasionally rewrote a line so the paragraph would lie flat. Justified text asks for exactly that care, and a renderer must <a class="mk" href="https://mark.pdfcraft.invalid/highlight/body">honour the spacing</a> it was given.<sup class="fn">1</sup></p>
+    <p class="first">Long before there were screens, a page of type was a negotiation between the width of a column and the length of the words that had to fill it. The compositor adjusted spaces, divided a word at a sensible syllable, and occasionally rewrote a line so the paragraph would lie flat. Justified text asks for exactly that care, and a renderer must <a class="mk" href="https://mark.visionpdf.invalid/highlight/body">honour the spacing</a> it was given.<sup class="fn">1</sup></p>
     <p>A PDF does not reflow. Every glyph has already been placed by the program that wrote the file, and the reader&rsquo;s job is to reproduce those positions faithfully at any zoom. That sounds simple until one remembers that a single line may mix three fonts, a ligature standing in for two letters, and a hyphen that exists only because the line happened to break there in 1994 or 2026.</p>
     <p>Old-style figures, like the ones in this paragraph&rsquo;s 1,280 characters and 36 lines, rise and fall with the lowercase so that numbers do not shout. Ligatures such as <i>fi</i>, <i>fl</i> and <i>ffi</i> in words like <i>officially</i>, <i>affluent</i> and <i>afflicted</i> join letters that would otherwise collide.<sup class="fn">2</sup></p>
     <div class="pull">&ldquo;Good typography is noticed only when it is missing.&rdquo;<cite>A working maxim of the trade</cite></div>
@@ -761,7 +761,7 @@ a.box { position: absolute; display: block; color: transparent; font-size: 1pt; 
       <h3>Links</h3>
       <ul class="links" style="padding-left:14pt;margin:0;font-size:10pt">
         <li>External: <a href="https://example.com/">https://example.com/</a></li>
-        <li>External: <a href="https://example.org/pdfcraft">example.org/pdfcraft</a></li>
+        <li>External: <a href="https://example.org/visionpdf">example.org/visionpdf</a></li>
         <li>Internal: back to <a href="#contents">the contents</a> or ahead to <a href="#review">review &amp; markup</a></li>
       </ul>
     </div>
@@ -778,8 +778,8 @@ a.box { position: absolute; display: block; color: transparent; font-size: 1pt; 
   <div class="review">
     <div>
       <h3 style="margin-top:0">Text markup</h3>
-      <p>Reviewers rarely rewrite a document; they <a class="mk" href="https://mark.pdfcraft.invalid/highlight/review">highlight the phrase that matters</a>, <a class="mk" href="https://mark.pdfcraft.invalid/underline/review">underline a claim that needs a source</a>, and <a class="mk" href="https://mark.pdfcraft.invalid/strikeout/review">strike out a redundant word</a> before moving on.</p>
-      <p>A wavy line says <a class="mk" href="https://mark.pdfcraft.invalid/squiggly/review">check the spelling here</a>, while a caret marks where text should<a class="mk" href="https://mark.pdfcraft.invalid/caret/review">&nbsp;&nbsp;</a>be inserted.</p>
+      <p>Reviewers rarely rewrite a document; they <a class="mk" href="https://mark.visionpdf.invalid/highlight/review">highlight the phrase that matters</a>, <a class="mk" href="https://mark.visionpdf.invalid/underline/review">underline a claim that needs a source</a>, and <a class="mk" href="https://mark.visionpdf.invalid/strikeout/review">strike out a redundant word</a> before moving on.</p>
+      <p>A wavy line says <a class="mk" href="https://mark.visionpdf.invalid/squiggly/review">check the spelling here</a>, while a caret marks where text should<a class="mk" href="https://mark.visionpdf.invalid/caret/review">&nbsp;&nbsp;</a>be inserted.</p>
       <h3>Comments</h3>
       <p>Sticky notes carry threaded replies, and a free-text box writes directly on the page. The paperclip holds an attached file that can be saved from the comment itself.</p>
       <h3>Legend</h3>
@@ -789,16 +789,16 @@ a.box { position: absolute; display: block; color: transparent; font-size: 1pt; 
     </div>
     <div class="canvas">
       <span class="lab" style="left:10pt;top:8pt">Review canvas</span>
-      <a class="box" style="left:12pt;top:26pt;width:152pt;height:40pt" href="https://mark.pdfcraft.invalid/freetext/1">freetext</a>
-      <a class="box" style="left:196pt;top:22pt;width:20pt;height:20pt" href="https://mark.pdfcraft.invalid/note/1">note</a>
-      <a class="box" style="left:196pt;top:60pt;width:18pt;height:22pt" href="https://mark.pdfcraft.invalid/attach/1">attach</a>
-      <a class="box" style="left:16pt;top:88pt;width:90pt;height:60pt" href="https://mark.pdfcraft.invalid/square/1">square</a>
-      <a class="box" style="left:120pt;top:92pt;width:90pt;height:60pt" href="https://mark.pdfcraft.invalid/circle/1">circle</a>
-      <a class="box" style="left:16pt;top:170pt;width:94pt;height:80pt" href="https://mark.pdfcraft.invalid/polygon/1">polygon</a>
-      <a class="box" style="left:120pt;top:170pt;width:96pt;height:80pt" href="https://mark.pdfcraft.invalid/polyline/1">polyline</a>
-      <a class="box" style="left:16pt;top:268pt;width:196pt;height:40pt" href="https://mark.pdfcraft.invalid/line/1">line</a>
-      <a class="box" style="left:16pt;top:322pt;width:196pt;height:50pt" href="https://mark.pdfcraft.invalid/ink/1">ink</a>
-      <a class="box" style="left:30pt;top:388pt;width:170pt;height:56pt" href="https://mark.pdfcraft.invalid/stamp/1">stamp</a>
+      <a class="box" style="left:12pt;top:26pt;width:152pt;height:40pt" href="https://mark.visionpdf.invalid/freetext/1">freetext</a>
+      <a class="box" style="left:196pt;top:22pt;width:20pt;height:20pt" href="https://mark.visionpdf.invalid/note/1">note</a>
+      <a class="box" style="left:196pt;top:60pt;width:18pt;height:22pt" href="https://mark.visionpdf.invalid/attach/1">attach</a>
+      <a class="box" style="left:16pt;top:88pt;width:90pt;height:60pt" href="https://mark.visionpdf.invalid/square/1">square</a>
+      <a class="box" style="left:120pt;top:92pt;width:90pt;height:60pt" href="https://mark.visionpdf.invalid/circle/1">circle</a>
+      <a class="box" style="left:16pt;top:170pt;width:94pt;height:80pt" href="https://mark.visionpdf.invalid/polygon/1">polygon</a>
+      <a class="box" style="left:120pt;top:170pt;width:96pt;height:80pt" href="https://mark.visionpdf.invalid/polyline/1">polyline</a>
+      <a class="box" style="left:16pt;top:268pt;width:196pt;height:40pt" href="https://mark.visionpdf.invalid/line/1">line</a>
+      <a class="box" style="left:16pt;top:322pt;width:196pt;height:50pt" href="https://mark.visionpdf.invalid/ink/1">ink</a>
+      <a class="box" style="left:30pt;top:388pt;width:170pt;height:56pt" href="https://mark.visionpdf.invalid/stamp/1">stamp</a>
     </div>
   </div>
   <div class="folio"><span>Review &amp; Markup</span><b>9</b></div>

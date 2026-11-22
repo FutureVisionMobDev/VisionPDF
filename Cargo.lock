@@ -4924,7 +4924,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pdfcraft"
+name = "visionpdf"
 version = "0.21.1"
 dependencies = [
  "chrono",
@@ -4933,9 +4933,9 @@ dependencies = [
  "egui",
  "fmv-macos-events",
  "log",
- "pdfcraft-engine",
- "pdfcraft-platform",
- "pdfcraft-ui-egui",
+ "visionpdf-engine",
+ "visionpdf-platform",
+ "visionpdf-ui-egui",
  "pollster 1.0.1",
  "raw-window-handle",
  "serde_json",
@@ -4949,42 +4949,42 @@ dependencies = [
 ]
 
 [[package]]
-name = "pdfcraft-a11y"
+name = "visionpdf-a11y"
 version = "0.21.1"
 dependencies = [
- "pdfcraft-content",
- "pdfcraft-cos",
- "pdfcraft-fonts",
- "pdfcraft-model",
+ "visionpdf-content",
+ "visionpdf-cos",
+ "visionpdf-fonts",
+ "visionpdf-model",
  "thiserror 2.0.21",
 ]
 
 [[package]]
-name = "pdfcraft-annot"
+name = "visionpdf-annot"
 version = "0.21.1"
 dependencies = [
  "hayro-syntax",
- "pdfcraft-cos",
- "pdfcraft-fonts",
- "pdfcraft-geom",
- "pdfcraft-model",
+ "visionpdf-cos",
+ "visionpdf-fonts",
+ "visionpdf-geom",
+ "visionpdf-model",
  "proptest",
  "thiserror 2.0.21",
 ]
 
 [[package]]
-name = "pdfcraft-audit"
+name = "visionpdf-audit"
 version = "0.21.1"
 dependencies = [
- "pdfcraft-content",
- "pdfcraft-cos",
- "pdfcraft-edit",
- "pdfcraft-model",
+ "visionpdf-content",
+ "visionpdf-cos",
+ "visionpdf-edit",
+ "visionpdf-model",
  "thiserror 2.0.21",
 ]
 
 [[package]]
-name = "pdfcraft-automation"
+name = "visionpdf-automation"
 version = "0.21.1"
 dependencies = [
  "base64 0.23.1",
@@ -4996,15 +4996,15 @@ dependencies = [
  "craft-prc",
  "craft-wordmodel 0.1.0 (git+https://github.com/storytold/craft-libs?rev=b8eaa8e2f3561f9fa27fcf3b7f67ce915e93caa3)",
  "flate2",
- "pdfcraft-cos",
- "pdfcraft-engine",
- "pdfcraft-fonts",
- "pdfcraft-model",
- "pdfcraft-organize",
- "pdfcraft-platform",
- "pdfcraft-prc-render",
- "pdfcraft-render",
- "pdfcraft-xfa",
+ "visionpdf-cos",
+ "visionpdf-engine",
+ "visionpdf-fonts",
+ "visionpdf-model",
+ "visionpdf-organize",
+ "visionpdf-platform",
+ "visionpdf-prc-render",
+ "visionpdf-render",
+ "visionpdf-xfa",
  "rustix 1.1.6",
  "serde_json",
  "sha2 0.11.1",
@@ -5012,29 +5012,29 @@ dependencies = [
 ]
 
 [[package]]
-name = "pdfcraft-cli"
+name = "visionpdf-cli"
 version = "0.21.1"
 dependencies = [
  "base64 0.23.1",
  "craft-image-codecs",
- "pdfcraft-audit",
- "pdfcraft-automation",
- "pdfcraft-cos",
- "pdfcraft-engine",
- "pdfcraft-platform",
- "pdfcraft-preflight",
- "pdfcraft-render",
+ "visionpdf-audit",
+ "visionpdf-automation",
+ "visionpdf-cos",
+ "visionpdf-engine",
+ "visionpdf-platform",
+ "visionpdf-preflight",
+ "visionpdf-render",
  "rustix 1.1.6",
  "serde_json",
  "winresource",
 ]
 
 [[package]]
-name = "pdfcraft-compare"
+name = "visionpdf-compare"
 version = "0.21.1"
 
 [[package]]
-name = "pdfcraft-content"
+name = "visionpdf-content"
 version = "0.21.1"
 dependencies = [
  "craft-pdf",
@@ -5042,21 +5042,21 @@ dependencies = [
 ]
 
 [[package]]
-name = "pdfcraft-cos"
+name = "visionpdf-cos"
 version = "0.21.1"
 dependencies = [
  "craft-pdf",
  "hayro-syntax",
- "pdfcraft-crypt",
- "pdfcraft-filters",
- "pdfcraft-oracle",
- "pdfcraft-testkit",
+ "visionpdf-crypt",
+ "visionpdf-filters",
+ "visionpdf-oracle",
+ "visionpdf-testkit",
  "proptest",
  "serde_json",
 ]
 
 [[package]]
-name = "pdfcraft-create"
+name = "visionpdf-create"
 version = "0.21.1"
 dependencies = [
  "craft-image-codecs",
@@ -5066,17 +5066,17 @@ dependencies = [
  "hayro-ccitt",
  "hayro-syntax",
  "image",
- "pdfcraft-cos",
- "pdfcraft-filters",
- "pdfcraft-fonts",
- "pdfcraft-model",
- "pdfcraft-xfa",
+ "visionpdf-cos",
+ "visionpdf-filters",
+ "visionpdf-fonts",
+ "visionpdf-model",
+ "visionpdf-xfa",
  "rustix 1.1.6",
  "thiserror 2.0.21",
 ]
 
 [[package]]
-name = "pdfcraft-crypt"
+name = "visionpdf-crypt"
 version = "0.21.1"
 dependencies = [
  "craft-pdf",
@@ -5084,18 +5084,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "pdfcraft-edit"
+name = "visionpdf-edit"
 version = "0.21.1"
 dependencies = [
  "hayro-syntax",
  "icu_segmenter",
  "kurbo 0.13.1",
- "pdfcraft-annot",
- "pdfcraft-content",
- "pdfcraft-cos",
- "pdfcraft-fonts",
- "pdfcraft-model",
- "pdfcraft-render",
+ "visionpdf-annot",
+ "visionpdf-content",
+ "visionpdf-cos",
+ "visionpdf-fonts",
+ "visionpdf-model",
+ "visionpdf-render",
  "proptest",
  "sha2 0.11.1",
  "thiserror 2.0.21",
@@ -5103,7 +5103,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pdfcraft-engine"
+name = "visionpdf-engine"
 version = "0.21.1"
 dependencies = [
  "chrono",
@@ -5115,33 +5115,33 @@ dependencies = [
  "icu_properties",
  "idna",
  "image",
- "pdfcraft-a11y",
- "pdfcraft-annot",
- "pdfcraft-audit",
- "pdfcraft-compare",
- "pdfcraft-content",
- "pdfcraft-cos",
- "pdfcraft-create",
- "pdfcraft-edit",
- "pdfcraft-export",
- "pdfcraft-filters",
- "pdfcraft-fonts",
- "pdfcraft-forms",
- "pdfcraft-geom",
- "pdfcraft-js",
- "pdfcraft-measure",
- "pdfcraft-model",
- "pdfcraft-ocr",
- "pdfcraft-optimize",
- "pdfcraft-organize",
- "pdfcraft-preflight",
- "pdfcraft-print",
- "pdfcraft-redact",
- "pdfcraft-render",
- "pdfcraft-sign",
- "pdfcraft-testkit",
- "pdfcraft-xfa",
- "pdfcraft-xfdf",
+ "visionpdf-a11y",
+ "visionpdf-annot",
+ "visionpdf-audit",
+ "visionpdf-compare",
+ "visionpdf-content",
+ "visionpdf-cos",
+ "visionpdf-create",
+ "visionpdf-edit",
+ "visionpdf-export",
+ "visionpdf-filters",
+ "visionpdf-fonts",
+ "visionpdf-forms",
+ "visionpdf-geom",
+ "visionpdf-js",
+ "visionpdf-measure",
+ "visionpdf-model",
+ "visionpdf-ocr",
+ "visionpdf-optimize",
+ "visionpdf-organize",
+ "visionpdf-preflight",
+ "visionpdf-print",
+ "visionpdf-redact",
+ "visionpdf-render",
+ "visionpdf-sign",
+ "visionpdf-testkit",
+ "visionpdf-xfa",
+ "visionpdf-xfdf",
  "rustix 1.1.6",
  "thiserror 2.0.21",
  "unicode-segmentation",
@@ -5149,7 +5149,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pdfcraft-export"
+name = "visionpdf-export"
 version = "0.21.1"
 dependencies = [
  "craft-docx",
@@ -5166,7 +5166,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pdfcraft-filters"
+name = "visionpdf-filters"
 version = "0.21.1"
 dependencies = [
  "craft-pdf",
@@ -5175,35 +5175,35 @@ dependencies = [
 ]
 
 [[package]]
-name = "pdfcraft-fonts"
+name = "visionpdf-fonts"
 version = "0.21.1"
 dependencies = [
  "craft-pdf",
  "harfrust",
- "pdfcraft-cos",
+ "visionpdf-cos",
  "skrifa 0.44.0",
  "unicode-bidi",
 ]
 
 [[package]]
-name = "pdfcraft-forms"
+name = "visionpdf-forms"
 version = "0.21.1"
 dependencies = [
  "hayro-syntax",
- "pdfcraft-content",
- "pdfcraft-cos",
- "pdfcraft-fonts",
- "pdfcraft-model",
+ "visionpdf-content",
+ "visionpdf-cos",
+ "visionpdf-fonts",
+ "visionpdf-model",
  "proptest",
  "thiserror 2.0.21",
 ]
 
 [[package]]
-name = "pdfcraft-geom"
+name = "visionpdf-geom"
 version = "0.21.1"
 
 [[package]]
-name = "pdfcraft-js"
+name = "visionpdf-js"
 version = "0.21.1"
 dependencies = [
  "boa_engine",
@@ -5211,32 +5211,32 @@ dependencies = [
 ]
 
 [[package]]
-name = "pdfcraft-measure"
+name = "visionpdf-measure"
 version = "0.21.1"
 dependencies = [
- "pdfcraft-annot",
- "pdfcraft-content",
- "pdfcraft-cos",
- "pdfcraft-model",
- "pdfcraft-testkit",
+ "visionpdf-annot",
+ "visionpdf-content",
+ "visionpdf-cos",
+ "visionpdf-model",
+ "visionpdf-testkit",
  "serde",
  "thiserror 2.0.21",
 ]
 
 [[package]]
-name = "pdfcraft-model"
+name = "visionpdf-model"
 version = "0.21.1"
 dependencies = [
- "pdfcraft-cos",
+ "visionpdf-cos",
 ]
 
 [[package]]
-name = "pdfcraft-ocr"
+name = "visionpdf-ocr"
 version = "0.21.1"
 dependencies = [
  "craft-image-codecs",
  "ocrs",
- "pdfcraft-fonts",
+ "visionpdf-fonts",
  "rten",
  "rten-imageproc",
  "serde_json",
@@ -5246,50 +5246,50 @@ dependencies = [
 ]
 
 [[package]]
-name = "pdfcraft-ocr-worker"
+name = "visionpdf-ocr-worker"
 version = "0.21.1"
 dependencies = [
  "js-sys",
- "pdfcraft-ocr",
+ "visionpdf-ocr",
  "wasm-bindgen",
  "web-sys",
 ]
 
 [[package]]
-name = "pdfcraft-optimize"
+name = "visionpdf-optimize"
 version = "0.21.1"
 dependencies = [
  "craft-image-codecs",
  "craft-jpeg 0.1.0 (git+https://github.com/storytold/craft-libs?rev=e2dc681a3)",
  "image",
- "pdfcraft-annot",
- "pdfcraft-content",
- "pdfcraft-cos",
- "pdfcraft-filters",
- "pdfcraft-model",
- "pdfcraft-render",
+ "visionpdf-annot",
+ "visionpdf-content",
+ "visionpdf-cos",
+ "visionpdf-filters",
+ "visionpdf-model",
+ "visionpdf-render",
  "proptest",
  "thiserror 2.0.21",
  "thread-priority",
 ]
 
 [[package]]
-name = "pdfcraft-oracle"
+name = "visionpdf-oracle"
 version = "0.21.1"
 
 [[package]]
-name = "pdfcraft-organize"
+name = "visionpdf-organize"
 version = "0.21.1"
 dependencies = [
  "hayro-syntax",
- "pdfcraft-content",
- "pdfcraft-cos",
- "pdfcraft-oracle",
+ "visionpdf-content",
+ "visionpdf-cos",
+ "visionpdf-oracle",
  "thiserror 2.0.21",
 ]
 
 [[package]]
-name = "pdfcraft-platform"
+name = "visionpdf-platform"
 version = "0.21.1"
 dependencies = [
  "async-channel",
@@ -5300,7 +5300,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pdfcraft-prc-render"
+name = "visionpdf-prc-render"
 version = "0.21.1"
 dependencies = [
  "craft-prc",
@@ -5309,51 +5309,51 @@ dependencies = [
 ]
 
 [[package]]
-name = "pdfcraft-preflight"
+name = "visionpdf-preflight"
 version = "0.21.1"
 dependencies = [
  "craft-cms 0.1.0 (git+https://github.com/storytold/craft-libs?rev=8503f24cb845268f47f97e829491114fe9ad1bfa)",
  "craft-xml 0.1.0 (git+https://github.com/storytold/craft-libs?rev=1546550b0d4b79b8156a1fefaac8b3b317a4aee0)",
  "flate2",
- "pdfcraft-content",
- "pdfcraft-cos",
- "pdfcraft-model",
+ "visionpdf-content",
+ "visionpdf-cos",
+ "visionpdf-model",
 ]
 
 [[package]]
-name = "pdfcraft-print"
+name = "visionpdf-print"
 version = "0.21.1"
 dependencies = [
  "craft-cms 0.1.0 (git+https://github.com/storytold/craft-libs?rev=e2dc681a3)",
  "craft-print",
  "log",
- "pdfcraft-content",
- "pdfcraft-cos",
- "pdfcraft-model",
- "pdfcraft-render",
+ "visionpdf-content",
+ "visionpdf-cos",
+ "visionpdf-model",
+ "visionpdf-render",
  "skrifa 0.44.0",
  "thiserror 2.0.21",
  "winprint 0.2.1 (git+https://github.com/storytold/winprint.rs?rev=5f80b9baf6b58937c401656634e42d33f00ddf49)",
 ]
 
 [[package]]
-name = "pdfcraft-redact"
+name = "visionpdf-redact"
 version = "0.21.1"
 dependencies = [
  "aho-corasick",
  "craft-xml 0.1.0 (git+https://github.com/storytold/craft-libs?rev=1546550b0d4b79b8156a1fefaac8b3b317a4aee0)",
- "pdfcraft-annot",
- "pdfcraft-content",
- "pdfcraft-cos",
- "pdfcraft-edit",
- "pdfcraft-filters",
- "pdfcraft-fonts",
- "pdfcraft-forms",
- "pdfcraft-geom",
- "pdfcraft-model",
- "pdfcraft-render",
- "pdfcraft-testkit",
- "pdfcraft-xfa",
+ "visionpdf-annot",
+ "visionpdf-content",
+ "visionpdf-cos",
+ "visionpdf-edit",
+ "visionpdf-filters",
+ "visionpdf-fonts",
+ "visionpdf-forms",
+ "visionpdf-geom",
+ "visionpdf-model",
+ "visionpdf-render",
+ "visionpdf-testkit",
+ "visionpdf-xfa",
  "regex",
  "sha2 0.11.1",
  "thiserror 2.0.21",
@@ -5361,7 +5361,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pdfcraft-render"
+name = "visionpdf-render"
 version = "0.21.1"
 dependencies = [
  "bytemuck",
@@ -5373,11 +5373,11 @@ dependencies = [
  "kurbo 0.13.1",
  "log",
  "lopdf",
- "pdfcraft-content",
- "pdfcraft-cos",
- "pdfcraft-fonts",
- "pdfcraft-geom",
- "pdfcraft-testkit",
+ "visionpdf-content",
+ "visionpdf-cos",
+ "visionpdf-fonts",
+ "visionpdf-geom",
+ "visionpdf-testkit",
  "serde",
  "skrifa 0.44.0",
  "thiserror 2.0.21",
@@ -5386,7 +5386,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pdfcraft-sign"
+name = "visionpdf-sign"
 version = "0.21.1"
 dependencies = [
  "aes",
@@ -5407,12 +5407,12 @@ dependencies = [
  "p384",
  "p521",
  "pbkdf2",
- "pdfcraft-annot",
- "pdfcraft-content",
- "pdfcraft-cos",
- "pdfcraft-fonts",
- "pdfcraft-model",
- "pdfcraft-testkit",
+ "visionpdf-annot",
+ "visionpdf-content",
+ "visionpdf-cos",
+ "visionpdf-fonts",
+ "visionpdf-model",
+ "visionpdf-testkit",
  "rc2",
  "ripemd",
  "rsa",
@@ -5426,11 +5426,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "pdfcraft-testkit"
+name = "visionpdf-testkit"
 version = "0.21.1"
 
 [[package]]
-name = "pdfcraft-ui-egui"
+name = "visionpdf-ui-egui"
 version = "0.21.1"
 dependencies = [
  "arboard",
@@ -5459,15 +5459,15 @@ dependencies = [
  "objc2 0.6.5",
  "objc2-app-kit 0.3.2",
  "objc2-foundation 0.3.2",
- "pdfcraft-content",
- "pdfcraft-cos",
- "pdfcraft-engine",
- "pdfcraft-fonts",
- "pdfcraft-model",
- "pdfcraft-ocr",
- "pdfcraft-platform",
- "pdfcraft-render",
- "pdfcraft-xfa",
+ "visionpdf-content",
+ "visionpdf-cos",
+ "visionpdf-engine",
+ "visionpdf-fonts",
+ "visionpdf-model",
+ "visionpdf-ocr",
+ "visionpdf-platform",
+ "visionpdf-render",
+ "visionpdf-xfa",
  "plist",
  "pollster 1.0.1",
  "proptest",
@@ -5490,7 +5490,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "pdfcraft-web"
+name = "visionpdf-web"
 version = "0.21.1"
 dependencies = [
  "craft-web-api",
@@ -5498,38 +5498,38 @@ dependencies = [
  "eframe",
  "egui",
  "js-sys",
- "pdfcraft-ui-egui",
+ "visionpdf-ui-egui",
  "serde_json",
  "wasm-bindgen-futures",
  "web-sys",
 ]
 
 [[package]]
-name = "pdfcraft-xfa"
+name = "visionpdf-xfa"
 version = "0.21.1"
 dependencies = [
  "base64 0.23.1",
  "craft-image-codecs",
  "craft-xfa",
  "craft-xml 0.1.0 (git+https://github.com/storytold/craft-libs?rev=1546550b0d4b79b8156a1fefaac8b3b317a4aee0)",
- "pdfcraft-cos",
- "pdfcraft-fonts",
+ "visionpdf-cos",
+ "visionpdf-fonts",
  "sha2 0.11.1",
  "thiserror 2.0.21",
 ]
 
 [[package]]
-name = "pdfcraft-xfdf"
+name = "visionpdf-xfdf"
 version = "0.21.1"
 dependencies = [
  "base64 0.23.1",
  "craft-csv",
  "craft-xfdf",
  "craft-xml 0.1.0 (git+https://github.com/storytold/craft-libs?rev=1546550b0d4b79b8156a1fefaac8b3b317a4aee0)",
- "pdfcraft-annot",
- "pdfcraft-cos",
- "pdfcraft-forms",
- "pdfcraft-model",
+ "visionpdf-annot",
+ "visionpdf-cos",
+ "visionpdf-forms",
+ "visionpdf-model",
  "proptest",
  "thiserror 2.0.21",
 ]
@@ -9241,8 +9241,8 @@ dependencies = [
  "chrono",
  "craft-image-codecs",
  "lopdf",
- "pdfcraft-cos",
- "pdfcraft-oracle",
+ "visionpdf-cos",
+ "visionpdf-oracle",
  "serde",
  "serde_json",
  "sha2 0.11.1",

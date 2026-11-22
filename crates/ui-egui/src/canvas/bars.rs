@@ -67,7 +67,7 @@ pub(super) enum Notice {
 #[allow(clippy::too_many_arguments)]
 pub(super) fn notices(
     view: &mut DocView,
-    doc: &pdfcraft_engine::Document,
+    doc: &visionpdf_engine::Document,
     secured: bool,
     repaired: bool,
     lock_offer: bool,
@@ -190,19 +190,19 @@ pub(super) fn notices(
             text.push('.');
         }
         Some(("text-cursor-input", text, true))
-    } else if info.xfa == Some(pdfcraft_render::Xfa::Dynamic) {
+    } else if info.xfa == Some(visionpdf_render::Xfa::Dynamic) {
         Some((
             "triangle-alert",
             tl!("This is a dynamic XFA form, which VisionPDF can't display yet. What you see is the file's placeholder page.").to_string(),
             false,
         ))
-    } else if info.xfa == Some(pdfcraft_render::Xfa::Static) {
+    } else if info.xfa == Some(visionpdf_render::Xfa::Static) {
         Some((
             "text-cursor-input",
             tl!("XFA form: its fields and its XFA data are kept in step, so other viewers show what you fill in.").to_string(),
             true,
         ))
-    } else if info.fields.iter().any(|f| f.kind != pdfcraft_render::FieldKind::PushButton) {
+    } else if info.fields.iter().any(|f| f.kind != visionpdf_render::FieldKind::PushButton) {
         // Push buttons alone (LaTeX `animate` frames, navigation buttons) leave nothing to fill in.
         Some((
             "text-cursor-input",

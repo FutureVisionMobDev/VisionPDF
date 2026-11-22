@@ -2,7 +2,7 @@
 //! fixing what can be fixed (Save as PDF/A).
 
 use egui::{Align, Layout};
-use pdfcraft_engine::pdfa::{Issue, Level};
+use visionpdf_engine::pdfa::{Issue, Level};
 
 use crate::theme::{self, Tokens};
 use crate::{VisionPDFApp, widgets};
@@ -31,7 +31,7 @@ impl VisionPDFApp {
 
     pub fn pdfa_convert(&mut self) {
         let level = self.pdfa.level;
-        if self.apply_edit(pdfcraft_engine::Edit::ConvertPdfA { level }) {
+        if self.apply_edit(visionpdf_engine::Edit::ConvertPdfA { level }) {
             self.pdfa_verify();
             let left = self.pdfa.issues.as_ref().map_or(0, Vec::len);
             self.notify(if left == 0 {
@@ -56,7 +56,7 @@ pub(crate) fn body(ui: &mut egui::Ui, app: &mut VisionPDFApp, t: &Tokens) -> boo
     let mut standards: Vec<String> = declared.pdfa.iter().map(|(p, c)| format!("PDF/A-{p}{}", c.to_lowercase())).collect();
     standards.extend(declared.pdfua.map(|p| format!("PDF/UA-{p}")));
     let shown = if standards.is_empty() { tl!("none").to_string() } else { standards.join(", ") };
-    let removal = pdfcraft_engine::Edit::RemoveStandardId { standard: pdfcraft_engine::Standard::PdfA };
+    let removal = visionpdf_engine::Edit::RemoveStandardId { standard: visionpdf_engine::Standard::PdfA };
     let mut remove = false;
     ui.horizontal(|ui| {
         ui.label(crate::i18n::fmt(tl!("Declared conformance: {shown}"), &[("shown", &shown)]));

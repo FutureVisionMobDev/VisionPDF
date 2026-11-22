@@ -1,5 +1,5 @@
 [package]
-name = "pdfcraft-automation"
+name = "visionpdf-automation"
 description = "Agent control for VisionPDF: a headless tool set over the engine and an MCP server"
 version.workspace = true
 edition.workspace = true
@@ -9,13 +9,13 @@ license.workspace = true
 workspace = true
 
 [dependencies]
-pdfcraft-engine = { workspace = true }
-pdfcraft-cos = { workspace = true }
-pdfcraft-render = { workspace = true }
-pdfcraft-organize = { workspace = true }
-pdfcraft-platform = { workspace = true }
+visionpdf-engine = { workspace = true }
+visionpdf-cos = { workspace = true }
+visionpdf-render = { workspace = true }
+visionpdf-organize = { workspace = true }
+visionpdf-platform = { workspace = true }
 craft-prc = { workspace = true }
-pdfcraft-prc-render = { workspace = true }
+visionpdf-prc-render = { workspace = true }
 serde_json = { workspace = true }
 sha2 = "0.11"
 tempfile = "3.27"
@@ -36,10 +36,10 @@ craft-image-codecs = { workspace = true }
 # Word exports read back as Word reads them.
 craft-docx = { workspace = true }
 craft-wordmodel = { workspace = true }
-pdfcraft-fonts = { workspace = true }
+visionpdf-fonts = { workspace = true }
 flate2.workspace = true
-pdfcraft-model = { workspace = true }
-pdfcraft-xfa = { workspace = true }
+visionpdf-model = { workspace = true }
+visionpdf-xfa = { workspace = true }
 
 [target.'cfg(target_os = "macos")'.dev-dependencies]
 rustix = { version = "1", features = ["fs"] }

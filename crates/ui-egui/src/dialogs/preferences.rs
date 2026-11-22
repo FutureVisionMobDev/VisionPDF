@@ -388,7 +388,7 @@ fn picker_text_is_drawable(ui: &egui::Ui, text: &str) -> bool {
 }
 
 /// The date picker's displayed name.
-pub(crate) fn date_language_picker_name(l: &pdfcraft_engine::dates::DateLanguage, drawable: impl FnOnce(&str) -> bool) -> &'static str {
+pub(crate) fn date_language_picker_name(l: &visionpdf_engine::dates::DateLanguage, drawable: impl FnOnce(&str) -> bool) -> &'static str {
     match crate::i18n::Lang::from_code(l.code) {
         Some(language) => language.picker_name(drawable),
         None => l.name,
@@ -462,9 +462,9 @@ fn preference_search_box_at(ui: &mut egui::Ui, t: &Tokens, query: &mut String, m
 
 /// Top header for Preferences: Title on the left, search box and match count badge on the right.
 pub(crate) fn preferences_header(ui: &mut egui::Ui, t: &Tokens) {
-    let search_id = egui::Id::unique("pdfcraft_preferences_search_query");
+    let search_id = egui::Id::unique("visionpdf_preferences_search_query");
     let mut query: String = ui.data(|d| d.get_temp(search_id)).unwrap_or_default();
-    let matches_id = egui::Id::unique("pdfcraft_preferences_search_matches");
+    let matches_id = egui::Id::unique("visionpdf_preferences_search_matches");
     let last_matches: usize = ui.data(|d| d.get_temp(matches_id)).unwrap_or(0);
 
     // Top Header: Title on the left, Search bar on the right.
@@ -492,11 +492,11 @@ pub(crate) fn preferences_header(ui: &mut egui::Ui, t: &Tokens) {
 
 /// The body of the Preferences dialog with card layout and browser-style in-situ text scanning.
 pub(crate) fn preferences_body(ui: &mut egui::Ui, app: &mut VisionPDFApp, t: &Tokens) {
-    let search_id = egui::Id::unique("pdfcraft_preferences_search_query");
+    let search_id = egui::Id::unique("visionpdf_preferences_search_query");
     let query: String = ui.data(|d| d.get_temp(search_id)).unwrap_or_default();
-    let matches_id = egui::Id::unique("pdfcraft_preferences_search_matches");
+    let matches_id = egui::Id::unique("visionpdf_preferences_search_matches");
     let last_matches: usize = ui.data(|d| d.get_temp(matches_id)).unwrap_or(0);
-    let last_scrolled_id = egui::Id::unique("pdfcraft_pref_last_scrolled_query");
+    let last_scrolled_id = egui::Id::unique("visionpdf_pref_last_scrolled_query");
     let last_scrolled_query: String = ui.data(|d| d.get_temp(last_scrolled_id)).unwrap_or_default();
 
     let should_scroll = !query.trim().is_empty() && query != last_scrolled_query;
@@ -922,7 +922,7 @@ pub(crate) fn preferences_buttons(ui: &mut egui::Ui) -> bool {
 
 /// Fill & Sign date pattern and date language picker.
 fn date_format(ui: &mut egui::Ui, app: &mut VisionPDFApp, t: &Tokens, ctx: &mut PrefSearchContext) {
-    use pdfcraft_engine::dates::{DATE_FORMATS, DATE_LANGUAGES, MAX_DATE_FORMAT_CHARS};
+    use visionpdf_engine::dates::{DATE_FORMATS, DATE_LANGUAGES, MAX_DATE_FORMAT_CHARS};
     ctx.label(ui, tl!("Date format"), theme::semibold(12.5), t.text);
     let sample = |app: &VisionPDFApp, f: &str| format!("{}   {f}", app.date_text(Some(f)).unwrap_or_default());
     ui.horizontal(|ui| {
@@ -951,7 +951,7 @@ fn date_format(ui: &mut egui::Ui, app: &mut VisionPDFApp, t: &Tokens, ctx: &mut 
             let _ = app.session.set_date_format(&text);
             app.date_format_draft = Some(text.clone());
         }
-        if !edit.has_focus() && pdfcraft_engine::dates::check_date_format(&text).is_ok() {
+        if !edit.has_focus() && visionpdf_engine::dates::check_date_format(&text).is_ok() {
             app.date_format_draft = None;
         }
         match app.date_text(Some(&text)) {
@@ -964,7 +964,7 @@ fn date_format(ui: &mut egui::Ui, app: &mut VisionPDFApp, t: &Tokens, ctx: &mut 
             }
         };
     });
-    let bad = app.date_text(None).map(|today| pdfcraft_engine::dates::unwritable(&today)).unwrap_or_default();
+    let bad = app.date_text(None).map(|today| visionpdf_engine::dates::unwritable(&today)).unwrap_or_default();
     if !bad.is_empty() {
         let bad_msg = crate::i18n::fmt(
             tl!("{chars} can't be written into the PDF yet: Fill & Sign text is Western European only. Pick a numeric format such as dd.mm.yyyy."),
@@ -1018,13 +1018,13 @@ fn reading_colours_section(ui: &mut egui::Ui, app: &mut VisionPDFApp, t: &Tokens
     let mode = app.reading_colors.mode_name();
     ui.horizontal_wrapped(|ui| {
         for (name, label, colors) in [
-            ("off", "Off", pdfcraft_render::ReadingColors::default()),
-            ("black-on-white", "Black on white", pdfcraft_render::ReadingColors::BLACK_ON_WHITE),
-            ("white-on-black", "White on black", pdfcraft_render::ReadingColors::WHITE_ON_BLACK),
-            ("yellow-on-black", "Yellow on black", pdfcraft_render::ReadingColors::YELLOW_ON_BLACK),
-            ("green-on-black", "Green on black", pdfcraft_render::ReadingColors::GREEN_ON_BLACK),
+            ("off", "Off", visionpdf_render::ReadingColors::default()),
+            ("black-on-white", "Black on white", visionpdf_render::ReadingColors::BLACK_ON_WHITE),
+            ("white-on-black", "White on black", visionpdf_render::ReadingColors::WHITE_ON_BLACK),
+            ("yellow-on-black", "Yellow on black", visionpdf_render::ReadingColors::YELLOW_ON_BLACK),
+            ("green-on-black", "Green on black", visionpdf_render::ReadingColors::GREEN_ON_BLACK),
         ] {
-            let params = colors.params.unwrap_or(pdfcraft_render::ReadingParams {
+            let params = colors.params.unwrap_or(visionpdf_render::ReadingParams {
                 text: [0, 0, 0],
                 background: [255, 255, 255],
                 only_black: false,
@@ -1059,7 +1059,7 @@ fn reading_colours_section(ui: &mut egui::Ui, app: &mut VisionPDFApp, t: &Tokens
         ctx.label_primary(ui, tl!("Original"), t);
     }
     egui::CollapsingHeader::new(tl!("Custom")).default_open(mode == "custom").show(ui, |ui| {
-        let mut colors = if app.reading_colors.params.is_some() { app.reading_colors } else { pdfcraft_render::ReadingColors::BLACK_ON_WHITE };
+        let mut colors = if app.reading_colors.params.is_some() { app.reading_colors } else { visionpdf_render::ReadingColors::BLACK_ON_WHITE };
         let mut changed = false;
         if let Some(params) = colors.params.as_mut() {
             ui.horizontal(|ui| {

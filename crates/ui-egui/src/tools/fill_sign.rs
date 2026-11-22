@@ -5,9 +5,9 @@
 
 use crate::file_filter::AddFilterAnyCase as _;
 use egui::{Color32, CornerRadius, Pos2, Sense, Stroke, pos2, vec2};
-use pdfcraft_engine::signature_scan::{DEFAULT_SENSITIVITY, PREVIEW_MAX_SIDE, SCAN_MAX_SIDE, ScanError};
-use pdfcraft_engine::{BorderShape, Edit, FillMark, NewAnnotation, PhotoRect, Rgb, Shape, SignatureImage, SignaturePhoto, Style, Turn};
-use pdfcraft_render::{DocInfo, PageInfo};
+use visionpdf_engine::signature_scan::{DEFAULT_SENSITIVITY, PREVIEW_MAX_SIDE, SCAN_MAX_SIDE, ScanError};
+use visionpdf_engine::{BorderShape, Edit, FillMark, NewAnnotation, PhotoRect, Rgb, Shape, SignatureImage, SignaturePhoto, Style, Turn};
+use visionpdf_render::{DocInfo, PageInfo};
 
 use crate::canvas::{DocView, PageToolContext, PageXform};
 use crate::page_cursor::Layer;
@@ -46,12 +46,12 @@ pub enum SavedSig {
 impl SavedSig {
     /// This signature as the graphic of a visible digital signature. `None` for typed text the
     /// script font has nothing to draw for.
-    pub fn graphic(&self) -> Option<pdfcraft_engine::sign::Graphic> {
+    pub fn graphic(&self) -> Option<visionpdf_engine::sign::Graphic> {
         match self {
-            SavedSig::Drawn(strokes) => Some(pdfcraft_engine::sign::Graphic::Strokes(
+            SavedSig::Drawn(strokes) => Some(visionpdf_engine::sign::Graphic::Strokes(
                 strokes.iter().map(|s| s.iter().map(|p| [f64::from(p[0]), f64::from(p[1])]).collect()).collect(),
             )),
-            SavedSig::Typed(text) => pdfcraft_engine::typed_signature_graphic(text),
+            SavedSig::Typed(text) => visionpdf_engine::typed_signature_graphic(text),
             SavedSig::Image(image) => Some(image.graphic()),
         }
     }
@@ -59,7 +59,7 @@ impl SavedSig {
 
 pub(crate) mod image_data {
     use base64::Engine as _;
-    use pdfcraft_engine::{SignatureImage, signature_image::MAX_SIGNATURE_IMAGE_BYTES};
+    use visionpdf_engine::{SignatureImage, signature_image::MAX_SIGNATURE_IMAGE_BYTES};
     use serde::{Deserialize, Deserializer, Serializer};
 
     pub fn serialize<S: Serializer>(image: &SignatureImage, s: S) -> Result<S::Ok, S::Error> {
@@ -137,7 +137,7 @@ impl SigDraft {
             self.strokes.iter().any(|s| s.len() > 1)
         } else {
             !self.text.trim().is_empty()
-                && self.text.chars().take(pdfcraft_engine::MAX_SIGNATURE_CHARS + 1).count() <= pdfcraft_engine::MAX_SIGNATURE_CHARS
+                && self.text.chars().take(visionpdf_engine::MAX_SIGNATURE_CHARS + 1).count() <= visionpdf_engine::MAX_SIGNATURE_CHARS
         }
     }
 
@@ -311,7 +311,7 @@ pub fn signature_at(page: usize, at: [f64; 2], strokes: &[Vec<[f32; 2]>], rotati
     }
     let h = f64::from(max_y - min_y).max(0.05) * w;
     // Displayed right and up as user-space unit vectors (the identity on an unturned page).
-    let [a, b, c, d, ..] = pdfcraft_model::view_matrix_for(rotation, [0.0; 4]);
+    let [a, b, c, d, ..] = visionpdf_model::view_matrix_for(rotation, [0.0; 4]);
     let strokes: Vec<Vec<[f64; 2]>> = strokes
         .iter()
         .filter(|s| !s.is_empty())
@@ -330,7 +330,7 @@ pub fn signature_at(page: usize, at: [f64; 2], strokes: &[Vec<[f32; 2]>], rotati
 /// Place typed text in the script font with its left edge at `at`, `height` points tall, upright
 /// as displayed on a page turned by `rotation`.
 pub fn typed_signature_at(page: usize, at: [f64; 2], text: &str, height: f64, rotation: i64, author: &str) -> Option<Edit> {
-    pdfcraft_engine::typed_signature_shape(at, text, height, rotation).map(|shape| new(page, shape, String::new(), author))
+    visionpdf_engine::typed_signature_shape(at, text, height, rotation).map(|shape| new(page, shape, String::new(), author))
 }
 
 /// Place a saved signature or initials, upright as `info`'s page is displayed.
@@ -340,7 +340,7 @@ pub fn place(page: usize, info: &PageInfo, at: [f64; 2], sig: &SavedSig, initial
         SavedSig::Drawn(strokes) => signature_at(page, at, strokes, rotation, author),
         SavedSig::Image(image) => image.edit(page, info, at, initials, author),
         SavedSig::Typed(text) => {
-            let [left, bottom, right, top] = pdfcraft_engine::script_outline(text).bounds();
+            let [left, bottom, right, top] = visionpdf_engine::script_outline(text).bounds();
             let height = if initials { 24.0_f64 } else { 32.0_f64 };
             // Keep long names within the same placement width as drawn signatures.
             let height = height.min(150.0 * (top - bottom).max(0.1) / (right - left).max(0.01));
@@ -351,7 +351,7 @@ pub fn place(page: usize, info: &PageInfo, at: [f64; 2], sig: &SavedSig, initial
 
 /// The text in the script font as a picture (`w`×`h` px, black on transparent), for previews.
 pub(crate) fn script_preview(text: &str, w: usize, h: usize) -> egui::ColorImage {
-    let o = pdfcraft_engine::script_outline(text);
+    let o = visionpdf_engine::script_outline(text);
     let mut img = egui::ColorImage::filled([w, h], Color32::TRANSPARENT);
     let [left, bottom, right, top] = o.bounds();
     let span = (top - bottom).max(0.1);
@@ -531,7 +531,7 @@ pub(crate) fn page_input(cx: PageToolContext<'_>, input: PageInput<'_>, free: bo
     }
     // Typed text starts a little above the click, as displayed.
     let rotation = i64::from(p.rotation);
-    let top = pdfcraft_engine::displayed_offset(rotation, at, 0.0, text_size * 0.6);
+    let top = visionpdf_engine::displayed_offset(rotation, at, 0.0, text_size * 0.6);
     match tool {
         FillTool::Text => {
             // Clicking away from an open box commits it: the page sees this click before the box
@@ -658,7 +658,7 @@ pub(crate) fn type_box(ctx: &egui::Context, keys: PageKeys, view: &mut DocView, 
                     // the text, the border around that.
                     BorderShape::Circle => {
                         let (bw, size) = (t.border.width, t.size);
-                        let longest = pdfcraft_engine::annot_text::text_width(t.text.trim(), size);
+                        let longest = visionpdf_engine::annot_text::text_width(t.text.trim(), size);
                         let (tw, th) = (longest + 8.0 + 2.0 * bw, size * 1.2 + 6.0 + 2.0 * bw);
                         let o = BorderShape::Circle.around([0.0, 0.0, tw, th], bw, Some([longest, size * 1.2]));
                         let centre = pos + egui::vec2((tw / 2.0 - bw) as f32, (th / 2.0 - bw) as f32) * zoom;
@@ -757,7 +757,7 @@ pub(crate) fn signature_pad(
         let l = ui.label(egui::RichText::new(crate::i18n::fmt(tl!("Type your {what}."), &[("what", what)])).color(t.text_muted));
         ui.add(
             egui::TextEdit::singleline(&mut d.text)
-                .char_limit(pdfcraft_engine::MAX_SIGNATURE_CHARS)
+                .char_limit(visionpdf_engine::MAX_SIGNATURE_CHARS)
                 .desired_width(460.0)
                 .hint_text(tl!(if d.initials { "Initials" } else { "Your name" })),
         )
@@ -902,7 +902,7 @@ impl crate::VisionPDFApp {
                 return;
             }
             let result =
-                std::fs::File::open(path).map_err(pdfcraft_engine::signature_image::SignatureImageError::from).and_then(SignatureImage::read);
+                std::fs::File::open(path).map_err(visionpdf_engine::signature_image::SignatureImageError::from).and_then(SignatureImage::read);
             app.use_signature_image(result.map_err(|e| e.to_string()));
         });
         #[cfg(target_arch = "wasm32")]
@@ -915,9 +915,9 @@ impl crate::VisionPDFApp {
             let inbox = self.signature_images.clone();
             let ctx = self.ctx.clone();
             let (limit, too_large) = if scan {
-                (pdfcraft_engine::signature_scan::MAX_PHOTO_BYTES, ScanError::Size.to_string())
+                (visionpdf_engine::signature_scan::MAX_PHOTO_BYTES, ScanError::Size.to_string())
             } else {
-                (pdfcraft_engine::signature_image::MAX_SIGNATURE_IMAGE_BYTES, pdfcraft_engine::signature_image::SignatureImageError::Size.to_string())
+                (visionpdf_engine::signature_image::MAX_SIGNATURE_IMAGE_BYTES, visionpdf_engine::signature_image::SignatureImageError::Size.to_string())
             };
             wasm_bindgen_futures::spawn_local(async move {
                 let bytes = if let Some(file) = dialog.pick_file().await {
@@ -960,13 +960,13 @@ impl crate::VisionPDFApp {
         let Some(bytes) = picked.bytes else { return };
         if picked.scan {
             let result = bytes.and_then(|bytes| {
-                pdfcraft_engine::guard(|| SignaturePhoto::from_bytes(&bytes)).map_err(|e| e.to_string())?.map_err(|e| e.to_string())
+                visionpdf_engine::guard(|| SignaturePhoto::from_bytes(&bytes)).map_err(|e| e.to_string())?.map_err(|e| e.to_string())
             });
             self.use_signature_photo(result);
             return;
         }
         let result = bytes
-            .and_then(|bytes| pdfcraft_engine::guard(|| SignatureImage::from_bytes(&bytes)).map_err(|e| e.to_string())?.map_err(|e| e.to_string()));
+            .and_then(|bytes| visionpdf_engine::guard(|| SignatureImage::from_bytes(&bytes)).map_err(|e| e.to_string())?.map_err(|e| e.to_string()));
         self.use_signature_image(result);
     }
 
@@ -991,7 +991,7 @@ impl crate::VisionPDFApp {
         }
         let scan = d.scan_mode;
         let Some(file) = dropped.into_iter().next() else { return Vec::new() };
-        let limit = pdfcraft_engine::signature_image::MAX_SIGNATURE_IMAGE_BYTES;
+        let limit = visionpdf_engine::signature_image::MAX_SIGNATURE_IMAGE_BYTES;
         let path = file.path().to_path_buf();
         let bytes: Result<Vec<u8>, String> = if path.is_absolute() {
             use std::io::Read as _;
@@ -1002,11 +1002,11 @@ impl crate::VisionPDFApp {
         };
         if scan {
             let photo =
-                bytes.and_then(|b| pdfcraft_engine::guard(|| SignaturePhoto::from_bytes(&b)).map_err(|e| e.to_string())?.map_err(|e| e.to_string()));
+                bytes.and_then(|b| visionpdf_engine::guard(|| SignaturePhoto::from_bytes(&b)).map_err(|e| e.to_string())?.map_err(|e| e.to_string()));
             self.use_signature_photo(photo);
         } else {
             let image =
-                bytes.and_then(|b| pdfcraft_engine::guard(|| SignatureImage::from_bytes(&b)).map_err(|e| e.to_string())?.map_err(|e| e.to_string()));
+                bytes.and_then(|b| visionpdf_engine::guard(|| SignatureImage::from_bytes(&b)).map_err(|e| e.to_string())?.map_err(|e| e.to_string()));
             self.use_signature_image(image);
         }
         Vec::new()
@@ -1014,7 +1014,7 @@ impl crate::VisionPDFApp {
 
     /// Frame the signature in a new photo and clean it up. A previous photo stays on failure.
     fn use_signature_photo(&mut self, result: Result<SignaturePhoto, String>) {
-        match result.and_then(|photo| pdfcraft_engine::guard(|| ScanDraft::new(photo))) {
+        match result.and_then(|photo| visionpdf_engine::guard(|| ScanDraft::new(photo))) {
             Ok(mut scan) => {
                 scan.rescan_in_background(&mut self.signature_draft.image, true, self.ctx.as_ref());
                 self.signature_draft.scan = Some(scan);

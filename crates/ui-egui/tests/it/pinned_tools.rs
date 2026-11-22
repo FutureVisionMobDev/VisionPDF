@@ -3,7 +3,7 @@
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::{Dialog, LeftPanel, VisionPDFApp};
+use visionpdf_ui_egui::{Dialog, LeftPanel, VisionPDFApp};
 
 fn harness(setup: impl FnOnce(&mut VisionPDFApp) + 'static) -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 1000.0)).build_eframe(move |_cc| {

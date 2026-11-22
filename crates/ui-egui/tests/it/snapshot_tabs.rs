@@ -4,7 +4,7 @@
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::{VisionPDFApp, QuickTool};
+use visionpdf_ui_egui::{VisionPDFApp, QuickTool};
 
 /// Two tabs, a.pdf (0) and b.pdf (1), with Snapshot chosen and the system clipboard left alone.
 fn harness() -> Harness<'static, VisionPDFApp> {
@@ -46,7 +46,7 @@ fn save_as_image_writes_this_tabs_area() {
     h.state_mut().active = Some(0);
     h.run_steps(3);
     assert_eq!(h.state().views[0].area_pick, Some((0, [10.0, 130.0, 150.0, 170.0])));
-    let dir = std::env::temp_dir().join(format!("pdfcraft-snapshot-tabs-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-snapshot-tabs-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let file = dir.join("a area.png");
     h.state_mut().save_override = Some(file.to_string_lossy().into_owned());
@@ -57,7 +57,7 @@ fn save_as_image_writes_this_tabs_area() {
     // The PNG header's width and height (IHDR), then the picture itself.
     let size = |png: &[u8]| (u32::from_be_bytes(png[16..20].try_into().unwrap()), u32::from_be_bytes(png[20..24].try_into().unwrap()));
     assert_eq!(size(&png), (wa, ha), "tab A's area, not tab B's ({wb} × {hb})");
-    assert_eq!(png, pdfcraft_engine::export::encode_png(wa, ha, &pa).unwrap(), "tab A's pixels");
+    assert_eq!(png, visionpdf_engine::export::encode_png(wa, ha, &pa).unwrap(), "tab A's pixels");
 }
 
 /// Print area… opens Print on the area; the area stays outlined (with its menu) in the tab, as
@@ -69,7 +69,7 @@ fn the_area_stays_after_print_area() {
     snapshot_in(&mut h, 0, area);
     h.get_by_label("Print area…").click();
     h.run_steps(4);
-    assert_eq!(h.state().dialog, Some(pdfcraft_ui_egui::Dialog::Print));
+    assert_eq!(h.state().dialog, Some(visionpdf_ui_egui::Dialog::Print));
     assert_eq!(h.state().views[0].area_pick, Some((0, area)));
 }
 

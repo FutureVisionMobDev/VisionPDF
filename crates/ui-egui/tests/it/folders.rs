@@ -6,8 +6,8 @@ use std::time::{Duration, SystemTime};
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::VisionPDFApp;
-use pdfcraft_ui_egui::folders_ui::{MAX_PINNED, SHOWN};
+use visionpdf_ui_egui::VisionPDFApp;
+use visionpdf_ui_egui::folders_ui::{MAX_PINNED, SHOWN};
 
 /// A one-page PDF.
 const FIXTURE: &[u8] = b"%PDF-1.7
@@ -22,7 +22,7 @@ struct TempFolder(PathBuf);
 
 impl TempFolder {
     fn new(name: &str) -> Self {
-        let dir = std::env::temp_dir().join(format!("pdfcraft-pinned-{name}-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("visionpdf-pinned-{name}-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
         Self(dir)
@@ -132,7 +132,7 @@ fn unpinning_removes_the_folder_but_not_its_files() {
         app.pin_folder(&pin);
     });
     h.run_steps(2);
-    let name = pdfcraft_ui_egui::folders_ui::folder_name(&folder);
+    let name = visionpdf_ui_egui::folders_ui::folder_name(&folder);
     h.get_by_label(&format!("Unpin {name}")).click();
     h.run_steps(2);
     assert!(h.state().pinned.folders.is_empty());
@@ -154,7 +154,7 @@ fn a_pinned_folder_collapses_to_its_heading_and_stays_collapsed_after_a_restart(
         app.pin_folder(&pins.1);
     });
     h.run_steps(2);
-    let name = pdfcraft_ui_egui::folders_ui::folder_name(&a);
+    let name = visionpdf_ui_egui::folders_ui::folder_name(&a);
     h.get_by_label(&format!("Collapse {name}")).click();
     h.run_steps(2);
     assert!(h.query_by_label("alpha.pdf").is_none(), "a collapsed folder lists nothing");
@@ -195,12 +195,12 @@ fn folders_of_the_same_name_have_buttons_that_tell_them_apart() {
     });
     h.run_steps(2);
     for (folder, other) in [(&a, &b), (&b, &a)] {
-        let named = format!("Scans ({})", pdfcraft_ui_egui::folders_ui::location(folder));
-        assert_ne!(named, format!("Scans ({})", pdfcraft_ui_egui::folders_ui::location(other)));
+        let named = format!("Scans ({})", visionpdf_ui_egui::folders_ui::location(folder));
+        assert_ne!(named, format!("Scans ({})", visionpdf_ui_egui::folders_ui::location(other)));
         h.get_by_label(&format!("Collapse {named}"));
         h.get_by_label(&format!("Unpin {named}"));
     }
-    h.get_by_label(&format!("Collapse Scans ({})", pdfcraft_ui_egui::folders_ui::location(&a))).click();
+    h.get_by_label(&format!("Collapse Scans ({})", visionpdf_ui_egui::folders_ui::location(&a))).click();
     h.run_steps(2);
     assert_eq!(h.state().pinned.collapsed, std::slice::from_ref(&a), "the button folds its own folder");
 }
@@ -224,7 +224,7 @@ fn pinned_folders_survive_a_restart() {
 
 #[test]
 fn an_unavailable_folder_says_so_and_stays_pinned() {
-    let missing = std::env::temp_dir().join(format!("pdfcraft-pinned-gone-{}", std::process::id()));
+    let missing = std::env::temp_dir().join(format!("visionpdf-pinned-gone-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&missing);
     let folder = missing.to_string_lossy().into_owned();
     let pin = folder.clone();

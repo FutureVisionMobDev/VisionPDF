@@ -6,7 +6,7 @@ use std::collections::BTreeSet;
 use egui::FontId;
 use egui::epaint::text::{Fonts, TextOptions};
 use egui_kittest::Harness;
-use pdfcraft_ui_egui::{VisionPDFApp, i18n, theme};
+use visionpdf_ui_egui::{VisionPDFApp, i18n, theme};
 
 pub mod fixtures;
 pub mod input;
@@ -112,7 +112,7 @@ pub fn skip_without_glyphs(name: &str, language: &str, text: &str) -> bool {
 
 /// Whether `name` is skipped because the build embeds no craft-i18n catalogs (English only).
 pub fn skip_without_catalogs(name: &str) -> bool {
-    let skip = !pdfcraft_ui_egui::i18n::catalogs_embedded();
+    let skip = !visionpdf_ui_egui::i18n::catalogs_embedded();
     if skip {
         eprintln!("skipping {name}: built without craft-i18n (set CRAFT_I18N_DIR to a craft-i18n checkout)");
     }

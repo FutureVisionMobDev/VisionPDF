@@ -1,12 +1,12 @@
 {
-  "id": "pdfcraft",
+  "id": "visionpdf",
   "name": "VisionPDF",
   "upgradeCode": "EA00C367-7270-4C50-9D8B-A7A5C88AD27F",
   "sources": [
-    "pdfcraft.wxs",
+    "visionpdf.wxs",
     "installer-ui.wxs"
   ],
-  "icon": "assets/app-icon/pdfcraft.ico",
+  "icon": "assets/app-icon/visionpdf.ico",
   "localization": [],
   "extensions": [],
   "payloads": [
@@ -14,15 +14,15 @@
     "LICENSE-MIT",
     "LICENSE-document.txt",
     "NOTICE",
-    "pdfcraft-cli.exe",
-    "pdfcraft.exe"
+    "visionpdf-cli.exe",
+    "visionpdf.exe"
   ],
   "registry": [
     [
       "-1",
-      "Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\pdfcraft.exe",
+      "Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\visionpdf.exe",
       "",
-      "[#PdfcraftExe]"
+      "[#VisionPDFExe]"
     ],
     [
       "-1",
@@ -34,13 +34,13 @@
       "-1",
       "Software\\Classes\\VisionPDF.Document\\DefaultIcon",
       "",
-      "\"[#PdfcraftExe]\",-2"
+      "\"[#VisionPDFExe]\",-2"
     ],
     [
       "-1",
       "Software\\Classes\\VisionPDF.Document\\shell\\open\\command",
       "",
-      "\"[#PdfcraftExe]\" \"%1\""
+      "\"[#VisionPDFExe]\" \"%1\""
     ],
     [
       "-1",
@@ -56,27 +56,27 @@
     ],
     [
       "-1",
-      "Software\\Classes\\Applications\\pdfcraft.exe",
+      "Software\\Classes\\Applications\\visionpdf.exe",
       "FriendlyAppName",
       "VisionPDF"
     ],
     [
       "-1",
-      "Software\\Classes\\Applications\\pdfcraft.exe\\DefaultIcon",
+      "Software\\Classes\\Applications\\visionpdf.exe\\DefaultIcon",
       "",
-      "\"[#PdfcraftExe]\",-2"
+      "\"[#VisionPDFExe]\",-2"
     ],
     [
       "-1",
-      "Software\\Classes\\Applications\\pdfcraft.exe\\SupportedTypes",
+      "Software\\Classes\\Applications\\visionpdf.exe\\SupportedTypes",
       ".pdf",
       ""
     ],
     [
       "-1",
-      "Software\\Classes\\Applications\\pdfcraft.exe\\shell\\open\\command",
+      "Software\\Classes\\Applications\\visionpdf.exe\\shell\\open\\command",
       "",
-      "\"[#PdfcraftExe]\" \"%1\""
+      "\"[#VisionPDFExe]\" \"%1\""
     ],
     [
       "-1",
@@ -94,7 +94,7 @@
       "-1",
       "Software\\VisionPDF\\Capabilities",
       "ApplicationIcon",
-      "[#PdfcraftExe],0"
+      "[#VisionPDFExe],0"
     ],
     [
       "-1",
@@ -130,7 +130,7 @@
       "-1",
       "Software\\Classes\\SystemFileAssociations\\.pdf\\shell\\VisionPDF.Edit",
       "Icon",
-      "\"[#PdfcraftExe]\",0"
+      "\"[#VisionPDFExe]\",0"
     ],
     [
       "-1",
@@ -142,7 +142,7 @@
       "-1",
       "Software\\Classes\\SystemFileAssociations\\.pdf\\shell\\VisionPDF.Edit\\command",
       "",
-      "\"[#PdfcraftExe]\" \"%1\""
+      "\"[#VisionPDFExe]\" \"%1\""
     ],
     [
       "-1",
@@ -160,7 +160,7 @@
       "-1",
       "Software\\Classes\\SystemFileAssociations\\.png\\shell\\VisionPDF.CreatePdf\\command",
       "",
-      "\"[#PdfcraftExe]\" --create-images \"%1\""
+      "\"[#VisionPDFExe]\" --create-images \"%1\""
     ],
     [
       "-1",
@@ -178,7 +178,7 @@
       "-1",
       "Software\\Classes\\SystemFileAssociations\\.jpg\\shell\\VisionPDF.CreatePdf\\command",
       "",
-      "\"[#PdfcraftExe]\" --create-images \"%1\""
+      "\"[#VisionPDFExe]\" --create-images \"%1\""
     ],
     [
       "-1",
@@ -196,7 +196,7 @@
       "-1",
       "Software\\Classes\\SystemFileAssociations\\.jpeg\\shell\\VisionPDF.CreatePdf\\command",
       "",
-      "\"[#PdfcraftExe]\" --create-images \"%1\""
+      "\"[#VisionPDFExe]\" --create-images \"%1\""
     ],
     [
       "-1",
@@ -214,7 +214,7 @@
       "-1",
       "Software\\Classes\\SystemFileAssociations\\.tif\\shell\\VisionPDF.CreatePdf\\command",
       "",
-      "\"[#PdfcraftExe]\" --create-images \"%1\""
+      "\"[#VisionPDFExe]\" --create-images \"%1\""
     ],
     [
       "-1",
@@ -232,7 +232,7 @@
       "-1",
       "Software\\Classes\\SystemFileAssociations\\.tiff\\shell\\VisionPDF.CreatePdf\\command",
       "",
-      "\"[#PdfcraftExe]\" --create-images \"%1\""
+      "\"[#VisionPDFExe]\" --create-images \"%1\""
     ],
     [
       "-1",
@@ -250,7 +250,7 @@
       "-1",
       "Software\\Classes\\SystemFileAssociations\\.gif\\shell\\VisionPDF.CreatePdf\\command",
       "",
-      "\"[#PdfcraftExe]\" --create-images \"%1\""
+      "\"[#VisionPDFExe]\" --create-images \"%1\""
     ],
     [
       "-1",
@@ -268,7 +268,7 @@
       "-1",
       "Software\\Classes\\SystemFileAssociations\\.bmp\\shell\\VisionPDF.CreatePdf\\command",
       "",
-      "\"[#PdfcraftExe]\" --create-images \"%1\""
+      "\"[#VisionPDFExe]\" --create-images \"%1\""
     ],
     [
       "-1",
@@ -286,7 +286,7 @@
       "-1",
       "Software\\Classes\\SystemFileAssociations\\.jp2\\shell\\VisionPDF.CreatePdf\\command",
       "",
-      "\"[#PdfcraftExe]\" --create-images \"%1\""
+      "\"[#VisionPDFExe]\" --create-images \"%1\""
     ],
     [
       "-1",
@@ -304,7 +304,7 @@
       "-1",
       "Software\\Classes\\SystemFileAssociations\\.j2k\\shell\\VisionPDF.CreatePdf\\command",
       "",
-      "\"[#PdfcraftExe]\" --create-images \"%1\""
+      "\"[#VisionPDFExe]\" --create-images \"%1\""
     ],
     [
       "-1",
@@ -322,7 +322,7 @@
       "-1",
       "Software\\Classes\\SystemFileAssociations\\.jpx\\shell\\VisionPDF.CreatePdf\\command",
       "",
-      "\"[#PdfcraftExe]\" --create-images \"%1\""
+      "\"[#VisionPDFExe]\" --create-images \"%1\""
     ]
   ],
   "mode": "dualScope"

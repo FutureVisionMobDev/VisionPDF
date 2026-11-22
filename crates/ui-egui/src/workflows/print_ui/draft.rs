@@ -1,6 +1,6 @@
 use super::setups::{self, PrinterSetup};
 use super::{Binding, BookletSubset, Content, Layout, Orientation, PageOrder, SizeMode, Subset, print, spool};
-use pdfcraft_engine::print::PAPERS;
+use visionpdf_engine::print::PAPERS;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Which {

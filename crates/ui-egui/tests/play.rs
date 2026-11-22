@@ -5,15 +5,15 @@
 //! separate and read it back. Every session is repeated on several desks (window size and
 //! zoom), because that is what changes where a click lands.
 //!
-//! A miss writes a screenshot and the paragraph list to `/tmp/pdfcraft-play/` and fails this
+//! A miss writes a screenshot and the paragraph list to `/tmp/visionpdf-play/` and fails this
 //! test with that report. `cargo test --workspace` runs it on the Linux and Windows CI
-//! machines. The paragraph rules themselves live in `pdfcraft-edit` and run on every OS that
+//! machines. The paragraph rules themselves live in `visionpdf-edit` and run on every OS that
 //! job tests. A pass covers these sessions and these desks, not every PDF a person might open.
 //!
 //! Page coordinates are PDF points. The default page is US Letter (612 by 792).
 //!
 //! ```text
-//! cargo test -p pdfcraft-ui-egui --test play -- --nocapture
+//! cargo test -p visionpdf-ui-egui --test play -- --nocapture
 //! ```
 
 use std::fs;
@@ -21,7 +21,7 @@ use std::path::{Path, PathBuf};
 
 use egui::{Key, Modifiers};
 use egui_kittest::Harness;
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_ui_egui::VisionPDFApp;
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
@@ -310,7 +310,7 @@ fn paragraphs(h: &Harness<'static, VisionPDFApp>) -> Vec<String> {
     paragraphs_full(h).into_iter().map(|b| b.text).collect()
 }
 
-fn paragraphs_full(h: &Harness<'static, VisionPDFApp>) -> Vec<pdfcraft_engine::TextBlock> {
+fn paragraphs_full(h: &Harness<'static, VisionPDFApp>) -> Vec<visionpdf_engine::TextBlock> {
     let s = h.state();
     let Some(view) = s.views.first() else { return Vec::new() };
     s.session.get(view.id).map(|d| d.text_blocks(0)).unwrap_or_default()
@@ -328,7 +328,7 @@ fn save_named(h: &mut Harness<'static, VisionPDFApp>, name: &str) -> String {
             break;
         }
     }
-    let dir = PathBuf::from("/tmp/pdfcraft-play");
+    let dir = PathBuf::from("/tmp/visionpdf-play");
     let _ = fs::create_dir_all(&dir);
     let path = dir.join(format!("{name}.png"));
     if let Ok(image) = h.render() {

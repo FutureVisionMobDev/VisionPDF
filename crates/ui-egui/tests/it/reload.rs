@@ -7,7 +7,7 @@ use std::time::{Duration, SystemTime};
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::{By, Queryable};
-use pdfcraft_ui_egui::{VisionPDFApp, SaveTarget};
+use visionpdf_ui_egui::{VisionPDFApp, SaveTarget};
 
 /// An `n`-page document with a proper xref table; page `i` shows "Page i+1", and with `notes`
 /// each page has a sticky note.
@@ -50,7 +50,7 @@ struct TempPdf {
 
 impl TempPdf {
     fn new(test: &str, bytes: &[u8]) -> Self {
-        let dir = std::env::temp_dir().join(format!("pdfcraft-reload-{test}-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("visionpdf-reload-{test}-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join("thesis.pdf").to_string_lossy().into_owned();
@@ -102,7 +102,7 @@ fn dirty(h: &Harness<'static, VisionPDFApp>) -> bool {
 
 fn rotate_first_page(h: &mut Harness<'static, VisionPDFApp>) {
     h.state_mut().views[0].select_pages(&[0]);
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::RotatePages { pages: vec![0], degrees: 90 });
+    h.state_mut().apply_edit(visionpdf_engine::Edit::RotatePages { pages: vec![0], degrees: 90 });
 }
 
 #[test]
@@ -110,7 +110,7 @@ fn a_rebuilt_file_reloads_in_place_keeping_the_page_and_zoom() {
     let file = TempPdf::new("rebuild", &fixture(3));
     let mut h = harness(&file.path);
     let id = h.state().views[0].id;
-    h.state_mut().views[0].fit = pdfcraft_ui_egui::canvas::Fit::None;
+    h.state_mut().views[0].fit = visionpdf_ui_egui::canvas::Fit::None;
     h.state_mut().views[0].zoom = 1.5;
     h.state_mut().views[0].go_to_page(2);
     h.run_steps(4);
@@ -125,8 +125,8 @@ fn a_rebuilt_file_reloads_in_place_keeping_the_page_and_zoom() {
 
 #[test]
 fn a_watched_label_replacement_keeps_the_display_mode_and_focused_page() {
-    use pdfcraft_engine::{Edit, LabelStyle, Session};
-    use pdfcraft_ui_egui::canvas::display_token;
+    use visionpdf_engine::{Edit, LabelStyle, Session};
+    use visionpdf_ui_egui::canvas::display_token;
     use std::sync::Arc;
 
     let labelled = |ranges: &[(usize, usize, LabelStyle)]| {
@@ -373,7 +373,7 @@ fn a_file_rebuilt_under_an_open_dialog_reloads_when_the_dialog_closes() {
     // open would apply the dialog (Rotate, Protect, Comment Properties…) to the new version.
     let file = TempPdf::new("under-dialog", &fixture(2));
     let mut h = harness(&file.path);
-    h.state_mut().dialog = Some(pdfcraft_ui_egui::Dialog::RotatePages);
+    h.state_mut().dialog = Some(visionpdf_ui_egui::Dialog::RotatePages);
     h.run_steps(2);
     file.rebuild(&fixture(4));
     h.run_steps(4);
@@ -392,7 +392,7 @@ fn a_version_held_under_preferences_is_dropped_when_reloading_is_turned_off_ther
     // change on disk" must not still apply the version found while it was open.
     let file = TempPdf::new("held-pref-off", &fixture(2));
     let mut h = harness(&file.path);
-    h.state_mut().dialog = Some(pdfcraft_ui_egui::Dialog::RotatePages);
+    h.state_mut().dialog = Some(visionpdf_ui_egui::Dialog::RotatePages);
     h.run_steps(2);
     file.rebuild(&fixture(4));
     h.run_steps(4);
@@ -409,7 +409,7 @@ fn a_newer_version_found_as_the_dialog_closes_replaces_the_held_one() {
     // edit generation: one is expected.
     let file = TempPdf::new("held-coalesced", &fixture(2));
     let mut h = harness(&file.path);
-    h.state_mut().dialog = Some(pdfcraft_ui_egui::Dialog::RotatePages);
+    h.state_mut().dialog = Some(visionpdf_ui_egui::Dialog::RotatePages);
     h.run_steps(2);
     file.rebuild(&fixture(4));
     h.run_steps(4);

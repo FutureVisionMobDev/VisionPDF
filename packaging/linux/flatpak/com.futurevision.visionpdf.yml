@@ -16,7 +16,7 @@ runtime-version: '25.08'
 sdk: org.freedesktop.Sdk
 sdk-extensions:
   - org.freedesktop.Sdk.Extension.rust-stable
-command: pdfcraft
+command: visionpdf
 finish-args:
   # The shared updater inspects and updates this installation via flatpak-spawn --host.
   - --talk-name=org.freedesktop.Flatpak
@@ -99,19 +99,19 @@ modules:
           - '  esac'
           - 'fi'
           - 'exec "/app/libexec/cups/${0##*/}" "$@"'
-  - name: pdfcraft
+  - name: visionpdf
     buildsystem: simple
     build-options:
       env:
-        CARGO_HOME: /run/build/pdfcraft/cargo
+        CARGO_HOME: /run/build/visionpdf/cargo
         CARGO_NET_OFFLINE: 'true'
         # The interface translations (the craft-i18n source below), embedded by build.rs.
-        CRAFT_I18N_DIR: /run/build/pdfcraft/craft-i18n
+        CRAFT_I18N_DIR: /run/build/visionpdf/craft-i18n
         CRAFT_I18N_REQUIRED: '1'
     build-commands:
-      - cargo --offline build --release --locked -p pdfcraft
-      - install -Dm755 target/release/pdfcraft /app/bin/pdfcraft
-      - install -Dm644 NOTICE /app/share/doc/pdfcraft/NOTICE
+      - cargo --offline build --release --locked -p visionpdf
+      - install -Dm755 target/release/visionpdf /app/bin/visionpdf
+      - install -Dm644 NOTICE /app/share/doc/visionpdf/NOTICE
       - install -Dm644 packaging/linux/com.futurevision.visionpdf.desktop /app/share/applications/com.futurevision.visionpdf.desktop
       - install -Dm644 packaging/linux/com.futurevision.visionpdf.mime.xml /app/share/mime/packages/com.futurevision.visionpdf.xml
       - mkdir -p /app/share/icons && cp -R assets/app-icon/hicolor /app/share/icons/

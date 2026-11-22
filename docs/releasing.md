@@ -6,7 +6,7 @@ updates a **draft** GitHub Release named `VisionPDF v<version>`. Nobody sees a d
 maintainer publishes it.
 
 The pipeline was ported from PhotoCraft's. User-facing names say **VisionPDF**; files, binaries and
-ids stay lowercase (`pdfcraft-<version>-<platform>-<arch>.<ext>`, `com.futurevision.visionpdf`).
+ids stay lowercase (`visionpdf-<version>-<platform>-<arch>.<ext>`, `com.futurevision.visionpdf`).
 
 ## Cutting a release
 
@@ -44,23 +44,23 @@ published (`gh workflow run release.yml --ref <branch>`).
 
 | Platform | Artifacts | Built on |
 |---|---|---|
-| macOS 11+ (universal: Apple silicon + Intel) | `pdfcraft-<v>-macos-universal.dmg`, `pdfcraft-cli-<v>-macos-universal.zip` | `macos-15` |
-| Windows 10+ x64 | `pdfcraft-<v>-windows-x64.msi`, `pdfcraft-<v>-windows-x64-portable.zip` | `windows-latest` |
-| Windows 10+ x86 (32-bit) | `pdfcraft-<v>-windows-x86.msi`, `pdfcraft-<v>-windows-x86-portable.zip` | `windows-latest` |
-| Windows 11 on ARM64 | `pdfcraft-<v>-windows-arm64.msi`, `pdfcraft-<v>-windows-arm64-portable.zip` | `windows-latest` (cross-compiled) |
-| Linux x86_64 | `pdfcraft-<v>-linux-x86_64.{AppImage,AppImage.zsync,deb,rpm,tar.gz}`, `pdfcraft-cli-<v>-linux-x86_64.tar.gz` | `ubuntu-22.04` |
-| Linux aarch64 | `pdfcraft-<v>-linux-aarch64.{AppImage,AppImage.zsync,deb,rpm,tar.gz}`, `pdfcraft-cli-<v>-linux-aarch64.tar.gz` | `ubuntu-22.04-arm` |
-| Linux riscv64 | `pdfcraft-<v>-linux-riscv64.tar.gz`, `pdfcraft-cli-<v>-linux-riscv64.tar.gz` (glibc 2.39+) | `ubuntu-24.04` (cross-compiled; CLI smoke-tested under QEMU) |
-| Flatpak x86_64 | `pdfcraft-<v>-linux-x86_64.flatpak` | `ubuntu-24.04` (repackages the Linux tarball) |
-| Flatpak aarch64 | `pdfcraft-<v>-linux-aarch64.flatpak` | `ubuntu-24.04-arm` (repackages the Linux tarball) |
-| FreeBSD 14 x86_64 | `pdfcraft-<v>-freebsd-x86_64.tar.gz` | FreeBSD VM on `ubuntu-latest` |
-| Web | `pdfcraft-web-<v>.zip` (a static site; see [`packaging/web/README.md`](../packaging/web/README.md)) | `ubuntu-latest` |
+| macOS 11+ (universal: Apple silicon + Intel) | `visionpdf-<v>-macos-universal.dmg`, `visionpdf-cli-<v>-macos-universal.zip` | `macos-15` |
+| Windows 10+ x64 | `visionpdf-<v>-windows-x64.msi`, `visionpdf-<v>-windows-x64-portable.zip` | `windows-latest` |
+| Windows 10+ x86 (32-bit) | `visionpdf-<v>-windows-x86.msi`, `visionpdf-<v>-windows-x86-portable.zip` | `windows-latest` |
+| Windows 11 on ARM64 | `visionpdf-<v>-windows-arm64.msi`, `visionpdf-<v>-windows-arm64-portable.zip` | `windows-latest` (cross-compiled) |
+| Linux x86_64 | `visionpdf-<v>-linux-x86_64.{AppImage,AppImage.zsync,deb,rpm,tar.gz}`, `visionpdf-cli-<v>-linux-x86_64.tar.gz` | `ubuntu-22.04` |
+| Linux aarch64 | `visionpdf-<v>-linux-aarch64.{AppImage,AppImage.zsync,deb,rpm,tar.gz}`, `visionpdf-cli-<v>-linux-aarch64.tar.gz` | `ubuntu-22.04-arm` |
+| Linux riscv64 | `visionpdf-<v>-linux-riscv64.tar.gz`, `visionpdf-cli-<v>-linux-riscv64.tar.gz` (glibc 2.39+) | `ubuntu-24.04` (cross-compiled; CLI smoke-tested under QEMU) |
+| Flatpak x86_64 | `visionpdf-<v>-linux-x86_64.flatpak` | `ubuntu-24.04` (repackages the Linux tarball) |
+| Flatpak aarch64 | `visionpdf-<v>-linux-aarch64.flatpak` | `ubuntu-24.04-arm` (repackages the Linux tarball) |
+| FreeBSD 14 x86_64 | `visionpdf-<v>-freebsd-x86_64.tar.gz` | FreeBSD VM on `ubuntu-latest` |
+| Web | `visionpdf-web-<v>.zip` (a static site; see [`packaging/web/README.md`](../packaging/web/README.md)) | `ubuntu-latest` |
 
 The ARM64 Windows build is cross-compiled on the x64 runner, so signing and WiX work as for the
 other Windows builds; `.github/workflows/windows-arm64.yml` installs and runs it on ARM64 hardware.
 
-Every binary reports its version (`pdfcraft --version`, `pdfcraft-cli --version`, *Help ▸ About*).
-The workflow sets `PDFCRAFT_BUILD_SHA` and `PDFCRAFT_BUILD_DATE` (`packaging/env.sh` fills them in
+Every binary reports its version (`visionpdf --version`, `visionpdf-cli --version`, *Help ▸ About*).
+The workflow sets `VISIONPDF_BUILD_SHA` and `VISIONPDF_BUILD_DATE` (`packaging/env.sh` fills them in
 for local builds): the commit is recorded in the macOS `Info.plist` (`VisionPDFBuildCommit`) and the
 date in the AppStream metadata. The binaries don't embed the commit yet.
 
@@ -78,10 +78,10 @@ Upstream announced the legacy RTEN download URLs' brownout in [ocrs #282](https:
 Runtime discovery prefers a complete ONNX detection/recognition pair within each directory, then a complete legacy `text-detection.rten` / `text-recognition.rten` pair.
 An incomplete ONNX update can therefore use an intact RTEN pair in the same directory.
 Discovery never combines model formats or files from different directories.
-Directory precedence stays the same: `$PDFCRAFT_MODELS`, the release-package locations beside the executable, then the source tree's `assets/models/`.
+Directory precedence stays the same: `$VISIONPDF_MODELS`, the release-package locations beside the executable, then the source tree's `assets/models/`.
 The first directory with a complete supported pair wins, even if an earlier legacy pair precedes a later ONNX pair.
 
-The release-package locations are `models\` beside `pdfcraft.exe` (MSI, portable zip), `VisionPDF.app/Contents/Resources/models` (macOS), and `share/pdfcraft/models` beside `bin/` (deb, rpm, tar.gz, AppImage, Flatpak, FreeBSD).
+The release-package locations are `models\` beside `visionpdf.exe` (MSI, portable zip), `VisionPDF.app/Contents/Resources/models` (macOS), and `share/visionpdf/models` beside `bin/` (deb, rpm, tar.gz, AppImage, Flatpak, FreeBSD).
 The web build does not include these models, and OCR remains limited to the Latin alphabet without accents.
 
 ### macOS
@@ -90,7 +90,7 @@ The web build does not include these models, and OCR remains limited to the Lati
 `VisionPDF.app` from `Info.plist.in` (bundle id `com.futurevision.visionpdf`, macOS 11+, PDF declared
 as a document type with rank Alternate, so VisionPDF is offered under Open With without taking over
 from Preview). Files opened from Finder arrive as Apple events, which
-`apps/pdfcraft/src/apple_events.rs` receives.
+`apps/visionpdf/src/apple_events.rs` receives.
 
 - **Signing** uses the hardened runtime and a secure timestamp, executable first, then the bundle.
   `packaging/macos/import-cert.sh` puts the certificate in a temporary keychain, deleted at the end
@@ -101,7 +101,7 @@ from Preview). Files opened from Finder arrive as Apple events, which
   Its Finder window (background, icon size and positions) comes from
   [`packaging/macos/dmg/`](../packaging/macos/dmg/README.md), and its volume is named `VisionPDF`
   without the version, which the window's background needs; the DMG file name keeps the version.
-- **CLI:** `pdfcraft-cli` is signed and notarized as a zip. A bare executable can't hold a stapled
+- **CLI:** `visionpdf-cli` is signed and notarized as a zip. A bare executable can't hold a stapled
   ticket, so Gatekeeper looks it up online the first time a downloaded copy runs.
 
 Without certificates (locally) the script signs ad-hoc and skips notarization:
@@ -116,13 +116,13 @@ packaging/macos/package.sh --arch aarch64     # quicker, host-only; --arch unive
 neither the MSI nor the portable zip needs the Visual C++ redistributable.
 
 - Before packaging, it reads both executables' PE headers: the machine type must match `-Arch`, and
-  `pdfcraft.exe` must be a GUI-subsystem program (no console window, #57) while `pdfcraft-cli.exe`
+  `visionpdf.exe` must be a GUI-subsystem program (no console window, #57) while `visionpdf-cli.exe`
   stays a console program.
-- `pdfcraft.wxs` (WiX v5) is a dual-scope package (per-user by default into
+- `visionpdf.wxs` (WiX v5) is a dual-scope package (per-user by default into
   `%LOCALAPPDATA%\Programs\VisionPDF\VisionPDF`, per-machine into `Program Files\VisionPDF\VisionPDF` (`Program Files (x86)` for the 32-bit build),
   see `packaging/windows/INSTALLATION.md`) with a Start Menu shortcut, a
   desktop shortcut (on by default) and an App Paths entry. Both shortcuts are plain links to
-  `pdfcraft.exe`, not advertised MSI shortcuts (#107, #143). The MSI version is the numeric `X.Y.Z`
+  `visionpdf.exe`, not advertised MSI shortcuts (#107, #143). The MSI version is the numeric `X.Y.Z`
   (MSI has no pre-release field), and same-version upgrades are allowed so release candidates replace
   each other. Icon ids end in `.ico` or `.exe` (Windows Installer requires it); packaging-lint checks
   this.
@@ -148,24 +148,24 @@ neither the MSI nor the portable zip needs the Visual C++ redistributable.
 - The PDF right-click entry (#682) is a classic verb under
   `HKLM\Software\Classes\SystemFileAssociations\.pdf\shell\VisionPDF.Edit`, so it shows whichever app
   is the default for `.pdf` and never changes that default. Several selected PDFs (up to 15, the
-  limit for a `Document` verb) start one `pdfcraft.exe "<file>"` each, and the single-instance
+  limit for a `Document` verb) start one `visionpdf.exe "<file>"` each, and the single-instance
   hand-off opens them as tabs. On Windows 11 it is under "Show more options"; a first-level entry
   needs an `IExplorerCommand` handler and package identity (a sparse MSIX package), which the MSI
   doesn't have. "Combine files in VisionPDF" (#585) is a second verb in the same component,
-  `VisionPDF.Combine`, running `pdfcraft --combine "<file>"` once per selected file; the
+  `VisionPDF.Combine`, running `visionpdf --combine "<file>"` once per selected file; the
   single-instance hand-off sends them with `"combine": true`, and the running app adds them to
   its Combine files tab (`OsEvent::Combine`). Both verbs come and go with `INSTALLPDFCONTEXTMENU`.
 - The image right-click entry (#190) is the same kind of verb, `VisionPDF.CreatePdf`, for ten image
-  types, in its own component (`PdfcraftImageContextMenu`) since it became optional. Its rows moved
-  out of `PdfcraftApp`; that's safe because `MajorUpgrade` removes the old version before installing
+  types, in its own component (`VisionPDFImageContextMenu`) since it became optional. Its rows moved
+  out of `VisionPDFApp`; that's safe because `MajorUpgrade` removes the old version before installing
   the new one (`afterInstallValidate`), which `test-msi.ps1` checks.
 - `test-msi.ps1 <file.msi>` checks the compiled shortcut, context-menu and dialog tables, and
   evaluates the first-install and update conditions of the desktop shortcut and both menus. Packaging
   runs it in a child process before signing, so the MSI isn't held open when signtool runs. The ARM64 install
-  smoke test checks that both all-users shortcuts point at the installed `pdfcraft.exe` and are
+  smoke test checks that both all-users shortcuts point at the installed `visionpdf.exe` and are
   removed on uninstall, and that `INSTALLDESKTOPSHORTCUT=0` skips the desktop one.
 - The portable zip holds both executables, the README, the licences, the OFL licence of each
-  embedded craft-fonts family, and `portable.txt`. That marker beside `pdfcraft.exe` keeps the
+  embedded craft-fonts family, and `portable.txt`. That marker beside `visionpdf.exe` keeps the
   settings, logs, crash recovery and new digital IDs in `VisionPDFData\` next to the exe instead of
   `%APPDATA%` and `%LOCALAPPDATA%` (`crates/ui-egui/src/platform/portable.rs`). The MSI carries the same
   OFL notices; `-SkipBuild` requires `CRAFT_FONTS_DIR` so they can be staged, or
@@ -191,7 +191,7 @@ Locally: `dotnet tool install -g wix --version 5.0.2`, then `pwsh packaging/wind
 AppStream metainfo) and makes every format from it: an **AppImage** (any distribution, nothing to
 install), a **.deb** and an **.rpm** (built with [nfpm](https://nfpm.goreleaser.com) from
 `nfpm.yaml`; they integrate with the menu, MIME and icon caches), a **.tar.gz**, and a CLI-only
-**`pdfcraft-cli-<v>-linux-<arch>.tar.gz`** (the stripped `pdfcraft-cli` plus the licences and
+**`visionpdf-cli-<v>-linux-<arch>.tar.gz`** (the stripped `visionpdf-cli` plus the licences and
 README, for servers, CI and agent sandboxes). `--formats` picks a subset (`appimage deb rpm tar cli`).
 
 The binaries are built on Ubuntu 22.04, the oldest GitHub-hosted image, so they need only
@@ -200,7 +200,7 @@ xkbcommon) and the GPU (Vulkan, EGL) are loaded at runtime from the system; the 
 them as dependencies (see `nfpm.yaml`).
 
 Each AppImage embeds update information
-(`gh-releases-zsync|storytold|pdfcraft|latest|pdfcraft-*-linux-<arch>.AppImage.zsync`), and its
+(`gh-releases-zsync|storytold|visionpdf|latest|visionpdf-*-linux-<arch>.AppImage.zsync`), and its
 `.zsync` is published beside it, so AppImageUpdate and AppImageLauncher can update it in place,
 downloading only the changed blocks. `latest` is the newest published, non-pre-release version.
 `package.sh` writes the `.zsync` when `zsyncmake` (the `zsync` package) is installed and warns
@@ -208,11 +208,11 @@ otherwise; the release job checks both.
 
 **Flatpak:** the `flatpak` job turns each arch's tarball into a single-file bundle with
 `packaging/linux/flatpak-bundle.sh` and `flatpak/com.futurevision.visionpdf.bundle.yml` (no Rust build;
-the same binaries), then installs it and runs `pdfcraft-cli --version` in the sandbox.
+the same binaries), then installs it and runs `visionpdf-cli --version` in the sandbox.
 `flatpak/com.futurevision.visionpdf.yml` is the from-source manifest for a later Flathub submission;
 packaging-lint keeps the runtime and sandbox permissions (`finish-args`) of the two identical.
 Printing is not available in the Flatpak yet: it runs `lp`, which the freedesktop runtime lacks
-(the job logs a note); it needs the print portal. Users install the bundle with `flatpak install --user pdfcraft-<v>-linux-<arch>.flatpak`; the
+(the job logs a note); it needs the print portal. Users install the bundle with `flatpak install --user visionpdf-<v>-linux-<arch>.flatpak`; the
 freedesktop runtime comes from Flathub.
 
 Locally (on Linux, with nfpm): `packaging/linux/package.sh` or `--formats "deb tar"`; then
@@ -227,7 +227,7 @@ binaries; check the tarball against `SHA256SUMS.txt`.
 
 ### Web
 
-`packaging/web/package.sh` runs `trunk build --release` in `apps/pdfcraft-web` and zips the site
+`packaging/web/package.sh` runs `trunk build --release` in `apps/visionpdf-web` and zips the site
 with sample `_headers` and `.htaccess` files. Hosting (MIME types, compression, caching, iframes) is
 covered in [`packaging/web/README.md`](../packaging/web/README.md).
 
@@ -271,14 +271,14 @@ a match of the `CobaltStrikeBeacon` family rule.
    - `NotTrusted` or `UnknownError`: a signature exists but did not validate on this machine. Compare
      the signer and the hash with the release.
 3. **Extract the payloads without running them.** Scan the executables inside the MSI and the
-   portable zip, not only the outer installer. `7z x -oDIR pdfcraft-<version>-windows-x64.msi`
+   portable zip, not only the outer installer. `7z x -oDIR visionpdf-<version>-windows-x64.msi`
    extracts them. The payload names are WiX-internal, so tell the executables apart by their file
    type. Don't install or run the MSI or the extracted files.
 4. **Scan with YARA and keep every match.** Use your own copies of YARA and the rule. VisionPDF
    bundles neither, and the helper never runs in the app, the installer or CI:
 
    ```powershell
-   pwsh packaging/windows/security-audit.ps1 -Path .\pdfcraft.exe, .\pdfcraft-cli.exe -YaraExe C:\tools\yara64.exe -YaraRule C:\rules\CobaltStrikeBeacon.yar
+   pwsh packaging/windows/security-audit.ps1 -Path .\visionpdf.exe, .\visionpdf-cli.exe -YaraExe C:\tools\yara64.exe -YaraRule C:\rules\CobaltStrikeBeacon.yar
    ```
 
    The output lists each matched identifier with its offset, and the SHA-256 of the rule file.

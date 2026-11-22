@@ -28,7 +28,7 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, Mutex, PoisonError};
 
-use pdfcraft_engine::DocId;
+use visionpdf_engine::DocId;
 
 use crate::VisionPDFApp;
 use crate::files::{FilePurpose, PickTarget};
@@ -277,7 +277,7 @@ impl VisionPDFApp {
             }
             // Last-resort guard (app-agents.md rule 13), as for commands: this work used to run inside
             // the command that asked, and a panic in it must not take the app down.
-            if let Err(m) = pdfcraft_engine::guard(|| then(self, paths)) {
+            if let Err(m) = visionpdf_engine::guard(|| then(self, paths)) {
                 self.notify_fmt("That didn't work: an internal error stopped it ({m}).", &[("m", m.as_str())]);
             }
         }
@@ -455,7 +455,7 @@ mod tests {
     /// #2150: Reduce File Size finishing under an open Save As panel used to drop its bytes.
     #[test]
     fn a_reduced_copy_finished_under_another_dialog_is_saved_once_it_closes() {
-        let dir = std::env::temp_dir().join(format!("pdfcraft-ui-pickers-{}-reduce", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("visionpdf-ui-pickers-{}-reduce", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
         let out = dir.join("notes (reduced).pdf");
@@ -464,7 +464,7 @@ mod tests {
         let source = text_pdf("Minutes of the harbour board");
         app.open_bytes("notes.pdf", None, source.clone()).unwrap();
         let (_, doc) = app.active_ids().unwrap();
-        let (reduced, _) = app.session.optimize_job(doc, &pdfcraft_engine::optimize::Settings::default(), &[]).unwrap().run(|_| true).unwrap();
+        let (reduced, _) = app.session.optimize_job(doc, &visionpdf_engine::optimize::Settings::default(), &[]).unwrap().run(|_| true).unwrap();
         assert!(reduced.len() < source.len(), "a copy that isn't smaller would not be saved at all");
         app.pick_override = Some(vec![out.to_string_lossy().into_owned()]);
         // Save As is still open on another tab when the optimizer finishes.
@@ -475,16 +475,16 @@ mod tests {
         app.process_picked();
         let written = std::fs::read(&out).unwrap_or_default();
         assert!(written == *reduced, "the reduced copy is saved where the user chose, byte for byte");
-        let mut again = pdfcraft_engine::Session::new();
+        let mut again = visionpdf_engine::Session::new();
         let id = again.open("notes (reduced).pdf", None, Arc::new(written), None).unwrap();
-        let text = pdfcraft_engine::export::Exporter::new(again.get(id).unwrap()).text(0).unwrap();
+        let text = visionpdf_engine::export::Exporter::new(again.get(id).unwrap()).text(0).unwrap();
         assert!(text.contains("Minutes of the harbour board"), "the saved copy reopens with its text: {text:?}");
         let _ = std::fs::remove_dir_all(&dir);
     }
 
     /// An app with a document that compresses, and a folder for its copy.
     fn reducing(tag: &str) -> (VisionPDFApp, PathBuf) {
-        let dir = std::env::temp_dir().join(format!("pdfcraft-ui-pickers-{}-{tag}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("visionpdf-ui-pickers-{}-{tag}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
         let mut app = VisionPDFApp::new();
@@ -524,9 +524,9 @@ mod tests {
         assert!(!app.pickers.pending(), "it doesn't ask again");
         assert!(!unasked.exists(), "the queued destination is retained");
         let written = std::fs::read(&out).unwrap_or_default();
-        let mut again = pdfcraft_engine::Session::new();
+        let mut again = visionpdf_engine::Session::new();
         let id = again.open("notes (reduced).pdf", None, Arc::new(written), None).unwrap();
-        let text = pdfcraft_engine::export::Exporter::new(again.get(id).unwrap()).text(0).unwrap();
+        let text = visionpdf_engine::export::Exporter::new(again.get(id).unwrap()).text(0).unwrap();
         assert!(text.contains("Minutes of the harbour board"), "the copy reopens with its text: {text:?}");
         let _ = std::fs::remove_dir_all(&dir);
     }

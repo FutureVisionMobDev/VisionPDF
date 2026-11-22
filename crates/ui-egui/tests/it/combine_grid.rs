@@ -6,8 +6,8 @@ use std::time::Duration;
 use egui::{Key, Modifiers, Pos2, vec2};
 use egui_kittest::Harness;
 use egui_kittest::kittest::{NodeT, Queryable};
-use pdfcraft_render::{PageRenderer, RenderRequest, RequestKind};
-use pdfcraft_ui_egui::{CombineThumb, CombineView, FilePurpose, VisionPDFApp};
+use visionpdf_render::{PageRenderer, RenderRequest, RequestKind};
+use visionpdf_ui_egui::{CombineThumb, CombineView, FilePurpose, VisionPDFApp};
 
 /// An `n`-page document with a proper xref table; page `i` shows "Page i+1".
 fn fixture(n: usize) -> Vec<u8> {
@@ -70,12 +70,12 @@ fn heavy() -> Vec<u8> {
 
 /// A two-page fixture that opens with `user` and allows everything with `owner`.
 fn protected(user: &str, owner: &str) -> Vec<u8> {
-    protected_with(pdfcraft_cos::Algorithm::Aes256, user, owner)
+    protected_with(visionpdf_cos::Algorithm::Aes256, user, owner)
 }
 
-fn protected_with(algorithm: pdfcraft_cos::Algorithm, user: &str, owner: &str) -> Vec<u8> {
-    let mut doc = pdfcraft_cos::Document::open(std::sync::Arc::new(fixture(2))).unwrap();
-    doc.set_encryption_legacy(&pdfcraft_cos::NewEncryption {
+fn protected_with(algorithm: visionpdf_cos::Algorithm, user: &str, owner: &str) -> Vec<u8> {
+    let mut doc = visionpdf_cos::Document::open(std::sync::Arc::new(fixture(2))).unwrap();
+    doc.set_encryption_legacy(&visionpdf_cos::NewEncryption {
         algorithm,
         user_password: user,
         owner_password: owner,
@@ -84,7 +84,7 @@ fn protected_with(algorithm: pdfcraft_cos::Algorithm, user: &str, owner: &str) -
         seed: [4; 32],
     })
     .unwrap();
-    pdfcraft_cos::write_full(&doc, &Default::default()).unwrap()
+    visionpdf_cos::write_full(&doc, &Default::default()).unwrap()
 }
 
 /// The Combine tab with these files (name, bytes), in its default (grid) view.
@@ -280,7 +280,7 @@ fn cards_select_like_the_list_and_the_selection_survives_switching_views() {
 fn dragging_a_card_moves_it_and_undo_puts_it_back() {
     let mut h = grid_of_pages(&[("a.pdf", 1), ("b.pdf", 1), ("c.pdf", 1), ("d.pdf", 1)]);
     // Sorted first: a move by hand ends the sort, as in the list.
-    h.state_mut().combine_tab.sort = Some((pdfcraft_ui_egui::SortKey::Name, true));
+    h.state_mut().combine_tab.sort = Some((visionpdf_ui_egui::SortKey::Name, true));
     let (a, c) = (card(&h, "a.pdf"), card(&h, "c.pdf"));
     drag(&mut h, a.center(), c.center() + vec2(c.width() * 0.3, 0.0));
     assert_eq!(names(&h), ["b.pdf", "c.pdf", "a.pdf", "d.pdf"]);
@@ -332,7 +332,7 @@ fn a_drop_that_changes_nothing_or_lands_outside_the_grid_leaves_no_undo_step() {
     h.key_press_modifiers(Modifiers::COMMAND, Key::Z);
     h.run_steps(2);
     assert_eq!(names(&h), ["a.pdf", "b.pdf", "c.pdf"]);
-    h.state_mut().combine_tab.sort = Some((pdfcraft_ui_egui::SortKey::Name, true));
+    h.state_mut().combine_tab.sort = Some((visionpdf_ui_egui::SortKey::Name, true));
     let b = card(&h, "b.pdf");
     // Onto its own place.
     drag(&mut h, b.center(), b.center() + vec2(b.width() * 0.3, 0.0));
@@ -587,7 +587,7 @@ fn a_file_whose_pages_cant_be_measured_says_there_is_no_preview() {
     // The fixture must keep the size unknown: if the inspector learns RC4 owner passwords, this
     // needs another file it can't measure (the check below says so rather than pass vacuously).
     let mut h =
-        grid_of(vec![("one.pdf", fixture(1)), ("old.pdf", protected_with(pdfcraft_cos::Algorithm::Rc4_128, "pw", "owner"))], vec2(1400.0, 900.0));
+        grid_of(vec![("one.pdf", fixture(1)), ("old.pdf", protected_with(visionpdf_cos::Algorithm::Rc4_128, "pw", "owner"))], vec2(1400.0, 900.0));
     assert!(h.state_mut().combine_unlock_rows(&[1], "owner"));
     assert!(settle(&mut h, |app| ready(&app.combine_thumbnails()[0])));
     assert!(h.state().combine_draft[1].lock.is_none(), "unlocked for combining");
@@ -1344,7 +1344,7 @@ fn flipping_quickly_ends_on_the_page_shown_and_leaving_the_tab_closes_the_previe
 fn space_on_a_focused_button_presses_it_and_previews_only_what_can_be_shown() {
     // Regression: with a file selected, Space opened the preview whatever had the keyboard.
     let mut h =
-        grid_of(vec![("a.pdf", fixture(2)), ("old.pdf", protected_with(pdfcraft_cos::Algorithm::Rc4_128, "pw", "owner"))], vec2(1400.0, 900.0));
+        grid_of(vec![("a.pdf", fixture(2)), ("old.pdf", protected_with(visionpdf_cos::Algorithm::Rc4_128, "pw", "owner"))], vec2(1400.0, 900.0));
     h.get_by_label("a.pdf").click();
     h.run_steps(1);
     h.get_by_label("List view").focus();

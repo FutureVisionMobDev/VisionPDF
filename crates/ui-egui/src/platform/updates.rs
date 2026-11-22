@@ -218,7 +218,7 @@ mod tests {
     use crate::CloseRequest;
     use crate::editing::SaveTarget;
     use eframe::App as _;
-    use pdfcraft_engine::{Edit, FieldValue};
+    use visionpdf_engine::{Edit, FieldValue};
     use std::path::PathBuf;
     use std::sync::Arc;
 
@@ -237,7 +237,7 @@ mod tests {
     /// An app with an unsaved change to a document in a new temporary folder, which Save writes
     /// without asking where. Returns the document's path too.
     fn app_with_file(test: &str) -> (VisionPDFApp, PathBuf) {
-        let dir = std::env::temp_dir().join(format!("pdfcraft-ui-updates-{test}-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("visionpdf-ui-updates-{test}-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join("source.pdf");

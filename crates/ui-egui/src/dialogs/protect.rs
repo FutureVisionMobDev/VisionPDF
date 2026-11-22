@@ -3,7 +3,7 @@
 //! printing, changes, copying, screen readers). Execution plan M8.1.
 
 use egui::{Align, Color32, Layout};
-use pdfcraft_engine::{Changes, Edit, Printing, Protection};
+use visionpdf_engine::{Changes, Edit, Printing, Protection};
 
 use crate::theme::{self, Tokens};
 use crate::{VisionPDFApp, widgets};
@@ -46,7 +46,7 @@ impl ProtectDraft {
             Some("Type a password.")
         } else if self.password != self.confirm {
             Some("The passwords don't match.")
-        } else if self.protection.algorithm != pdfcraft_engine::Algorithm::Aes256 && !self.password.chars().all(|c| (' '..='~').contains(&c)) {
+        } else if self.protection.algorithm != visionpdf_engine::Algorithm::Aes256 && !self.password.chars().all(|c| (' '..='~').contains(&c)) {
             Some("This compatibility level supports only plain ASCII passwords.")
         } else {
             None
@@ -106,7 +106,7 @@ fn radio(ui: &mut egui::Ui, t: &Tokens, on: bool, label: &str) -> egui::Response
 
 /// Draw the dialog body; returns (apply, cancel).
 pub(crate) fn body(ui: &mut egui::Ui, app: &mut VisionPDFApp, t: &Tokens) -> (bool, bool) {
-    use pdfcraft_engine::Algorithm as A;
+    use visionpdf_engine::Algorithm as A;
     let d = &mut app.protect_draft;
     ui.label(egui::RichText::new(tl!("Protect Using Password")).font(theme::semibold(18.0)));
     ui.add_space(4.0);

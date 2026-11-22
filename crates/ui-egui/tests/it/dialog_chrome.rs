@@ -3,7 +3,7 @@
 use egui::accesskit::Role;
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_ui_egui::VisionPDFApp;
 
 fn fixture() -> Vec<u8> {
     fixture_with_info(None)
@@ -39,9 +39,9 @@ fn card(h: &Harness<'_, VisionPDFApp>, id: &str) -> egui::Rect {
 }
 
 fn protected() -> Vec<u8> {
-    let mut doc = pdfcraft_cos::Document::open(std::sync::Arc::new(fixture())).unwrap();
-    doc.set_encryption(&pdfcraft_cos::NewEncryption {
-        algorithm: pdfcraft_cos::Algorithm::Aes256,
+    let mut doc = visionpdf_cos::Document::open(std::sync::Arc::new(fixture())).unwrap();
+    doc.set_encryption(&visionpdf_cos::NewEncryption {
+        algorithm: visionpdf_cos::Algorithm::Aes256,
         user_password: "pw",
         owner_password: "owner",
         permissions: -1,
@@ -49,7 +49,7 @@ fn protected() -> Vec<u8> {
         seed: [4; 32],
     })
     .unwrap();
-    pdfcraft_cos::write_full(&doc, &Default::default()).unwrap()
+    visionpdf_cos::write_full(&doc, &Default::default()).unwrap()
 }
 
 #[test]
@@ -133,7 +133,7 @@ fn document_properties_values_line_up_and_long_fields_wrap() {
 
 #[test]
 fn space_audit_tab_measures_the_file_and_stays_in_the_card() {
-    use pdfcraft_ui_egui::{Dialog, PropsTab};
+    use visionpdf_ui_egui::{Dialog, PropsTab};
     let open = |dialog: Dialog| {
         let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
             let mut app = VisionPDFApp::new();
@@ -171,7 +171,7 @@ fn space_audit_tab_measures_the_file_and_stays_in_the_card() {
 
 #[test]
 fn space_audit_tab_measures_again_after_an_edit() {
-    use pdfcraft_engine::optimize::SpaceCategory;
+    use visionpdf_engine::optimize::SpaceCategory;
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
         let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
@@ -188,7 +188,7 @@ fn space_audit_tab_measures_again_after_an_edit() {
     h.run_steps(2);
     assert_eq!(h.state().space_audit, before);
     // An edit while the tab is open is measured on the next frame.
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::AddBookmark {
+    h.state_mut().apply_edit(visionpdf_engine::Edit::AddBookmark {
         parent: vec![],
         index: 0,
         title: "Chapter".into(),
@@ -206,7 +206,7 @@ fn space_audit_tab_measures_again_after_an_edit() {
 /// Check that a dialog's Close button follows the content when switching from a taller tab to a shorter one.
 #[test]
 fn dialog_buttons_follow_the_content_after_a_taller_tab() {
-    use pdfcraft_ui_egui::{Dialog, PropsTab};
+    use visionpdf_ui_egui::{Dialog, PropsTab};
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
         let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
@@ -263,7 +263,7 @@ fn page_hover_cursors_stay_off_while_a_dialog_is_open() {
 fn a_dialog_keeps_its_own_height_after_a_taller_one() {
     // #5118: Print opened after Preferences was as tall as Preferences, with blank space below
     // its buttons. Every dialog shares one modal, which kept the last dialog's size.
-    use pdfcraft_ui_egui::Dialog;
+    use visionpdf_ui_egui::Dialog;
     for dialog in [Dialog::Print, Dialog::RotatePages] {
         let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
             let mut app = VisionPDFApp::new();

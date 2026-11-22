@@ -4,7 +4,7 @@
 use egui::Pos2;
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_ui_egui::VisionPDFApp;
 
 /// One page with layers Red (on) and Green (off), a radio-button group, each drawing a band;
 /// a "show-red" push button turns Red on and a link toggles Green.

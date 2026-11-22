@@ -7,8 +7,8 @@ use egui::os::OperatingSystem;
 use egui::{Key, Modifiers};
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_engine::commands::COMMANDS;
-use pdfcraft_ui_egui::{Dialog, VisionPDFApp};
+use visionpdf_engine::commands::COMMANDS;
+use visionpdf_ui_egui::{Dialog, VisionPDFApp};
 
 fn fixture(n: usize) -> Vec<u8> {
     let mut objs: Vec<String> = vec!["<< /Type /Catalog /Pages 2 0 R >>".into()];
@@ -81,9 +81,9 @@ fn every_registered_command_is_implemented() {
             app.open_bytes("form.pdf", None, include_bytes!("../data/form.pdf").to_vec()).unwrap();
         } else if spec.id == "protect.unlock" {
             // Only a permissions password: opens restricted, and can be unlocked.
-            let mut doc = pdfcraft_cos::Document::open(std::sync::Arc::new(fixture(3))).unwrap();
-            doc.set_encryption(&pdfcraft_cos::NewEncryption {
-                algorithm: pdfcraft_cos::Algorithm::Aes256,
+            let mut doc = visionpdf_cos::Document::open(std::sync::Arc::new(fixture(3))).unwrap();
+            doc.set_encryption(&visionpdf_cos::NewEncryption {
+                algorithm: visionpdf_cos::Algorithm::Aes256,
                 user_password: "",
                 owner_password: "owner",
                 permissions: 0b0100,
@@ -91,24 +91,24 @@ fn every_registered_command_is_implemented() {
                 seed: [5; 32],
             })
             .unwrap();
-            app.open_bytes("restricted.pdf", None, pdfcraft_cos::write_full(&doc, &Default::default()).unwrap()).unwrap();
+            app.open_bytes("restricted.pdf", None, visionpdf_cos::write_full(&doc, &Default::default()).unwrap()).unwrap();
         } else {
             app.open_bytes("doc.pdf", None, fixture(3)).unwrap();
         }
         // Give undo/redo something to do.
-        app.apply_edit(pdfcraft_engine::Edit::RotatePages { pages: vec![0], degrees: 90 });
+        app.apply_edit(visionpdf_engine::Edit::RotatePages { pages: vec![0], degrees: 90 });
         if spec.id == "edit.redo" {
             app.undo();
         }
         if spec.id == "prepress.marks.remove" {
-            use pdfcraft_engine::{Edit, PrinterMarks};
+            use visionpdf_engine::{Edit, PrinterMarks};
             app.apply_edit(Edit::AddPrinterMarks { pages: vec![0], settings: PrinterMarks::default(), replace: false });
         }
         // Copying comments needs a selected comment; pasting needs copied ones.
         if matches!(spec.id, "comment.copy" | "comment.paste") {
-            let shape = pdfcraft_engine::Shape::Rectangle { rect: [10.0, 10.0, 50.0, 50.0] };
-            let style = pdfcraft_engine::Style::default_for(&shape);
-            assert!(app.apply_edit(pdfcraft_engine::Edit::AddAnnotation(pdfcraft_engine::NewAnnotation {
+            let shape = visionpdf_engine::Shape::Rectangle { rect: [10.0, 10.0, 50.0, 50.0] };
+            let style = visionpdf_engine::Style::default_for(&shape);
+            assert!(app.apply_edit(visionpdf_engine::Edit::AddAnnotation(visionpdf_engine::NewAnnotation {
                 page: 0,
                 shape,
                 style,
@@ -121,7 +121,7 @@ fn every_registered_command_is_implemented() {
             }
         }
         if spec.id.starts_with("edit.") && (spec.id.ends_with(".update") || spec.id.ends_with(".remove")) {
-            use pdfcraft_engine::{Background, Edit, HeaderFooter, Watermark};
+            use visionpdf_engine::{Background, Edit, HeaderFooter, Watermark};
             let mut hf = HeaderFooter::default();
             hf.text[1] = "x".into();
             app.apply_edit(Edit::AddHeaderFooter { pages: vec![0], settings: hf, replace: false });
@@ -139,7 +139,7 @@ fn every_registered_command_is_implemented() {
             });
         }
         if matches!(spec.id, "comment.flatten" | "comment.export" | "comment.summarize") {
-            use pdfcraft_engine::{Edit, NewAnnotation, Shape, Style};
+            use visionpdf_engine::{Edit, NewAnnotation, Shape, Style};
             let shape = Shape::Rectangle { rect: [10.0, 10.0, 50.0, 50.0] };
             app.apply_edit(Edit::AddAnnotation(NewAnnotation {
                 page: 0,
@@ -150,9 +150,9 @@ fn every_registered_command_is_implemented() {
             }));
         }
         if spec.id.starts_with("redact.") {
-            use pdfcraft_engine::{Edit, NewAnnotation, Shape, Style};
+            use visionpdf_engine::{Edit, NewAnnotation, Shape, Style};
             let shape =
-                Shape::Redact { quads: vec![pdfcraft_engine::rect_quad([10.0, 10.0, 50.0, 50.0])], overlay: String::new(), look: Default::default() };
+                Shape::Redact { quads: vec![visionpdf_engine::rect_quad([10.0, 10.0, 50.0, 50.0])], overlay: String::new(), look: Default::default() };
             app.apply_edit(Edit::AddAnnotation(NewAnnotation {
                 page: 0,
                 style: Style::default_for(&shape),
@@ -162,8 +162,8 @@ fn every_registered_command_is_implemented() {
             }));
         }
         if spec.id == "protect.remove" {
-            let p = pdfcraft_engine::Protection { open_password: Some("pw".into()), ..Default::default() };
-            app.apply_edit(pdfcraft_engine::Edit::Protect(p));
+            let p = visionpdf_engine::Protection { open_password: Some("pw".into()), ..Default::default() };
+            app.apply_edit(visionpdf_engine::Edit::Protect(p));
         }
         // The cover toggle needs two-page view first (it is disabled elsewhere).
         if spec.id == "view.layout.cover" {
@@ -176,7 +176,7 @@ fn every_registered_command_is_implemented() {
                 assert!(app.views[0].view_history(false));
             }
         }
-        let dir = std::env::temp_dir().join(format!("pdfcraft-cmd-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("visionpdf-cmd-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         app.save_override = Some(dir.join("out.pdf").to_string_lossy().into_owned());
         // A picker the list above misses (file.pin_folder, create.multiple_separate did) must not
@@ -203,7 +203,7 @@ fn disabled_commands_explain_themselves() {
 
 #[test]
 fn a_tool_chosen_with_no_document_asks_for_one_and_runs_on_it() {
-    let dir = std::env::temp_dir().join(format!("pdfcraft-tool-open-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-tool-open-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let path = dir.join("picked.pdf");
     std::fs::write(&path, fixture(2)).unwrap();
@@ -240,7 +240,7 @@ fn a_tool_chosen_with_no_document_asks_for_one_and_runs_on_it() {
 
 #[test]
 fn a_tool_chosen_with_an_already_open_file_focuses_its_tab_and_still_runs() {
-    let dir = std::env::temp_dir().join(format!("pdfcraft-tool-focus-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-tool-focus-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let path = dir.join("picked.pdf");
     std::fs::write(&path, fixture(2)).unwrap();
@@ -279,7 +279,7 @@ fn shortcuts_run_registered_commands() {
     h.run_steps(2);
     h.key_press_modifiers(Modifiers::COMMAND | Modifiers::CTRL, Key::H);
     h.run_steps(2);
-    assert_eq!(h.state().mode, pdfcraft_ui_egui::Mode::Read);
+    assert_eq!(h.state().mode, visionpdf_ui_egui::Mode::Read);
 }
 
 #[test]
@@ -293,7 +293,7 @@ fn ctrl_m_opens_the_comments_panel_and_keeps_it_open() {
         for _ in 0..2 {
             h.key_press_modifiers(Modifiers::CTRL | Modifiers::COMMAND, Key::M);
             h.run_steps(2);
-            assert_eq!(h.state().right, Some(pdfcraft_ui_egui::RightPanel::Comments), "{os:?}: opens rather than toggles");
+            assert_eq!(h.state().right, Some(visionpdf_ui_egui::RightPanel::Comments), "{os:?}: opens rather than toggles");
         }
         h.state_mut().execute("help.shortcuts");
         h.run_steps(3);
@@ -382,7 +382,7 @@ fn the_pages_menu_comes_from_the_registry() {
 /// original.
 #[test]
 fn the_open_recent_menu_lists_files_and_opens_one() {
-    let dir = std::env::temp_dir().join(format!("pdfcraft-recent-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-recent-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let path = dir.join("recent.pdf");
     std::fs::write(&path, fixture(2)).unwrap();
@@ -393,7 +393,7 @@ fn the_open_recent_menu_lists_files_and_opens_one() {
             let mut app = VisionPDFApp::new();
             app.set_option("language", "en").unwrap();
             app.open_bytes("doc.pdf", None, fixture(3)).unwrap();
-            app.recent.push(pdfcraft_ui_egui::RecentFile { name: "recent.pdf".into(), path, pages: 2, size: 0 });
+            app.recent.push(visionpdf_ui_egui::RecentFile { name: "recent.pdf".into(), path, pages: 2, size: 0 });
             app
         }
     });
@@ -423,8 +423,8 @@ fn the_open_recent_menu_is_disabled_while_the_list_is_empty() {
     );
 }
 
-fn recent_file(name: &str) -> pdfcraft_ui_egui::RecentFile {
-    pdfcraft_ui_egui::RecentFile { name: name.into(), path: format!("/nowhere/{name}"), pages: 1, size: 0 }
+fn recent_file(name: &str) -> visionpdf_ui_egui::RecentFile {
+    visionpdf_ui_egui::RecentFile { name: name.into(), path: format!("/nowhere/{name}"), pages: 1, size: 0 }
 }
 
 /// Check that Clear Recent Files empties the list and disables Open Recent.
@@ -514,7 +514,7 @@ fn localized_shortcuts_update_immediately_and_keep_command_ids_and_key_bindings(
     h.run_steps(2);
     h.key_press(Key::Enter);
     h.run_steps(3);
-    assert_eq!(h.state().mode, pdfcraft_ui_egui::Mode::Read);
+    assert_eq!(h.state().mode, visionpdf_ui_egui::Mode::Read);
     assert!(!h.state().palette_open);
     let doc = h.state().session.get(h.state().views[0].id).unwrap();
     assert!(!doc.dirty);

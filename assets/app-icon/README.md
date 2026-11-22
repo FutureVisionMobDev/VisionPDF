@@ -1,7 +1,7 @@
-# VisionPDF app icon
+# VisionPDF logo and app icons
 
-The icon is original VisionPDF artwork: a white document tile with a blue V over a deep-blue field. The master SVG is `pdfcraft.svg`; PNG, ICO and ICNS derivatives are generated from original vector artwork.
+The VisionPDF wordmark (`visionpdf-logo.png`) and square mark (`visionpdf-icon.png`) were supplied by the project owner for this rebrand. The app icon, Windows and macOS icon files, and Linux hicolor sizes are derived from the supplied square mark.
 
-All assets here are licensed under MIT OR Apache-2.0; see [LICENSE.txt](LICENSE.txt). The separate Windows PDF file icon is documented in [LICENSE-document.txt](LICENSE-document.txt).
+These assets are distributed under MIT OR Apache-2.0 with this repository. The separate Windows PDF document icon is documented in [LICENSE-document.txt](LICENSE-document.txt).
 
-`packaging/icons.sh` regenerates the platform icons when `resvg` is available.
+`packaging/icons.sh` regenerates the platform icon outputs when `resvg` is available.

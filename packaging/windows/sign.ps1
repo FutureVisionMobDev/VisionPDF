@@ -15,7 +15,7 @@
   timestamp server, ...). Optional overrides: WINDOWS_TIMESTAMP_URL, SIGNTOOL (path to signtool.exe).
 
 .EXAMPLE
-  pwsh packaging/windows/sign.ps1 dist/pdfcraft.exe dist/Pdfcraft.msi
+  pwsh packaging/windows/sign.ps1 dist/visionpdf.exe dist/VisionPDF.msi
 #>
 param(
   [Parameter(Mandatory = $true, ValueFromRemainingArguments = $true)]
@@ -56,7 +56,7 @@ if (-not $haveCert -and -not $haveAzure) {
 
 $script:SignTool = Find-SignTool
 $common = @('sign', '/v', '/fd', 'SHA256', '/td', 'SHA256', '/d', 'VisionPDF', '/du', 'https://github.com/FutureVisionMobDev/VisionPDF')
-$tmp = Join-Path ([IO.Path]::GetTempPath()) "pdfcraft-sign-$([IO.Path]::GetRandomFileName())"
+$tmp = Join-Path ([IO.Path]::GetTempPath()) "visionpdf-sign-$([IO.Path]::GetRandomFileName())"
 New-Item -ItemType Directory -Path $tmp | Out-Null
 
 try {

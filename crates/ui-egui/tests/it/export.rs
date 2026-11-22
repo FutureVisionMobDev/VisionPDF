@@ -2,7 +2,7 @@
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_ui_egui::VisionPDFApp;
 
 const FIXTURE: &[u8] = b"%PDF-1.7
 1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj
@@ -14,7 +14,7 @@ trailer << /Root 1 0 R >>
 
 #[test]
 fn export_dialogs_write_images_and_text() {
-    let dir = std::env::temp_dir().join(format!("pdfcraft-export-ui-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-export-ui-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let d = dir.clone();

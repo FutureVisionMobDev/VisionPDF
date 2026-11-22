@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
   <Fragment>
-    <UI Id="PdfcraftInstallerUI">
+    <UI Id="VisionPDFInstallerUI">
       <TextStyle Id="InstallerNormal" FaceName="Segoe UI" Size="9" />
       <TextStyle Id="InstallerTitle" FaceName="Segoe UI" Size="12" Bold="yes" />
       <Property Id="DefaultUIFont" Value="InstallerNormal" />

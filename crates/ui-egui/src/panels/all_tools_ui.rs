@@ -3,7 +3,7 @@
 //! its collapse button, Esc or choosing a tool closes it again.
 
 use egui::{Align2, Color32, CornerRadius, Rect, Sense, Stroke, vec2};
-use pdfcraft_engine::catalog::{self, Availability, TOOL_CATEGORIES, ToolGroup};
+use visionpdf_engine::catalog::{self, Availability, TOOL_CATEGORIES, ToolGroup};
 
 use crate::theme::{self, Tokens};
 use crate::{VisionPDFApp, icons, widgets};
@@ -33,7 +33,7 @@ fn matches(query: &str, group: &ToolGroup) -> Option<Vec<&'static str>> {
         return Some(Vec::new());
     }
     let action_hit = |id: &&str| {
-        pdfcraft_engine::commands::command(id).is_some_and(|spec| label_hit(spec.label, &crate::i18n::menu_label(spec.id, spec.label), query, rtl))
+        visionpdf_engine::commands::command(id).is_some_and(|spec| label_hit(spec.label, &crate::i18n::menu_label(spec.id, spec.label), query, rtl))
     };
     let items: Vec<_> =
         group.sections.iter().flat_map(|s| s.items.iter()).filter(|i| hit(i.label) || i.actions.iter().any(action_hit)).map(|i| i.label).collect();

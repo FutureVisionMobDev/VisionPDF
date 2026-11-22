@@ -11,8 +11,8 @@ use std::sync::Arc;
 use egui::accesskit::Role;
 use egui_kittest::Harness;
 use egui_kittest::kittest::{NodeT, Queryable};
-use pdfcraft_engine::{DocId, Edit, Session};
-use pdfcraft_ui_egui::{Dialog, VisionPDFApp};
+use visionpdf_engine::{DocId, Edit, Session};
+use visionpdf_ui_egui::{Dialog, VisionPDFApp};
 use serde::Deserialize;
 use serde_json::{Value, json};
 
@@ -66,7 +66,7 @@ fn fixture(title: &str) -> Result<Arc<Vec<u8>>, String> {
 }
 
 /// Expose actual engine metadata, edit generation and history labels for subset assertions.
-fn document_state(doc: &pdfcraft_engine::Document) -> Value {
+fn document_state(doc: &visionpdf_engine::Document) -> Value {
     let custom: serde_json::Map<String, Value> = doc.custom_info().into_iter().map(|(k, v)| (k, json!(v))).collect();
     let custom_count = custom.len();
     json!({

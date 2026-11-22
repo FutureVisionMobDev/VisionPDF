@@ -1,11 +1,11 @@
-//! What each registered command does in this frontend (`pdfcraft_engine::commands` says
+//! What each registered command does in this frontend (`visionpdf_engine::commands` says
 //! what it is called, where it appears, which key runs it and when it is enabled).
 //!
 //! Menus, keyboard shortcuts, the palette, the tool panels and automation (`set_option`, and
 //! the control channel later) all call `VisionPDFApp::execute`.
 
-use pdfcraft_engine::Edit;
-use pdfcraft_engine::commands::{self, COMMANDS, CommandSpec, Shortcut};
+use visionpdf_engine::Edit;
+use visionpdf_engine::commands::{self, COMMANDS, CommandSpec, Shortcut};
 
 use crate::{
     Dialog, Mode, VisionPDFApp, PropsTab, RightPanel, SaveTarget,
@@ -112,7 +112,7 @@ impl VisionPDFApp {
     /// Last-resort guard (app-agents.md rule 13): a command that panics is reported and the app, with its
     /// open documents, keeps running. Edits are applied to a copy, so the document is unchanged.
     pub fn execute(&mut self, id: &str) -> bool {
-        let done = match pdfcraft_engine::guard(|| self.execute_unguarded(id)) {
+        let done = match visionpdf_engine::guard(|| self.execute_unguarded(id)) {
             Ok(done) => done,
             Err(m) => {
                 // A command stopped part way through closing or replacing a tab must not leave
@@ -139,10 +139,10 @@ impl VisionPDFApp {
             }
             commands::Needs::Marks(k) if self.active.is_some() => {
                 let kind = match k {
-                    pdfcraft_engine::MarkKind::HeaderFooter => tl!("header or footer"),
-                    pdfcraft_engine::MarkKind::Watermark => tl!("watermark"),
-                    pdfcraft_engine::MarkKind::Background => tl!("background"),
-                    pdfcraft_engine::MarkKind::PrinterMarks => tl!("printer marks"),
+                    visionpdf_engine::MarkKind::HeaderFooter => tl!("header or footer"),
+                    visionpdf_engine::MarkKind::Watermark => tl!("watermark"),
+                    visionpdf_engine::MarkKind::Background => tl!("background"),
+                    visionpdf_engine::MarkKind::PrinterMarks => tl!("printer marks"),
                 };
                 crate::i18n::fmt(tl!("This document has no {kind} to change"), &[("kind", kind)])
             }
@@ -229,8 +229,8 @@ impl VisionPDFApp {
                     self.notify_tr("Security will be removed when you save");
                 }
             }
-            link if pdfcraft_engine::links::for_command(link).is_some() => {
-                if let Some(l) = pdfcraft_engine::links::for_command(link) {
+            link if visionpdf_engine::links::for_command(link).is_some() => {
+                if let Some(l) = visionpdf_engine::links::for_command(link) {
                     self.open_url(l.url);
                 }
             }
@@ -503,8 +503,8 @@ impl VisionPDFApp {
                             .map(|(page, quads)| {
                                 let style = self.comment_prefs.style(tool);
                                 let author = self.comment_prefs.author.clone();
-                                let shape = pdfcraft_engine::Shape::TextMarkup { kind, quads };
-                                Edit::AddAnnotation(pdfcraft_engine::NewAnnotation { page, shape, style, contents: String::new(), author })
+                                let shape = visionpdf_engine::Shape::TextMarkup { kind, quads };
+                                Edit::AddAnnotation(visionpdf_engine::NewAnnotation { page, shape, style, contents: String::new(), author })
                             })
                             .collect();
                         if let Some(edit) = self.views[i].selection_marks_edit(edits, head) {
@@ -523,7 +523,7 @@ impl VisionPDFApp {
             | "edit.header_footer.update"
             | "edit.watermark.update"
             | "edit.background.update" => {
-                use pdfcraft_engine::MarkKind as K;
+                use visionpdf_engine::MarkKind as K;
                 let kind = if id.starts_with("edit.header_footer") {
                     K::HeaderFooter
                 } else if id.starts_with("edit.watermark") {
@@ -545,11 +545,11 @@ impl VisionPDFApp {
                 }
                 self.marks_draft.focused_box = 5;
                 self.marks_draft.preview = None;
-                self.dialog = Some(Dialog::Marks(pdfcraft_engine::MarkKind::HeaderFooter));
+                self.dialog = Some(Dialog::Marks(visionpdf_engine::MarkKind::HeaderFooter));
             }
             "prepress.marks" => self.dialog = Some(Dialog::PrinterMarks),
             "edit.header_footer.remove" | "edit.watermark.remove" | "edit.background.remove" | "prepress.marks.remove" => {
-                use pdfcraft_engine::MarkKind as K;
+                use visionpdf_engine::MarkKind as K;
                 let kind = match id {
                     "edit.header_footer.remove" => K::HeaderFooter,
                     "edit.watermark.remove" => K::Watermark,
@@ -627,10 +627,10 @@ impl VisionPDFApp {
                     }
                 }
             }
-            "export.docx" => self.export_office_dialog(pdfcraft_engine::compare::OfficeFormat::Docx),
-            "export.pptx" => self.export_office_dialog(pdfcraft_engine::compare::OfficeFormat::Pptx),
-            "export.html" => self.export_office_dialog(pdfcraft_engine::compare::OfficeFormat::Html),
-            "export.rtf" => self.export_office_dialog(pdfcraft_engine::compare::OfficeFormat::Rtf),
+            "export.docx" => self.export_office_dialog(visionpdf_engine::compare::OfficeFormat::Docx),
+            "export.pptx" => self.export_office_dialog(visionpdf_engine::compare::OfficeFormat::Pptx),
+            "export.html" => self.export_office_dialog(visionpdf_engine::compare::OfficeFormat::Html),
+            "export.rtf" => self.export_office_dialog(visionpdf_engine::compare::OfficeFormat::Rtf),
             "ocr.enhance_camera" => {
                 // The corners start on the document's edges when they can be found, else
                 // inset on the current page (camera_ui::page_input).
@@ -679,9 +679,9 @@ impl VisionPDFApp {
             }
             "form.tab_order.row" | "form.tab_order.column" | "form.tab_order.structure" => {
                 let order = match id {
-                    "form.tab_order.row" => pdfcraft_engine::TabOrder::Row,
-                    "form.tab_order.column" => pdfcraft_engine::TabOrder::Column,
-                    _ => pdfcraft_engine::TabOrder::Structure,
+                    "form.tab_order.row" => visionpdf_engine::TabOrder::Row,
+                    "form.tab_order.column" => visionpdf_engine::TabOrder::Column,
+                    _ => visionpdf_engine::TabOrder::Structure,
                 };
                 let n = active.and_then(|i| self.session.get(self.views[i].id)).map_or(0, |d| d.info.pages.len());
                 self.apply_edit(Edit::SetTabOrder { pages: (0..n).collect(), order });
@@ -770,7 +770,7 @@ impl VisionPDFApp {
             }
             "a11y.report" => self.show_accessibility_report(),
             "a11y.autotag" => {
-                if self.apply_edit(pdfcraft_engine::Edit::AutoTagText) {
+                if self.apply_edit(visionpdf_engine::Edit::AutoTagText) {
                     self.choose_right_panel(Some(RightPanel::Tags));
                 }
             }

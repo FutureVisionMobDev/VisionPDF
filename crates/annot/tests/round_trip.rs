@@ -25,11 +25,11 @@ mod support {
     pub mod fixture;
 }
 
-use pdfcraft_annot::{
+use visionpdf_annot::{
     AnnotError, AttachIcon, LineEnding, Markup, Meta, NewAnnotation, NoteIcon, OverlayFont, OverlayLook, ReviewState, Shape, StampKind, Style,
     StyleChange, add_annotation, add_reply, delete_annotation, links, page_refs, props, set_locked, set_review_state, set_style, summaries,
 };
-use pdfcraft_cos::{Dict, Document, ObjRef, Object, SaveOptions};
+use visionpdf_cos::{Dict, Document, ObjRef, Object, SaveOptions};
 
 use support::bytes;
 use support::fixture::{
@@ -690,7 +690,7 @@ fn locked_flag_survives_and_still_refuses_edits_after_reopen() {
         assert_eq!(d.int(b"F"), Some(FLAG_PRINT | FLAG_READONLY), "{path:?}: Print plus ReadOnly (bit 8)");
         assert_eq!(props(&reopened, 0, 0).map(|p| p.locked), Some(true), "{path:?}");
         let mut try_move = reopened.clone();
-        let e = pdfcraft_annot::move_annotation(&mut try_move, 0, 0, 5.0, 5.0, &meta("nope")).err();
+        let e = visionpdf_annot::move_annotation(&mut try_move, 0, 0, 5.0, 5.0, &meta("nope")).err();
         assert_eq!(e, Some(AnnotError::Invalid("the comment is locked".into())), "{path:?}: moving a locked comment refuses");
         let mut try_delete = reopened.clone();
         assert!(delete_annotation(&mut try_delete, 0, 0).is_err(), "{path:?}: deleting a locked comment refuses");
@@ -989,9 +989,9 @@ fn a_full_rewrite_into_object_streams_describes_the_same_comments_as_a_plain_tab
 
     // The plain-table output is bigger here: object streams compress, which is the point of them.
     let opts = SaveOptions { mod_date: None, id_seed: 0x5052_494E_5443_5241, object_streams: true, drop_unlinked: false, id_entropy: None };
-    let packed_bytes = pdfcraft_cos::write_full(&doc, &opts).expect("writes");
+    let packed_bytes = visionpdf_cos::write_full(&doc, &opts).expect("writes");
     assert!(
-        packed_bytes.len() < pdfcraft_cos::write_full(&doc, &SaveOptions { object_streams: false, ..opts }).expect("writes").len(),
+        packed_bytes.len() < visionpdf_cos::write_full(&doc, &SaveOptions { object_streams: false, ..opts }).expect("writes").len(),
         "the packed file should be smaller"
     );
 }

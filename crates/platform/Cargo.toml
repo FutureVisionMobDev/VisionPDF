@@ -1,5 +1,5 @@
 [package]
-name = "pdfcraft-platform"
+name = "visionpdf-platform"
 description = "Operating-system services shared by the VisionPDF desktop app and automation tools"
 version.workspace = true
 edition.workspace = true

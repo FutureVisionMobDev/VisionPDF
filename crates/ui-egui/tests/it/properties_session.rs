@@ -3,8 +3,8 @@
 use egui::accesskit::Role;
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_engine::Edit;
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_engine::Edit;
+use visionpdf_ui_egui::VisionPDFApp;
 
 /// Open the real Properties dialog and type a title that has not entered document history.
 fn harness() -> Harness<'static, VisionPDFApp> {

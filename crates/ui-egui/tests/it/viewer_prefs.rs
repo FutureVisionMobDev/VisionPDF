@@ -4,9 +4,9 @@
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::VisionPDFApp;
-use pdfcraft_ui_egui::canvas::Fit;
-use pdfcraft_ui_egui::viewer_prefs::HiddenInterface;
+use visionpdf_ui_egui::VisionPDFApp;
+use visionpdf_ui_egui::canvas::Fit;
+use visionpdf_ui_egui::viewer_prefs::HiddenInterface;
 
 /// Two 200 × 300 pages; `catalog` is added to the catalog dictionary.
 fn fixture(catalog: &str) -> Vec<u8> {
@@ -221,7 +221,7 @@ fn one_page_at_a_time_opens_at_fit_page() {
 /// layout opens at.
 #[test]
 fn a_remembered_zoom_wins_over_the_layouts_fit_page() {
-    let path = std::env::temp_dir().join(format!("pdfcraft-viewer-prefs-last-view-{}.pdf", std::process::id())).to_string_lossy().into_owned();
+    let path = std::env::temp_dir().join(format!("visionpdf-viewer-prefs-last-view-{}.pdf", std::process::id())).to_string_lossy().into_owned();
     let mut app = VisionPDFApp::new();
     let json_path = serde_json::to_string(&path).unwrap();
     app.restore(&format!(r#"{{"last_views": [{{"path": {json_path}, "page": 1, "zoom": "62.5%", "display": "single"}}]}}"#));
@@ -233,7 +233,7 @@ fn a_remembered_zoom_wins_over_the_layouts_fit_page() {
 
 #[test]
 fn always_default_view_wins_over_a_remembered_view() {
-    let path = std::env::temp_dir().join(format!("pdfcraft-viewer-prefs-always-default-{}.pdf", std::process::id())).to_string_lossy().into_owned();
+    let path = std::env::temp_dir().join(format!("visionpdf-viewer-prefs-always-default-{}.pdf", std::process::id())).to_string_lossy().into_owned();
     let mut app = VisionPDFApp::new();
     let json_path = serde_json::to_string(&path).unwrap();
     app.restore(&format!(
@@ -243,7 +243,7 @@ fn always_default_view_wins_over_a_remembered_view() {
     assert!(app.restore_last_view);
     app.open_bytes("x.pdf", Some(path), fixture("/PageLayout /SinglePage")).unwrap();
     let v = &app.views[0];
-    assert_eq!((v.fit, v.layout, v.continuous(), v.current), (Fit::Width, pdfcraft_ui_egui::canvas::PageLayout::Single, true, 1));
+    assert_eq!((v.fit, v.layout, v.continuous(), v.current), (Fit::Width, visionpdf_ui_egui::canvas::PageLayout::Single, true, 1));
 }
 
 /// The last `InnerSize` and `OuterPosition` asked for over `frames` frames.

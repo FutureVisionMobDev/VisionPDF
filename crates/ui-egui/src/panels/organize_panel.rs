@@ -9,7 +9,7 @@
 //! toolbar did, so they run, refuse and undo the same way.
 
 use egui::{Align2, CornerRadius, Rect, Sense, Stroke, vec2};
-use pdfcraft_engine::Edit;
+use visionpdf_engine::Edit;
 
 use crate::canvas::ViewAction;
 use crate::theme::{self, Tokens};
@@ -71,7 +71,7 @@ pub(crate) fn panel(app: &mut VisionPDFApp, ui: &mut egui::Ui, t: &Tokens) {
         widgets::section_title(ui, tl!("Pages selected"));
         let current = view.current;
         let picked = view.organize_range.show(ui, &view.selected, n, current, |ui| {
-            use pdfcraft_engine::{PageOrientation as O, PageParity as P, filter_pages};
+            use visionpdf_engine::{PageOrientation as O, PageParity as P, filter_pages};
             let all: Vec<usize> = (0..n).collect();
             let mut chosen = None;
             for (label, parity, orient) in [
@@ -188,7 +188,7 @@ pub(crate) fn panel(app: &mut VisionPDFApp, ui: &mut egui::Ui, t: &Tokens) {
 /// Document Structure and Unspecified, then OK and Cancel. OK is off until a choice is made.
 /// Returns (OK, Cancel).
 pub(crate) fn page_props_body(ui: &mut egui::Ui, d: &mut crate::PagePropsDraft) -> (bool, bool) {
-    use pdfcraft_engine::TabOrder;
+    use visionpdf_engine::TabOrder;
     ui.label(egui::RichText::new(tl!("Page Properties")).font(theme::semibold(18.0)));
     widgets::section_title(ui, tl!("Tab Order"));
     for (order, label) in [

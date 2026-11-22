@@ -1,6 +1,6 @@
 VisionPDF portable mode
 
-While this file sits next to pdfcraft.exe, VisionPDF keeps its settings, log files, crash-recovery
+While this file sits next to visionpdf.exe, VisionPDF keeps its settings, log files, crash-recovery
 autosaves and new digital IDs in the VisionPDFData folder beside it, and writes nothing to
 %APPDATA% or %LOCALAPPDATA%. Copy the whole folder to move VisionPDF with its settings.
 
@@ -13,7 +13,7 @@ Opening PDF files with this copy
 The portable copy doesn't register itself with Windows, so picking it under "Open with" may not
 stick. To offer it in Settings > Apps > Default apps, open PowerShell in this folder and run:
 
-  $exe = (Resolve-Path .\pdfcraft.exe).Path
+  $exe = (Resolve-Path .\visionpdf.exe).Path
   $c = "HKCU:\Software\Classes"
   $cap = "HKCU:\Software\VisionPDF.Portable\Capabilities"
   foreach ($k in "$c\VisionPDF.Portable\shell\open\command", "$c\.pdf\OpenWithProgids",

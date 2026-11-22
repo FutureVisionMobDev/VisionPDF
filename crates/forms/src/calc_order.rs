@@ -4,7 +4,7 @@
 use std::cmp::Reverse;
 use std::collections::{BinaryHeap, HashMap, HashSet, VecDeque};
 
-use pdfcraft_cos::{Document, ObjRef, Object};
+use visionpdf_cos::{Document, ObjRef, Object};
 
 use crate::{Field, FormError, acroform, fields};
 

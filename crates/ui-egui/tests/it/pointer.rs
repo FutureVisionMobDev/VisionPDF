@@ -8,10 +8,10 @@
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_engine::StampKind;
-use pdfcraft_ui_egui::comments::CommentTool;
-use pdfcraft_ui_egui::fill_sign::FillTool;
-use pdfcraft_ui_egui::{Dialog, VisionPDFApp, QuickTool, UnlockPrompt};
+use visionpdf_engine::StampKind;
+use visionpdf_ui_egui::comments::CommentTool;
+use visionpdf_ui_egui::fill_sign::FillTool;
+use visionpdf_ui_egui::{Dialog, VisionPDFApp, QuickTool, UnlockPrompt};
 
 use crate::support::input::{coalesced_click, double_click, one_frame, touch_drag, touch_tap};
 
@@ -1621,9 +1621,9 @@ fn a_right_click_with_edit_text_on_a_paragraph_under_a_comment_selects_the_comme
 fn a_right_click_with_edit_text_on_added_text_over_a_comment_selects_no_comment() {
     let mut h = open(comment_on_text_pdf(), "150", false);
     assert!(h.state_mut().execute("edit.edit_text"));
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::AddText {
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::AddText {
         page: 0,
-        text: pdfcraft_engine::AddedText { rect: [110.0, 296.0, 190.0, 311.0], text: "Added".into(), ..Default::default() },
+        text: visionpdf_engine::AddedText { rect: [110.0, 296.0, 190.0, 311.0], text: "Added".into(), ..Default::default() },
     }));
     h.run_steps(4);
     let on_added = at(&h, 150.0, 303.0);
@@ -1687,9 +1687,9 @@ fn a_right_click_during_a_comment_move_keeps_the_moved_comment_selected() {
 #[test]
 fn a_click_on_added_text_deselects_the_selected_comment() {
     let mut h = open(comment_on_text_pdf(), "150", false);
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::AddText {
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::AddText {
         page: 0,
-        text: pdfcraft_engine::AddedText { rect: [40.0, 195.0, 140.0, 210.0], text: "Added".into(), ..Default::default() },
+        text: visionpdf_engine::AddedText { rect: [40.0, 195.0, 140.0, 210.0], text: "Added".into(), ..Default::default() },
     }));
     // The Edit panel open, with the Select tool: added text is picked up.
     assert!(h.state_mut().execute("edit.text"));
@@ -1710,7 +1710,7 @@ fn a_click_on_added_text_deselects_the_selected_comment() {
 fn a_right_click_selects_its_comment_though_a_gesture_was_left_over() {
     let mut h = open(stacked_comments_pdf(), "150", false);
     let bottom = at(&h, 60.0, 160.0);
-    h.state_mut().views[0].comments.gesture = Some(pdfcraft_ui_egui::comments::Gesture::Move { page: 0, index: 0, from: bottom });
+    h.state_mut().views[0].comments.gesture = Some(visionpdf_ui_egui::comments::Gesture::Move { page: 0, index: 0, from: bottom });
     let top = at(&h, 190.0, 290.0);
     right_click(&mut h, top);
     assert_eq!(h.state().views[0].comments.selected, Some((0, 1)), "the note under the right-click is selected");
@@ -1728,7 +1728,7 @@ fn a_comment_move_whose_release_the_pages_missed_ends_once_the_button_is_up() {
     };
     let before = rect(&h);
     let bottom = at(&h, 60.0, 160.0);
-    h.state_mut().views[0].comments.gesture = Some(pdfcraft_ui_egui::comments::Gesture::Move { page: 0, index: 0, from: bottom });
+    h.state_mut().views[0].comments.gesture = Some(visionpdf_ui_egui::comments::Gesture::Move { page: 0, index: 0, from: bottom });
     let elsewhere = at(&h, 250.0, 100.0);
     h.hover_at(elsewhere);
     h.run_steps(2);
@@ -1817,9 +1817,9 @@ fn a_right_click_after_escape_cancelled_the_press_anchors_the_menu_on_its_page()
 #[test]
 fn a_right_click_with_edit_text_on_added_text_unselects_the_comment() {
     let mut h = open(comment_on_text_pdf(), "150", false);
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::AddText {
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::AddText {
         page: 0,
-        text: pdfcraft_engine::AddedText { rect: [40.0, 195.0, 140.0, 210.0], text: "Added".into(), ..Default::default() },
+        text: visionpdf_engine::AddedText { rect: [40.0, 195.0, 140.0, 210.0], text: "Added".into(), ..Default::default() },
     }));
     h.state_mut().quick_tool = QuickTool::EditText;
     h.run_steps(4);
@@ -1965,10 +1965,10 @@ fn a_shift_click_where_two_pages_touch_keeps_what_it_selected() {
 /// and opens the page's menu, whose field entries would only be refused.
 #[test]
 fn with_prepare_on_a_locked_document_a_right_click_on_a_field_selects_nothing() {
-    let locked = crate::editing::encrypted(comment_and_checkbox_pdf(), pdfcraft_cos::Algorithm::Aes256, "", "owner", -1 ^ 8);
+    let locked = crate::editing::encrypted(comment_and_checkbox_pdf(), visionpdf_cos::Algorithm::Aes256, "", "owner", -1 ^ 8);
     let mut h = open(locked, "150", false);
     // Prepare doesn't open on such a document; it stays open on a tab switched to one.
-    h.state_mut().left = pdfcraft_ui_egui::LeftPanel::Tool("form");
+    h.state_mut().left = visionpdf_ui_egui::LeftPanel::Tool("form");
     h.state_mut().left_open = true;
     h.run_steps(4);
     assert!(h.state().is_preparing(), "Prepare is open");
@@ -2066,7 +2066,7 @@ fn a_click_beside_the_picture_unselects_it_where_objects_cant_be_grouped() {
     let doc = s.session.get(s.views[0].id).unwrap();
     assert_eq!(doc.page_images(0).len(), 1, "the picture");
     assert!(doc.editable_objects(0).is_err(), "and no objects to group");
-    h.state_mut().views[0].image_selection = Some(pdfcraft_ui_egui::ImageSelection::at(0, 0));
+    h.state_mut().views[0].image_selection = Some(visionpdf_ui_egui::ImageSelection::at(0, 0));
     h.run_steps(2);
     let blank = at(&h, 150.0, 100.0);
     mouse_click(&mut h, blank);
@@ -2091,9 +2091,9 @@ fn a_drag_from_a_link_lets_the_picked_picture_go() {
 #[test]
 fn a_note_tool_click_on_added_text_starts_no_note() {
     let mut h = open(comment_on_text_pdf(), "150", false);
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::AddText {
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::AddText {
         page: 0,
-        text: pdfcraft_engine::AddedText { rect: [40.0, 195.0, 140.0, 210.0], text: "Added".into(), ..Default::default() },
+        text: visionpdf_engine::AddedText { rect: [40.0, 195.0, 140.0, 210.0], text: "Added".into(), ..Default::default() },
     }));
     assert!(h.state_mut().execute("edit.text"));
     h.run_steps(3);
@@ -2122,7 +2122,7 @@ fn a_fill_and_sign_click_places_nothing_while_a_mark_is_moved() {
     h.run_steps(1);
     h.drag_at(blank);
     h.run_steps(1);
-    h.state_mut().views[0].comments.gesture = Some(pdfcraft_ui_egui::comments::Gesture::Move { page: 0, index: 0, from: blank });
+    h.state_mut().views[0].comments.gesture = Some(visionpdf_ui_egui::comments::Gesture::Move { page: 0, index: 0, from: blank });
     h.drop_at(blank);
     h.run_steps(4);
     assert_eq!(marks(&h), before, "no mark is placed");
@@ -2186,7 +2186,7 @@ fn paste_from_a_right_click_where_two_pages_touch_keeps_to_the_first_page() {
         app.system_clipboard = false;
         app.quick_tool = QuickTool::EditText;
     });
-    let clip = || pdfcraft_ui_egui::Clip::Image { width: 60, height: 40, rgba: [50u8, 150, 250, 255].repeat(60 * 40) };
+    let clip = || visionpdf_ui_egui::Clip::Image { width: 60, height: 40, rgba: [50u8, 150, 250, 255].repeat(60 * 40) };
     h.state_mut().clipboard_override = Some(clip());
     assert!(h.state_mut().paste_image_at(1, [100.0, 400.0]), "a picture across page 2's top edge");
     h.state_mut().clipboard_override = Some(clip());
@@ -2356,7 +2356,7 @@ fn delete_with_a_menu_open_leaves_the_selected_picture() {
     let mut h = open(linked_picture_pdf(), "150", false);
     h.state_mut().quick_tool = QuickTool::EditText;
     h.run_steps(4);
-    h.state_mut().views[0].image_selection = Some(pdfcraft_ui_egui::ImageSelection::at(0, 0));
+    h.state_mut().views[0].image_selection = Some(visionpdf_ui_egui::ImageSelection::at(0, 0));
     h.run_steps(3);
     crate::support::open_menu(&mut h, "View");
     h.key_press(egui::Key::Delete);

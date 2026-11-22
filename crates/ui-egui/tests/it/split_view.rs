@@ -7,8 +7,8 @@ use egui::accesskit::Role;
 use egui::{Key, Modifiers};
 use egui_kittest::Harness;
 use egui_kittest::kittest::{NodeT, Queryable};
-use pdfcraft_ui_egui::VisionPDFApp;
-use pdfcraft_ui_egui::panes::Place;
+use visionpdf_ui_egui::VisionPDFApp;
+use visionpdf_ui_egui::panes::Place;
 
 /// `pages` portrait pages (300 × 400) with a line of text each.
 fn fixture(pages: usize) -> Vec<u8> {
@@ -174,7 +174,7 @@ fn the_same_document_in_both_panes_is_one_document_with_one_undo() {
     click_at(&mut h, at);
     assert_eq!(h.state().active, Some(first));
     wait(&mut h, "both panes drawn", |s| portrait(s, first) && portrait(s, second));
-    use pdfcraft_engine::{Edit, NewAnnotation, Shape, Style};
+    use visionpdf_engine::{Edit, NewAnnotation, Shape, Style};
     let shape = Shape::Rectangle { rect: [40.0, 40.0, 200.0, 200.0] };
     let comment = NewAnnotation { page: 0, style: Style::default_for(&shape), shape, contents: String::new(), author: String::new() };
     assert!(h.state_mut().apply_edit(Edit::AddAnnotation(comment)));
@@ -228,7 +228,7 @@ fn split_again_or_closing_a_panes_last_tab_ends_split_view() {
     h.run_steps(3);
     let second = h.state().views.iter().position(|v| v.place() == Place::Second).unwrap();
     let (first_key, id) = (h.state().views[0].view_key(), h.state().views[0].id);
-    let typed = pdfcraft_ui_egui::fill_sign::TypeBox {
+    let typed = visionpdf_ui_egui::fill_sign::TypeBox {
         page: 0,
         at: [40.0, 40.0],
         text: "typed".into(),
@@ -239,7 +239,7 @@ fn split_again_or_closing_a_panes_last_tab_ends_split_view() {
     };
     h.state_mut().views[second].fill_text = Some(typed);
     h.state_mut().request_close_tab(second);
-    assert_eq!(h.state().close_request, Some(pdfcraft_ui_egui::CloseRequest::Tab(id)), "the typing is asked about");
+    assert_eq!(h.state().close_request, Some(visionpdf_ui_egui::CloseRequest::Tab(id)), "the typing is asked about");
     let ctx = h.ctx.clone();
     h.state_mut().resolve_close(&ctx, Some(false));
     h.run_steps(3);

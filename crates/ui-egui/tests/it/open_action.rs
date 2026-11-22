@@ -4,9 +4,9 @@
 
 use egui::{Key, Modifiers};
 use egui_kittest::Harness;
-use pdfcraft_render::DestView;
-use pdfcraft_ui_egui::canvas::Fit;
-use pdfcraft_ui_egui::{OpenOutcome, VisionPDFApp, RightPanel};
+use visionpdf_render::DestView;
+use visionpdf_ui_egui::canvas::Fit;
+use visionpdf_ui_egui::{OpenOutcome, VisionPDFApp, RightPanel};
 
 /// Six Letter (612×792) pages, objects 3 to 8; `catalog` is added to the catalog dictionary.
 /// Object 9 is an outline (one bookmark, object 10) that `/Outlines 9 0 R` can use.
@@ -196,7 +196,7 @@ const NAMED: &str = "/OpenAction [5 0 R /Fit] /Dests << /intro [4 0 R /Fit] >> /
 
 /// `fixture(NAMED)` saved as `manual.pdf` in a folder of its own, whose path is returned.
 fn manual(test: &str) -> String {
-    let dir = std::env::temp_dir().join(format!("pdfcraft-open-parameters-{test}-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-open-parameters-{test}-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let path = dir.join("manual.pdf");
@@ -272,7 +272,7 @@ fn open_parameters_wait_with_their_file_behind_a_password_prompt_and_a_full_queu
     // prompt. A file named with open parameters keeps them while it waits, and named again, it
     // opens at the place asked for last; the protected file named again with them while its
     // password is asked for opens there once unlocked. They opened where they would have.
-    let dir = std::env::temp_dir().join(format!("pdfcraft-open-parameters-queue-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-open-parameters-queue-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let file = |name: &str, bytes: Vec<u8>| {
@@ -280,7 +280,7 @@ fn open_parameters_wait_with_their_file_behind_a_password_prompt_and_a_full_queu
         std::fs::write(&path, bytes).unwrap();
         path.to_string_lossy().into_owned()
     };
-    let locked = file("locked.pdf", crate::editing::encrypted(fixture(NAMED), pdfcraft_cos::Algorithm::Aes256, "reader", "owner", -4));
+    let locked = file("locked.pdf", crate::editing::encrypted(fixture(NAMED), visionpdf_cos::Algorithm::Aes256, "reader", "owner", -4));
     let others: Vec<String> = (0..16).map(|i| file(&format!("other-{i:02}.pdf"), fixture(""))).collect();
     let manual = file("manual.pdf", fixture(NAMED));
     let (first, rest, last) = (locked.clone(), others.clone(), manual.clone());

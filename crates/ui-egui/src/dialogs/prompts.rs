@@ -167,7 +167,7 @@ pub(super) fn link_prompt(app: &mut VisionPDFApp, ctx: &egui::Context) {
         // The host as the browser will connect to it, in punycode when it is international, so a
         // lookalike such as `pаypal.com` (Cyrillic `а`) reads as `xn--pypal-4ve.com`. Its Unicode
         // form isn't repeated here: a whole-script lookalike would read as the real site.
-        if let Some(host) = pdfcraft_engine::links::display_host(&pending.url) {
+        if let Some(host) = visionpdf_engine::links::display_host(&pending.url) {
             ui.label(egui::RichText::new(&host.ascii).font(theme::semibold(14.0)));
             if host.mixed_scripts {
                 let warning = tl!("This web address mixes letters from different alphabets, a common way to imitate another site's name.");

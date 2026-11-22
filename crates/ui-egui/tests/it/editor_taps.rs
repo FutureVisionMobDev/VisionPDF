@@ -6,7 +6,7 @@
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_ui_egui::VisionPDFApp;
 
 use crate::support::input::touch_tap;
 
@@ -94,7 +94,7 @@ fn widget(h: &Harness<'_, VisionPDFApp>, name: &str, w: usize) -> egui::Rect {
     let s = h.state();
     let doc = s.session.get(s.views[0].id).unwrap();
     let f = doc.form.iter().find(|f| f.name == name).unwrap();
-    pdfcraft_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, w).expect("on screen")
+    visionpdf_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, w).expect("on screen")
 }
 
 fn value(h: &Harness<'_, VisionPDFApp>, name: &str) -> Vec<String> {
@@ -184,10 +184,10 @@ const MONTHS: [&str; 12] = ["January", "February", "March", "April", "May", "Jun
 
 /// Adds a date field `due` at x 40..160, y 240..260, its calendar under it.
 fn add_date_field(h: &mut Harness<'_, VisionPDFApp>) {
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::AddField {
+    h.state_mut().apply_edit(visionpdf_engine::Edit::AddField {
         page: 0,
         rect: [40.0, 240.0, 160.0, 260.0],
-        kind: pdfcraft_engine::NewField::Date,
+        kind: visionpdf_engine::NewField::Date,
         name: Some("due".into()),
     });
     h.run_steps(4);

@@ -16,10 +16,10 @@ use std::collections::BTreeSet;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
-use pdfcraft_engine::ocr::{
+use visionpdf_engine::ocr::{
     ConfidenceBand, EngineChoice, MergeStrategy, OcrGuard, OcrPage, OcrSettings, OutputMode, PlacedWord, band_for, clamp_region,
 };
-use pdfcraft_engine::{DocId, Session};
+use visionpdf_engine::{DocId, Session};
 
 use super::ocr_ui;
 use crate::theme::{self, Tokens};
@@ -135,7 +135,7 @@ pub fn is_uncertain(page: &OcrPage, key: (usize, usize), review: &Review) -> boo
     if w.text.trim().is_empty() || review.dictionary.contains(&w.text.to_lowercase()) {
         return false;
     }
-    pdfcraft_engine::ocr::is_suspect(w.confidence)
+    visionpdf_engine::ocr::is_suspect(w.confidence)
 }
 
 /// Candidate corrections for `text`: dictionary words and the page's own words within edit
@@ -292,7 +292,7 @@ fn read_dictionary(path: &std::path::Path) -> Result<String, String> {
     let mut text = String::new();
     match std::fs::File::open(path) {
         Ok(file) => {
-            file.take((pdfcraft_engine::ocr::dictionary::MAX_BYTES + 1) as u64).read_to_string(&mut text).map_err(|e| e.to_string())?;
+            file.take((visionpdf_engine::ocr::dictionary::MAX_BYTES + 1) as u64).read_to_string(&mut text).map_err(|e| e.to_string())?;
         }
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
         Err(e) => return Err(e.to_string()),
@@ -417,7 +417,7 @@ impl OcrVerify {
                         !self.review.removed.contains(&(p, *i))
                             && !w.text.trim().is_empty()
                             && !self.review.dictionary.contains(&w.text.to_lowercase())
-                            && pdfcraft_engine::ocr::is_suspect(w.confidence)
+                            && visionpdf_engine::ocr::is_suspect(w.confidence)
                     })
                     .count()
             })
@@ -573,7 +573,7 @@ impl OcrVerify {
 
     /// Validate the complete file and persist atomically before changing review state.
     fn updated_dictionary(&self, add: &[&str], remove: &[&str]) -> Result<(BTreeSet<String>, bool), String> {
-        use pdfcraft_engine::ocr::dictionary;
+        use visionpdf_engine::ocr::dictionary;
         let path = self.dictionary_dir.as_ref().map(|dir| dictionary_path(dir, &self.dictionary_language)).transpose()?;
         let current =
             if let Some(path) = &path { read_dictionary(path)? } else { self.review.dictionary.iter().cloned().collect::<Vec<_>>().join("\n") };
@@ -600,7 +600,7 @@ impl OcrVerify {
                 return;
             }
         };
-        match read_dictionary(&path).and_then(|text| pdfcraft_engine::ocr::dictionary::words(&text)) {
+        match read_dictionary(&path).and_then(|text| visionpdf_engine::ocr::dictionary::words(&text)) {
             Ok(words) => self.review.dictionary = words,
             Err(why) => self.message = format!("OCR dictionary: {why}"),
         }
@@ -964,7 +964,7 @@ impl OcrVerify {
         self.message = if is_region { tl!("Re-reading the region…").to_string() } else { tl!("Re-reading the page…").to_string() };
         let p = progress.clone();
         let work = move || {
-            let result = pdfcraft_engine::ocr::recognizers(&job.settings).and_then(|r| {
+            let result = visionpdf_engine::ocr::recognizers(&job.settings).and_then(|r| {
                 let found = job.run(&r, |_, _| !p.lock().map(|s| s.cancel).unwrap_or(false));
                 let words: Vec<PlacedWord> = found.into_iter().flat_map(|pg| pg.words).collect();
                 if words.is_empty() {
@@ -982,7 +982,7 @@ impl OcrVerify {
             }
         };
         // The OS can refuse a new thread: then nothing runs, and the page's words stay as they were.
-        if let Err(e) = launch(app, "pdfcraft-ocr-reread", work) {
+        if let Err(e) = launch(app, "visionpdf-ocr-reread", work) {
             self.message = format!("the re-read could not start: {e}");
             app.notify_error(self.message.clone());
             return;
@@ -992,7 +992,7 @@ impl OcrVerify {
 
     /// The web build is downloading the models: remember what was asked for and say so; it
     /// starts when they land ([`Self::poll_models`]). Before, the read ran at once and failed
-    /// with the desktop's "set PDFCRAFT_MODELS" message, which means nothing in a browser.
+    /// with the desktop's "set VISIONPDF_MODELS" message, which means nothing in a browser.
     #[cfg(target_arch = "wasm32")]
     fn wait_for_models(&mut self, what: AwaitingModels) {
         self.awaiting_models = Some(what);
@@ -1005,7 +1005,7 @@ impl OcrVerify {
         if self.awaiting_models.is_none() {
             return;
         }
-        use pdfcraft_engine::ocr::{EngineChoice, engine_unavailable_reason};
+        use visionpdf_engine::ocr::{EngineChoice, engine_unavailable_reason};
         if engine_unavailable_reason(EngineChoice::Ocrs).is_none() {
             // The models are in. An engine the browser can never run (Tesseract) says why
             // rather than waiting for ever.
@@ -1233,7 +1233,7 @@ impl OcrVerify {
         let progress = Arc::new(Mutex::new(ocr_ui::OcrProgress { total: job.pages.len(), ..Default::default() }));
         let p = progress.clone();
         let work = move || {
-            let result = pdfcraft_engine::ocr::recognizers(&settings).map(|r| {
+            let result = visionpdf_engine::ocr::recognizers(&settings).map(|r| {
                 job.run(&r, |done, total| {
                     let Ok(mut s) = p.lock() else { return false };
                     s.done = done;
@@ -1248,7 +1248,7 @@ impl OcrVerify {
         // The OS can refuse a new thread. Then nothing runs: a review already on the screen stays
         // as it was, and an empty screen shows why (Run stays enabled, and nothing holds the
         // document open).
-        if let Err(e) = launch(app, "pdfcraft-ocr-verify", work) {
+        if let Err(e) = launch(app, "visionpdf-ocr-verify", work) {
             self.message = format!("the recognition could not start: {e}");
             if self.phase == Phase::Idle {
                 self.phase = Phase::RecoverableError;
@@ -1455,7 +1455,7 @@ fn toolbar(app: &mut VisionPDFApp, ui: &mut egui::Ui, n: &mut Intents) {
     // Row 1: the settings (each written back into the persisted draft).
     ui.horizontal_wrapped(|ui| {
         craft_ui::ComboBox::from_id_salt("ocr-verify-language").width(150.0).selected_text(language_name(&d.language)).show_ui(ui, |ui| {
-            for (code, name) in pdfcraft_engine::ocr::LANGUAGES {
+            for (code, name) in visionpdf_engine::ocr::LANGUAGES {
                 ui.selectable_value(&mut d.language, (*code).to_string(), *name);
             }
         });
@@ -1533,7 +1533,7 @@ fn toolbar(app: &mut VisionPDFApp, ui: &mut egui::Ui, n: &mut Intents) {
 
 /// A language code's dropdown text: its name and its code ("English (en)").
 fn language_name(code: &str) -> String {
-    pdfcraft_engine::ocr::LANGUAGES.iter().find(|l| l.0 == code).map_or_else(|| code.to_owned(), |l| format!("{} ({})", l.1, l.0))
+    visionpdf_engine::ocr::LANGUAGES.iter().find(|l| l.0 == code).map_or_else(|| code.to_owned(), |l| format!("{} ({})", l.1, l.0))
 }
 
 /// The Engine dropdown's text.
@@ -1562,7 +1562,7 @@ fn engine_combo(ui: &mut egui::Ui, engine: &mut EngineChoice, strategy: &mut Mer
     ocr_ui::keep_asking_while_probing(ui.ctx());
     craft_ui::ComboBox::from_id_salt("ocr-verify-engine").width(120.0).selected_text(engine_label(*engine)).show_ui(ui, |ui| {
         for (choice, label) in [(EngineChoice::Auto, tl!("Automatic")), (EngineChoice::Ocrs, "ocrs"), (EngineChoice::Tesseract, "Tesseract")] {
-            let why = pdfcraft_engine::ocr::engine_unavailable_reason(choice);
+            let why = visionpdf_engine::ocr::engine_unavailable_reason(choice);
             let resp = ui.add_enabled(why.is_none(), egui::Button::selectable(*engine == choice, label));
             let clicked = resp.clicked();
             match why {
@@ -1633,7 +1633,7 @@ fn output_combo(ui: &mut egui::Ui, mode: &mut OutputMode) {
 fn info_strip(app: &VisionPDFApp, ui: &mut egui::Ui, t: &Tokens) {
     let v = &app.ocr_verify;
     let read = v.pages.iter().filter(|p| p.skipped.is_none()).count();
-    let avg = v.page(v.current).and_then(pdfcraft_engine::ocr::OcrPage::mean_confidence);
+    let avg = v.page(v.current).and_then(visionpdf_engine::ocr::OcrPage::mean_confidence);
     let cells = [
         (tl!("PAGE"), v.page_indicator(v.doc.and_then(|d| app.session.get(d)).map(|d| d.info.pages.len()))),
         (tl!("AVG CONFIDENCE"), avg.map_or_else(|| "—".into(), |c| format!("{c:.0}%"))),
@@ -1662,7 +1662,7 @@ fn pages_pane(app: &mut VisionPDFApp, ui: &mut egui::Ui, n: &mut Intents) {
             let p = pg.page;
             let (live, suspects) = (
                 pg.words.iter().filter(|w| !w.text.trim().is_empty()).count(),
-                pg.words.iter().filter(|w| !w.text.trim().is_empty() && pdfcraft_engine::ocr::is_suspect(w.confidence)).count(),
+                pg.words.iter().filter(|w| !w.text.trim().is_empty() && visionpdf_engine::ocr::is_suspect(w.confidence)).count(),
             );
             let marked = if pg.skipped.is_some() {
                 format!(" · {}", tl!("skipped"))
@@ -1815,7 +1815,7 @@ fn source_pane(app: &mut VisionPDFApp, ui: &mut egui::Ui, t: &Tokens, n: &mut In
 /// does not lie on the page). The region is already in view space (the drag stored it so), so
 /// it is only scaled: mapping it through `user_to_view` again would mirror it vertically (and
 /// misplace it on rotated or cropped pages).
-fn pane_region(region: [f32; 4], info: &pdfcraft_render::PageInfo, img_rect: egui::Rect) -> Option<egui::Rect> {
+fn pane_region(region: [f32; 4], info: &visionpdf_render::PageInfo, img_rect: egui::Rect) -> Option<egui::Rect> {
     let scale = img_rect.width() / info.width.max(1.0);
     let to_pane = |v: [f32; 2]| egui::pos2(img_rect.left() + v[0] * scale, img_rect.top() + v[1] * scale);
     let a = to_pane([region[0], region[1]]);
@@ -1892,9 +1892,9 @@ fn ensure_preview(app: &mut VisionPDFApp, page: usize) {
     tests::PREVIEW_RENDERS.with(|n| n.set(n.get().saturating_add(1)));
     // Screen scale (the boxes are drawn on top of it); the recognition dpi is irrelevant here.
     let scale = 2.0_f32.min((900.0 / info.width.max(1.0)).min(1200.0 / info.height.max(1.0))).max(0.2);
-    let config = pdfcraft_render::RenderConfig { password: d.password.as_deref().map(std::sync::Arc::from), ..Default::default() };
-    let mut r = pdfcraft_render::PageRenderer::new(d.bytes.clone(), config);
-    let shot = r.render(pdfcraft_render::RenderRequest { page, kind: pdfcraft_render::RequestKind::Pixels, scale, ..Default::default() });
+    let config = visionpdf_render::RenderConfig { password: d.password.as_deref().map(std::sync::Arc::from), ..Default::default() };
+    let mut r = visionpdf_render::PageRenderer::new(d.bytes.clone(), config);
+    let shot = r.render(visionpdf_render::RenderRequest { page, kind: visionpdf_render::RequestKind::Pixels, scale, ..Default::default() });
     let failed = shot.error.is_some() || shot.width == 0 || shot.height == 0;
     #[cfg(test)]
     let failed = failed || tests::FAIL_RENDER.with(std::cell::Cell::get);
@@ -2284,7 +2284,7 @@ fn refresh_view(app: &mut VisionPDFApp, doc: DocId) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pdfcraft_engine::Session;
+    use visionpdf_engine::Session;
 
     thread_local! {
         /// [`launch`] refuses to start a worker, as the OS can.
@@ -2444,7 +2444,7 @@ mod tests {
         let (id, mut v) = loaded(&mut s, &[Some(95.0)]);
         assert!(v.correct((0, 0), "Corrected"), "the correction commits");
         // The document changed since the job started: the result no longer applies.
-        s.apply(id, pdfcraft_engine::Edit::RotatePages { pages: vec![0], degrees: 90 }).expect("fixture");
+        s.apply(id, visionpdf_engine::Edit::RotatePages { pages: vec![0], degrees: 90 }).expect("fixture");
         let why = v.accept(&mut s).expect_err("the stale result is refused");
         assert!(why.contains("changed"), "{why}");
         assert_eq!(v.phase, Phase::RecoverableError, "Run is enabled again");
@@ -2480,8 +2480,8 @@ mod tests {
     /// The text the document's page `page` carries now, as the renderer extracts it.
     fn page_text(s: &Session, id: DocId, page: usize) -> String {
         let doc = s.get(id).expect("open");
-        let mut r = pdfcraft_render::PageRenderer::new(doc.bytes.clone(), pdfcraft_render::RenderConfig::default());
-        let request = pdfcraft_render::RenderRequest { page, kind: pdfcraft_render::RequestKind::Text, scale: 1.0, ..Default::default() };
+        let mut r = visionpdf_render::PageRenderer::new(doc.bytes.clone(), visionpdf_render::RenderConfig::default());
+        let request = visionpdf_render::RenderRequest { page, kind: visionpdf_render::RequestKind::Text, scale: 1.0, ..Default::default() };
         r.render(request).text.map(|t| t.plain_text()).unwrap_or_default()
     }
 
@@ -2550,7 +2550,7 @@ mod tests {
         let mut s = Session::new();
         let (id, mut v) = blank_review(&mut s, vec![vec![word("one", Some(95.0))], vec![word("two", Some(95.0))]]);
         assert_eq!(v.accept_page(&mut s, 0), Ok(1));
-        s.apply(id, pdfcraft_engine::Edit::RotatePages { pages: vec![0], degrees: 90 }).expect("an unrelated edit");
+        s.apply(id, visionpdf_engine::Edit::RotatePages { pages: vec![0], degrees: 90 }).expect("an unrelated edit");
         let why = v.accept_page(&mut s, 1).expect_err("stale after an outside edit");
         assert!(why.contains("changed since recognition started"), "{why}");
         assert_eq!(v.phase, Phase::RecoverableError);
@@ -2644,7 +2644,7 @@ mod tests {
     }
 
     /// The web build: a Run OCR asked for while the models download runs once they land, rather
-    /// than failing at once with the desktop's "set PDFCRAFT_MODELS" message.
+    /// than failing at once with the desktop's "set VISIONPDF_MODELS" message.
     #[test]
     fn a_run_that_waited_for_the_models_starts_when_they_land() {
         let (mut app, _) = app_review(vec![vec![word("one", Some(95.0))]]);
@@ -2730,7 +2730,7 @@ mod tests {
         let (mut app, id) = app_review(vec![vec![word("one", Some(95.0))], vec![word("two", Some(95.0))]]);
         app.ocr_verify.reread = Some(finished_reread(None, Ok(vec![word("late", Some(95.0))])));
         app.ocr_verify.current = 1;
-        app.session.apply(id, pdfcraft_engine::Edit::RotatePages { pages: vec![1], degrees: 90 }).expect("an edit");
+        app.session.apply(id, visionpdf_engine::Edit::RotatePages { pages: vec![1], degrees: 90 }).expect("an edit");
         with_state(&mut app, OcrVerify::poll_reread);
         let words: Vec<_> = app.ocr_verify.page(1).expect("page").words.iter().map(|w| w.text.clone()).collect();
         assert_eq!(words, ["two"], "the late reading is not applied");
@@ -2807,7 +2807,7 @@ mod tests {
         let mut s = Session::new();
         let (id, v) = loaded(&mut s, &[Some(95.0)]);
         assert!(v.editable_output(&s).is_ok(), "an untouched document is fine");
-        s.apply(id, pdfcraft_engine::Edit::RotatePages { pages: vec![0], degrees: 90 }).expect("an edit");
+        s.apply(id, visionpdf_engine::Edit::RotatePages { pages: vec![0], degrees: 90 }).expect("an edit");
         let err = v.editable_output(&s).expect_err("a changed document is refused");
         assert!(err.contains("changed since recognition started"), "{err}");
     }
@@ -2831,7 +2831,7 @@ mod tests {
         app.ocr_draft.output_mode = OutputMode::EditableText;
         // A destination that cannot be written (the "folder" is a regular file): the write
         // fails, the review stays in ReviewReady with the edit, Accept is enabled again.
-        let blocker = std::env::temp_dir().join(format!("pdfcraft-ocr-save-block-{}", std::process::id()));
+        let blocker = std::env::temp_dir().join(format!("visionpdf-ocr-save-block-{}", std::process::id()));
         std::fs::write(&blocker, b"not a folder").expect("fixture");
         app.export_dir_override = Some(blocker.to_string_lossy().into_owned());
         with_state(&mut app, do_accept);
@@ -2847,7 +2847,7 @@ mod tests {
         assert_eq!(app.ocr_verify.text_of((0, 0)), Some("Edited"));
         assert_eq!(app.ocr_verify.doc, Some(id), "the review still belongs to its document");
         // A real destination: the file lands under `<name>_ocr.pdf` and the review ends.
-        let dir = std::env::temp_dir().join(format!("pdfcraft-ocr-save-out-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("visionpdf-ocr-save-out-{}", std::process::id()));
         std::fs::create_dir_all(&dir).expect("fixture");
         app.pick_override = Some(vec![dir.join("t_ocr.pdf").to_string_lossy().into_owned()]);
         with_state(&mut app, do_accept);
@@ -2967,7 +2967,7 @@ mod tests {
         let (_, mut v) = loaded(&mut session, &[Some(40.0)]);
         let locale = crate::i18n::current().code();
         let language = if locale == "en" { "fr" } else { "en" };
-        let dir = std::env::temp_dir().join(format!("pdfcraft-ocr-dictionary-language-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("visionpdf-ocr-dictionary-language-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         std::fs::write(dir.join(format!("ocr-dictionary-{locale}.txt")), "wrong\n").unwrap();
         let path = dir.join(format!("ocr-dictionary-{language}.txt"));
@@ -2986,7 +2986,7 @@ mod tests {
     fn dictionary_limit_and_normalization_failures_preserve_file_and_review() {
         let mut session = Session::new();
         let (_, mut v) = loaded(&mut session, &[Some(40.0)]);
-        let dir = std::env::temp_dir().join(format!("pdfcraft-ocr-dictionary-limits-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("visionpdf-ocr-dictionary-limits-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join("ocr-dictionary-en.txt");
         let full: String = (0..65536).map(|i| format!("word{i}\n")).collect();
@@ -3003,7 +3003,7 @@ mod tests {
         assert_eq!(v.review.dictionary, before);
         assert_eq!(std::fs::read_to_string(&path).unwrap(), full);
         let full_bytes: String = (0..8192).map(|i| format!("{i:05}{}\n", "a".repeat(506))).collect();
-        assert_eq!(full_bytes.len(), pdfcraft_engine::ocr::dictionary::MAX_BYTES);
+        assert_eq!(full_bytes.len(), visionpdf_engine::ocr::dictionary::MAX_BYTES);
         std::fs::write(&path, &full_bytes).unwrap();
         v.load_dictionary_pref();
         let before = v.review.dictionary.clone();
@@ -3022,7 +3022,7 @@ mod tests {
     fn dictionary_undo_persists_and_failed_undo_keeps_history() {
         let mut session = Session::new();
         let (_, mut v) = loaded(&mut session, &[Some(40.0)]);
-        let dir = std::env::temp_dir().join(format!("pdfcraft-ocr-dictionary-undo-{}", std::process::id()));
+        let dir = std::env::temp_dir().join(format!("visionpdf-ocr-dictionary-undo-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join("ocr-dictionary-en.txt");
         std::fs::write(&path, "original\n").unwrap();
@@ -3076,10 +3076,10 @@ mod tests {
     #[test]
     fn the_region_outline_is_where_it_was_drawn() {
         let img = egui::Rect::from_min_size(egui::pos2(10.0, 20.0), egui::vec2(306.0, 396.0));
-        let upright = pdfcraft_render::PageInfo { width: 612.0, height: 792.0, label: "1".into(), crop: [0.0, 0.0, 612.0, 792.0], rotation: 0 };
+        let upright = visionpdf_render::PageInfo { width: 612.0, height: 792.0, label: "1".into(), crop: [0.0, 0.0, 612.0, 792.0], rotation: 0 };
         let r = pane_region([100.0, 50.0, 200.0, 150.0], &upright, img).expect("on the page");
         assert_eq!((r.left(), r.top(), r.right(), r.bottom()), (60.0, 45.0, 110.0, 95.0), "top region stays at the top");
-        let turned = pdfcraft_render::PageInfo { width: 792.0, height: 612.0, label: "1".into(), crop: [36.0, 36.0, 648.0, 828.0], rotation: 90 };
+        let turned = visionpdf_render::PageInfo { width: 792.0, height: 612.0, label: "1".into(), crop: [36.0, 36.0, 648.0, 828.0], rotation: 90 };
         let img = egui::Rect::from_min_size(egui::pos2(0.0, 0.0), egui::vec2(396.0, 306.0));
         let r = pane_region([100.0, 50.0, 200.0, 150.0], &turned, img).expect("on the page");
         assert_eq!((r.left(), r.top(), r.right(), r.bottom()), (50.0, 25.0, 100.0, 75.0));
@@ -3337,7 +3337,7 @@ mod tests {
         let mut s = Session::new();
         let (id, mut v) = loaded(&mut s, &[Some(95.0)]);
         assert!(v.correct((0, 0), "Corrected"));
-        s.apply(id, pdfcraft_engine::Edit::RotatePages { pages: vec![0], degrees: 90 }).expect("fixture");
+        s.apply(id, visionpdf_engine::Edit::RotatePages { pages: vec![0], degrees: 90 }).expect("fixture");
         assert!(v.accept(&mut s).is_err(), "the stale reading is refused");
         assert_eq!(v.phase, Phase::RecoverableError);
         assert!(v.holds_reading_of(id), "its document stays open");
@@ -3436,12 +3436,12 @@ mod tests {
             ensure_preview(&mut app, 0);
         }
         assert_eq!(renders(), before + 1, "repaints do not render it again");
-        app.session.apply(id, pdfcraft_engine::Edit::RotatePages { pages: vec![0], degrees: 90 }).expect("an edit");
+        app.session.apply(id, visionpdf_engine::Edit::RotatePages { pages: vec![0], degrees: 90 }).expect("an edit");
         ensure_preview(&mut app, 0);
         assert_eq!(renders(), before + 2, "a changed document is tried again");
         // A page that renders clears the failure.
         FAIL_RENDER.with(|f| f.set(false));
-        app.session.apply(id, pdfcraft_engine::Edit::RotatePages { pages: vec![0], degrees: 90 }).expect("an edit");
+        app.session.apply(id, visionpdf_engine::Edit::RotatePages { pages: vec![0], degrees: 90 }).expect("an edit");
         ensure_preview(&mut app, 0);
         assert!(app.ocr_verify.preview.is_some());
         assert!(app.ocr_verify.preview_failed.is_none());

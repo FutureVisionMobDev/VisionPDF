@@ -1,4 +1,4 @@
-//! pdfcraft-fonts — font metrics and encodings for generated appearances (L2).
+//! visionpdf-fonts — font metrics and encodings for generated appearances (L2).
 //!
 //! Standard-14 advance widths are exact (`Std14`, ISO 32000-2 Annex D). What remains approximate
 //! is everything that needs a font *program*: this crate reads font dictionaries, never embedded
@@ -178,14 +178,14 @@ pub fn undrawable_message(what: &str, c: char) -> String {
 pub const UNDRAWN_MARK: &[u8] = b"PCUndrawn";
 
 /// The character [`UNDRAWN_MARK`] records on `d`, if VisionPDF drew its appearance with `?`.
-pub fn undrawn_mark(d: &pdfcraft_cos::Dict) -> Option<char> {
-    d.get(UNDRAWN_MARK).and_then(pdfcraft_cos::Object::as_string).and_then(|s| s.to_text().chars().next())
+pub fn undrawn_mark(d: &visionpdf_cos::Dict) -> Option<char> {
+    d.get(UNDRAWN_MARK).and_then(visionpdf_cos::Object::as_string).and_then(|s| s.to_text().chars().next())
 }
 
 /// Record (`Some`) or clear (`None`) [`UNDRAWN_MARK`] on `d`, for the appearance just drawn.
-pub fn set_undrawn_mark(d: &mut pdfcraft_cos::Dict, c: Option<char>) {
+pub fn set_undrawn_mark(d: &mut visionpdf_cos::Dict, c: Option<char>) {
     match c {
-        Some(c) => d.set(UNDRAWN_MARK.to_vec(), pdfcraft_cos::PdfString::text(&c.to_string())),
+        Some(c) => d.set(UNDRAWN_MARK.to_vec(), visionpdf_cos::PdfString::text(&c.to_string())),
         None => {
             d.remove(UNDRAWN_MARK);
         }
@@ -267,7 +267,7 @@ mod tests {
 
     #[test]
     fn the_undrawn_mark_records_one_character_and_clears() {
-        let mut d = pdfcraft_cos::Dict::new();
+        let mut d = visionpdf_cos::Dict::new();
         assert_eq!(undrawn_mark(&d), None);
         set_undrawn_mark(&mut d, Some('𠀋'));
         assert_eq!(undrawn_mark(&d), Some('𠀋'), "beyond U+FFFF, as a UTF-16 text string");
@@ -276,7 +276,7 @@ mod tests {
         set_undrawn_mark(&mut d, None);
         assert!(!d.contains(UNDRAWN_MARK));
         // Another value under the key is not a character: no mark.
-        d.set(UNDRAWN_MARK.to_vec(), pdfcraft_cos::Object::Bool(true));
+        d.set(UNDRAWN_MARK.to_vec(), visionpdf_cos::Object::Bool(true));
         assert_eq!(undrawn_mark(&d), None);
     }
 

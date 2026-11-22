@@ -3,8 +3,8 @@
 //! offers a report or the differences as comments.
 
 use egui::{Align, Color32, Layout};
-use pdfcraft_engine::DocId;
-use pdfcraft_engine::compare::{Comparison, Kind};
+use visionpdf_engine::DocId;
+use visionpdf_engine::compare::{Comparison, Kind};
 
 use crate::theme::{self, Tokens};
 use crate::{VisionPDFApp, RightPanel, widgets};
@@ -46,7 +46,7 @@ pub enum PanelAction {
 }
 
 pub fn colour(kind: Kind) -> Color32 {
-    let [r, g, b] = pdfcraft_engine::compare::colour(kind);
+    let [r, g, b] = visionpdf_engine::compare::colour(kind);
     Color32::from_rgb((r * 255.0) as u8, (g * 255.0) as u8, (b * 255.0) as u8)
 }
 

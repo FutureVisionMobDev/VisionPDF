@@ -2,7 +2,7 @@
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::{VisionPDFApp, QuickTool};
+use visionpdf_ui_egui::{VisionPDFApp, QuickTool};
 
 #[test]
 fn choosing_and_placing_stamps() {
@@ -19,7 +19,7 @@ fn choosing_and_placing_stamps() {
     h.get_by_label("Add a stamp");
     h.get_all_by_label("APPROVED").next().expect("dynamic approved").click();
     h.run_steps(2);
-    assert_eq!(h.state().quick_tool, QuickTool::Stamp(pdfcraft_engine::StampKind::DynApproved));
+    assert_eq!(h.state().quick_tool, QuickTool::Stamp(visionpdf_engine::StampKind::DynApproved));
     let p = {
         let r = h.state().views[0].page_screen_rect(0).unwrap();
         r.min + egui::vec2(r.width() * 0.5, r.height() * 0.85)
@@ -39,7 +39,7 @@ fn choosing_and_placing_stamps() {
         h.run_steps(2);
         std::thread::sleep(std::time::Duration::from_millis(10));
     }
-    if let Ok(dir) = std::env::var("PDFCRAFT_SHOTS") {
+    if let Ok(dir) = std::env::var("VISIONPDF_SHOTS") {
         let _gpu = crate::gpu();
         h.render().unwrap().save(format!("{dir}/stamps.png")).unwrap();
     }
@@ -53,7 +53,7 @@ fn natural_image_stamps_keep_displayed_bounds_on_rotated_pages() {
             app.set_option("language", "en").unwrap();
             app.open_bytes("form.pdf", None, include_bytes!("../data/form.pdf").to_vec()).unwrap();
             let id = app.views[0].id;
-            app.session.apply(id, pdfcraft_engine::Edit::RotatePages { pages: vec![0], degrees }).unwrap();
+            app.session.apply(id, visionpdf_engine::Edit::RotatePages { pages: vec![0], degrees }).unwrap();
             app.set_option("zoom", "100").unwrap();
             app
         });
@@ -178,11 +178,11 @@ fn a_dynamic_custom_stamp_keeps_its_line_and_fills_it_in_when_placed() {
     h.run_steps(4);
     let s = h.state();
     let saved = s.session.save_bytes(s.views[0].id).unwrap();
-    let pdf = pdfcraft_cos::Document::open(saved).unwrap();
+    let pdf = visionpdf_cos::Document::open(saved).unwrap();
     let line = pdf
         .scan_objects()
         .find_map(|(_, object)| match object.as_ref() {
-            pdfcraft_cos::Object::Dict(dict) => dict.get(b"PCByLine").and_then(pdfcraft_cos::Object::as_string).map(pdfcraft_cos::PdfString::to_text),
+            visionpdf_cos::Object::Dict(dict) => dict.get(b"PCByLine").and_then(visionpdf_cos::Object::as_string).map(visionpdf_cos::PdfString::to_text),
             _ => None,
         })
         .expect("placed custom stamp stores PCByLine in the PDF");

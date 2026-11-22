@@ -6,8 +6,8 @@
 //! Hand-written PDF skeletons and the save/reopen helpers these tests share.
 //!
 //! The shape follows `crates/annot/src/tests.rs::fixture`: build the bytes of a small
-//! cross-referenced PDF by hand, open it with `pdfcraft_cos::Document::open`, and let
-//! `pdfcraft-annot` add comments through its public API. Doing it this way (rather than
+//! cross-referenced PDF by hand, open it with `visionpdf_cos::Document::open`, and let
+//! `visionpdf-annot` add comments through its public API. Doing it this way (rather than
 //! constructing a `Document` in memory) matters for these tests: the file has a real
 //! cross-reference chain, so `write_incremental` takes its genuine incremental path instead of
 //! silently falling back to a full rewrite.
@@ -25,7 +25,7 @@
 
 use std::sync::Arc;
 
-use pdfcraft_cos::{Dict, Document, Object, SaveOptions, write_full, write_incremental};
+use visionpdf_cos::{Dict, Document, Object, SaveOptions, write_full, write_incremental};
 
 /// Which writer path a round trip should take.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
@@ -143,7 +143,7 @@ pub fn page_object_numbers(doc: &Document) -> Vec<u32> {
     out
 }
 
-fn collect_pages(doc: &Document, node: pdfcraft_cos::ObjRef, seen: &mut std::collections::HashSet<pdfcraft_cos::ObjRef>, out: &mut Vec<u32>) {
+fn collect_pages(doc: &Document, node: visionpdf_cos::ObjRef, seen: &mut std::collections::HashSet<visionpdf_cos::ObjRef>, out: &mut Vec<u32>) {
     // `seen` bounds the walk, so a cyclic page tree visits each node once and cannot recurse forever.
     if !seen.insert(node) || seen.len() > 10_000 {
         return;
@@ -166,7 +166,7 @@ fn collect_pages(doc: &Document, node: pdfcraft_cos::ObjRef, seen: &mut std::col
 /// The raw entries of page `page`'s `/Annots`, in array order (references or inline dictionaries).
 pub fn annot_entries(doc: &Document, page: usize) -> Vec<Object> {
     let num = *page_object_numbers(doc).get(page).expect("the page exists");
-    let d = doc.get(pdfcraft_cos::ObjRef::new(num, 0));
+    let d = doc.get(visionpdf_cos::ObjRef::new(num, 0));
     let Some(a) = d.as_dict().and_then(|d| d.get(b"Annots").map(|a| doc.resolve(a))) else { return Vec::new() };
     a.as_array().cloned().unwrap_or_default()
 }
@@ -201,7 +201,7 @@ pub fn name_of(doc: &Document, d: &Dict, key: &[u8]) -> Option<String> {
 }
 
 /// Annotation flag bit masks, ISO 32000-2 §12.5.3 Table 165 (the spec numbers bits from 1).
-/// `pdfcraft-annot` keeps these private, so they are restated here from the standard: this is
+/// `visionpdf-annot` keeps these private, so they are restated here from the standard: this is
 /// deliberately *not* read back from the crate, otherwise a wrong bit would be tested against
 /// itself.
 pub const FLAG_INVALID: i64 = 1 << 0; // bit 1

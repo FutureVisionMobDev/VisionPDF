@@ -1,7 +1,7 @@
 //! The menus: one definition ([`VisionPDFApp::menu_bar`]) for the native macOS menu bar and the
 //! in-window bar on Windows, Linux and the web, laid out for each platform by craft-menu.
 //!
-//! Items run registry commands (`pdfcraft_engine::commands`) by id, with the registry's label and
+//! Items run registry commands (`visionpdf_engine::commands`) by id, with the registry's label and
 //! shortcut, so a menu click and its shortcut run the same command. A few items have menu-only
 //! ids: the zoom keys the document view handles itself, the side panel choices, the clipboard
 //! keys, the recent files and the open documents. [`VisionPDFApp::run_menu_command`] runs every
@@ -11,8 +11,8 @@ use craft_keymap::{Key, Mods};
 use craft_menu::{
     Builtin, Chord, CommandRef, Document, Gate, Item, ItemRole, ItemState, Labeled, LayoutOptions, Menu, MenuBar, MenuRole, Node, Target,
 };
-use pdfcraft_engine::catalog::{Availability, TOOL_GROUPS};
-use pdfcraft_engine::commands::{self, Shortcut};
+use visionpdf_engine::catalog::{Availability, TOOL_GROUPS};
+use visionpdf_engine::commands::{self, Shortcut};
 
 use crate::canvas::{Fit, PageLayout};
 use crate::theme::ThemePreference;
@@ -496,7 +496,7 @@ impl VisionPDFApp {
                 "edit.copy" | CUT if edit_objects && view.is_some_and(|v| v.objects.count() > 0) => {
                     doc.is_some_and(|d| d.allows_copying() && (command.id != CUT || d.allows_modification()))
                 }
-                PASTE if edit_objects && self.object_clipboard.is_some() => doc.is_some_and(pdfcraft_engine::Document::allows_modification),
+                PASTE if edit_objects && self.object_clipboard.is_some() => doc.is_some_and(visionpdf_engine::Document::allows_modification),
                 // Selected comments are what ⌘C copies when no text is selected, and ⌘V pastes
                 // copied ones onto the pages (#7123); the menu items send those same events.
                 // Selected text is ⌘C's first, and Prepare Form takes neither key (`clipboard_keys`).
@@ -607,7 +607,7 @@ impl VisionPDFApp {
             .gate(gate)
             .label(&translate)
             .english(&english)
-            .id(egui::Id::unique("pdfcraft-menu-bar"))
+            .id(egui::Id::unique("visionpdf-menu-bar"))
             .shrink_to_fit(fit)
             .show(ui);
         for command in chosen {

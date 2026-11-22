@@ -3,8 +3,8 @@
 use egui::Pos2;
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_engine::LinkAction;
-use pdfcraft_ui_egui::{Dialog, VisionPDFApp};
+use visionpdf_engine::LinkAction;
+use visionpdf_ui_egui::{Dialog, VisionPDFApp};
 
 fn harness() -> Harness<'static, VisionPDFApp> {
     // 60 fps steps, so two clicks fall inside egui's double-click window.
@@ -38,7 +38,7 @@ fn drag(h: &mut Harness<'static, VisionPDFApp>, a: Pos2, b: Pos2) {
     h.run_steps(3);
 }
 
-fn links(h: &Harness<'static, VisionPDFApp>) -> Vec<pdfcraft_engine::LinkItem> {
+fn links(h: &Harness<'static, VisionPDFApp>) -> Vec<visionpdf_engine::LinkItem> {
     let s = h.state();
     s.session.get(s.views[0].id).unwrap().links().to_vec()
 }
@@ -77,7 +77,7 @@ fn drawing_editing_and_deleting_links() {
     }
     h.get_by_label("OK").click();
     h.run_steps(3);
-    assert_eq!(links(&h)[0].action, LinkAction::Page { page: 0, zoom: pdfcraft_engine::LinkZoom::FitPage });
+    assert_eq!(links(&h)[0].action, LinkAction::Page { page: 0, zoom: visionpdf_engine::LinkZoom::FitPage });
     // Delete the selected link.
     h.key_press(egui::Key::Delete);
     h.run_steps(3);
@@ -87,7 +87,7 @@ fn drawing_editing_and_deleting_links() {
 #[test]
 fn link_properties_sets_the_page_view_zoom() {
     use egui::accesskit::Role;
-    use pdfcraft_engine::LinkZoom;
+    use visionpdf_engine::LinkZoom;
     let mut h = harness();
     assert!(h.state_mut().execute("edit.link"));
     let (a, b) = (at(&h, 40.0, 300.0), at(&h, 160.0, 320.0));
@@ -118,7 +118,7 @@ trailer << /Root 1 0 R >>
 
 #[test]
 fn an_appearance_edit_keeps_the_destination_as_written() {
-    use pdfcraft_render::{DestView, LinkTarget};
+    use visionpdf_render::{DestView, LinkTarget};
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
         let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
@@ -196,7 +196,7 @@ fn the_link_context_menu_shows_only_for_a_right_click_on_a_link() {
     h.key_press(egui::Key::Escape);
     h.run_steps(3);
     // A right-click on the link gets it, with the Select tool too.
-    h.state_mut().quick_tool = pdfcraft_ui_egui::QuickTool::Select;
+    h.state_mut().quick_tool = visionpdf_ui_egui::QuickTool::Select;
     h.run_steps(2);
     right_click(&mut h, on_link);
     h.get_by_label("Remove all links").click();

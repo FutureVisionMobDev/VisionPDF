@@ -1,5 +1,5 @@
 [package]
-name = "pdfcraft-engine"
+name = "visionpdf-engine"
 description = "VisionPDF engine façade: session, documents, command/tool catalogue"
 version.workspace = true
 edition.workspace = true
@@ -11,32 +11,32 @@ workspace = true
 [dependencies]
 craft-docpath = { workspace = true }
 craft-image-codecs = { workspace = true }
-pdfcraft-measure = { workspace = true }
+visionpdf-measure = { workspace = true }
 image = { version = "0.25", default-features = false }
-pdfcraft-render = { workspace = true }
-pdfcraft-cos = { workspace = true }
-pdfcraft-organize = { workspace = true }
-pdfcraft-annot = { workspace = true }
-pdfcraft-forms = { workspace = true }
-pdfcraft-xfa = { workspace = true }
-pdfcraft-edit = { workspace = true }
-pdfcraft-content = { workspace = true }
-pdfcraft-audit = { workspace = true }
-pdfcraft-redact = { workspace = true }
-pdfcraft-print = { workspace = true }
-pdfcraft-xfdf = { workspace = true }
-pdfcraft-sign = { workspace = true }
-pdfcraft-optimize = { workspace = true }
-pdfcraft-a11y = { workspace = true }
-pdfcraft-ocr = { workspace = true }
-pdfcraft-js = { workspace = true }
-pdfcraft-compare = { workspace = true }
-pdfcraft-preflight = { workspace = true }
-pdfcraft-export = { workspace = true }
-pdfcraft-fonts = { workspace = true }
-pdfcraft-create = { workspace = true }
-pdfcraft-model = { workspace = true }
-pdfcraft-geom = { workspace = true }
+visionpdf-render = { workspace = true }
+visionpdf-cos = { workspace = true }
+visionpdf-organize = { workspace = true }
+visionpdf-annot = { workspace = true }
+visionpdf-forms = { workspace = true }
+visionpdf-xfa = { workspace = true }
+visionpdf-edit = { workspace = true }
+visionpdf-content = { workspace = true }
+visionpdf-audit = { workspace = true }
+visionpdf-redact = { workspace = true }
+visionpdf-print = { workspace = true }
+visionpdf-xfdf = { workspace = true }
+visionpdf-sign = { workspace = true }
+visionpdf-optimize = { workspace = true }
+visionpdf-a11y = { workspace = true }
+visionpdf-ocr = { workspace = true }
+visionpdf-js = { workspace = true }
+visionpdf-compare = { workspace = true }
+visionpdf-preflight = { workspace = true }
+visionpdf-export = { workspace = true }
+visionpdf-fonts = { workspace = true }
+visionpdf-create = { workspace = true }
+visionpdf-model = { workspace = true }
+visionpdf-geom = { workspace = true }
 thiserror = { workspace = true }
 # Already in the graph (url and idna through webbrowser, icu_properties through boa): they show
 # the host of a document's link the way the browser reads it (links::display_host).
@@ -63,6 +63,6 @@ getrandom = { version = "0.4", features = ["wasm_js"] }
 # Synthetic printer profiles for the app-managed print colour tests.
 craft-cms = { workspace = true }
 craft-tiff = { workspace = true }
-pdfcraft-testkit = { workspace = true }
+visionpdf-testkit = { workspace = true }
 # JBIG2 fixtures (`encode_jbig2_generic`).
-pdfcraft-filters = { workspace = true }
+visionpdf-filters = { workspace = true }

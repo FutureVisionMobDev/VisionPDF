@@ -18,7 +18,7 @@
 use std::collections::{HashMap, HashSet};
 
 use egui::{Pos2, Rect, Sense, Stroke, vec2};
-use pdfcraft_engine::DocId;
+use visionpdf_engine::DocId;
 
 use crate::theme::Tokens;
 use crate::{CloseRequest, VisionPDFApp};

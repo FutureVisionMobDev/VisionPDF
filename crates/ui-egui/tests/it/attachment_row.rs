@@ -3,7 +3,7 @@
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_ui_egui::VisionPDFApp;
 
 /// A one-page PDF with no embedded files, to attach to.
 const INNER: &[u8] = b"%PDF-1.7
@@ -98,7 +98,7 @@ struct Dir(std::path::PathBuf);
 
 impl Dir {
     fn new(test: &str) -> Self {
-        let path = std::env::temp_dir().join(format!("pdfcraft-attachment-row-{test}-{}", std::process::id()));
+        let path = std::env::temp_dir().join(format!("visionpdf-attachment-row-{test}-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&path);
         std::fs::create_dir_all(&path).unwrap();
         Self(path)
@@ -231,7 +231,7 @@ fn editing_the_document_while_description_dialog_is_open_discards_its_stale_draf
     h.run_steps(2);
     assert!(
         h.state_mut()
-            .apply_edit(pdfcraft_engine::Edit::EditAttachmentDescription { key: "notes.txt".into(), description: Some("Changed elsewhere".into()) })
+            .apply_edit(visionpdf_engine::Edit::EditAttachmentDescription { key: "notes.txt".into(), description: Some("Changed elsewhere".into()) })
     );
     h.get_by_label("OK").click();
     h.run_steps(3);

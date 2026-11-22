@@ -1,5 +1,5 @@
 [package]
-name = "pdfcraft-ui-egui"
+name = "visionpdf-ui-egui"
 description = "The egui shell of VisionPDF"
 version.workspace = true
 edition.workspace = true
@@ -20,14 +20,14 @@ craft-i18n = { workspace = true }
 # Quit from the menus asks the window to close, so the unsaved-changes check runs; on macOS a window
 # close also quits through `terminate:` (the Touch Bar crash, #1136).
 craft-quit = { workspace = true, features = ["egui"] }
-pdfcraft-fonts = { workspace = true }
-pdfcraft-engine = { workspace = true }
-pdfcraft-cos = { workspace = true }
-pdfcraft-content = { workspace = true }
-pdfcraft-ocr = { workspace = true }
-pdfcraft-render = { workspace = true }
-pdfcraft-model = { workspace = true }
-pdfcraft-platform = { workspace = true }
+visionpdf-fonts = { workspace = true }
+visionpdf-engine = { workspace = true }
+visionpdf-cos = { workspace = true }
+visionpdf-content = { workspace = true }
+visionpdf-ocr = { workspace = true }
+visionpdf-render = { workspace = true }
+visionpdf-model = { workspace = true }
+visionpdf-platform = { workspace = true }
 egui = { workspace = true, features = ["bytemuck", "default_fonts", "monochrome_emoji_fonts"] }
 egui_extras = { workspace = true }
 # `glow` is always on: `eframe::App::on_exit` takes a GL context when that feature is enabled.
@@ -69,7 +69,7 @@ fontconfig-parser = "0.5.8"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 # Safe AppKit calls for drag coordinates, which end of the title bar the traffic lights are at, and
-# repairing an existing per-file PDFCraft binding. The Objective-C wrappers and block support are
+# repairing an existing per-file VisionPDF binding. The Objective-C wrappers and block support are
 # already in the tree through arboard and rfd.
 objc2 = "0.6"
 objc2-app-kit = { version = "0.3", default-features = false, features = ["std", "NSApplication", "NSEvent", "NSResponder", "NSScreen", "NSUserInterfaceLayout", "NSWindow", "NSWorkspace", "block2"] }
@@ -95,7 +95,7 @@ web-sys = { version = "0.3", features = ["Window", "Document", "Element", "HtmlE
 
 [dev-dependencies]
 craft-update = { workspace = true }
-pdfcraft-xfa = { workspace = true }
+visionpdf-xfa = { workspace = true }
 # A content stream that inflates past the renderer's limits, for the cut-content notice test.
 flate2 = { workspace = true }
 egui_kittest = { workspace = true, features = ["eframe", "wgpu"] }
@@ -103,7 +103,7 @@ egui_kittest = { workspace = true, features = ["eframe", "wgpu"] }
 # be enabled on the test graph itself (a dependency's dev-features do not propagate).
 egui = { workspace = true, features = ["default_fonts", "monochrome_emoji_fonts"] }
 image = { version = "0.25", default-features = false }
-# Glyph-coverage test of the interface fonts; the same skrifa pdfcraft-fonts already uses.
+# Glyph-coverage test of the interface fonts; the same skrifa visionpdf-fonts already uses.
 skrifa = "0.44"
 proptest = { workspace = true }
 

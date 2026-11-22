@@ -1,5 +1,5 @@
 //! PDF-tab actions. Closed history contains paths only, never bytes or passwords.
-use pdfcraft_engine::DocId;
+use visionpdf_engine::DocId;
 
 pub(crate) enum Action {
     /// Close a tab, by its view key (`DocView::view_key`: split view can show one document in two
@@ -35,7 +35,7 @@ impl crate::VisionPDFApp {
         };
         if self.run_inline {
             work();
-        } else if let Err(e) = std::thread::Builder::new().name("pdfcraft-reveal".into()).spawn(work) {
+        } else if let Err(e) = std::thread::Builder::new().name("visionpdf-reveal".into()).spawn(work) {
             self.notify_error(e);
         }
     }
@@ -200,7 +200,7 @@ mod tests {
         app.open_bytes("first.pdf", Some("/tmp/first.pdf".into()), PDF.to_vec()).unwrap();
         let (first, first_tab) = (app.views[0].id, app.views[0].view_key());
         app.open_bytes("second.pdf", None, PDF.to_vec()).unwrap();
-        app.session.apply(first, pdfcraft_engine::Edit::InsertBlankPage { at: 0, width: 300.0, height: 400.0 }).unwrap();
+        app.session.apply(first, visionpdf_engine::Edit::InsertBlankPage { at: 0, width: 300.0, height: 400.0 }).unwrap();
         app.tab_action(Action::Close(first_tab));
         assert_eq!(app.views.len(), 2);
         assert!(app.closed_tabs.is_empty());
@@ -219,7 +219,7 @@ mod tests {
     fn reopen_reads_saved_file_and_history_is_bounded() {
         use std::io::Write as _;
         let nonce = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
-        let path = std::env::temp_dir().join(format!("pdfcraft-tab-{}-{nonce}-年度 report.pdf", std::process::id()));
+        let path = std::env::temp_dir().join(format!("visionpdf-tab-{}-{nonce}-年度 report.pdf", std::process::id()));
         let mut file = std::fs::OpenOptions::new().write(true).create_new(true).open(&path).unwrap();
         file.write_all(PDF).unwrap();
         drop(file);
@@ -243,7 +243,7 @@ mod tests {
     fn failed_reopen_keeps_history_and_retry_does_not_duplicate_tabs() {
         use std::io::Write as _;
         let nonce = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos();
-        let path = std::env::temp_dir().join(format!("pdfcraft-retry-{}-{nonce}.pdf", std::process::id()));
+        let path = std::env::temp_dir().join(format!("visionpdf-retry-{}-{nonce}.pdf", std::process::id()));
         let text = path.to_str().unwrap();
         let mut file = std::fs::OpenOptions::new().create_new(true).write(true).open(&path).unwrap();
         file.write_all(PDF).unwrap();
@@ -270,7 +270,7 @@ mod tests {
     fn a_failed_reveal_is_reported_back_to_the_ui_thread() {
         let mut app = crate::VisionPDFApp::new();
         app.run_inline = true;
-        app.reveal_path(std::path::Path::new("/pdfcraft-no-such-dir/missing.pdf"));
+        app.reveal_path(std::path::Path::new("/visionpdf-no-such-dir/missing.pdf"));
         assert!(app.toast.is_none(), "nothing is shown until the UI thread takes the report");
         app.show_reveal_errors();
         assert_eq!(app.toast.as_ref().map(|t| t.0.as_str()), Some("The file no longer exists"));

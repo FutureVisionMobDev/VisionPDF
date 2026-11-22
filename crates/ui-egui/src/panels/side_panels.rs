@@ -343,7 +343,7 @@ impl PaneContent<Pane> for Content<'_> {
         match pane {
             Pane::Tools => crate::panels::left_panel(self.app, ui),
             Pane::Side => {
-                ui.data_mut(|data| data.insert_temp(egui::Id::unique("pdfcraft-inspector-body"), ui.max_rect()));
+                ui.data_mut(|data| data.insert_temp(egui::Id::unique("visionpdf-inspector-body"), ui.max_rect()));
                 crate::panels::right_panel(self.app, ui);
             }
         }
@@ -436,7 +436,7 @@ pub fn show(app: &mut VisionPDFApp, ui: &mut egui::Ui) {
     let labels = PaneLabels { resize: crate::i18n::t("Resize panels").to_owned(), ..PaneLabels::default() };
     let panels = app.side_panels;
     // Columns: both panes may share the right edge, Tools outermost, as `open` lists them.
-    let host = egui::Id::unique("pdfcraft-side-panels");
+    let host = egui::Id::unique("visionpdf-side-panels");
     let output = PaneHost::new(host)
         .policy(SidePolicy::Columns)
         .f6(false)

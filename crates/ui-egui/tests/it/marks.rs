@@ -3,8 +3,8 @@
 use crate::support;
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_engine::MarkKind;
-use pdfcraft_ui_egui::{Dialog, VisionPDFApp};
+use visionpdf_engine::MarkKind;
+use visionpdf_ui_egui::{Dialog, VisionPDFApp};
 
 const FIXTURE: &[u8] = b"%PDF-1.7
 1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj
@@ -47,7 +47,7 @@ fn header_and_footer_dialog_inserts_tokens_and_applies_to_a_subset() {
     h.get_by_label("Insert Page Number").click();
     h.run_steps(2);
     assert_eq!(h.state().marks_draft.hf.text[4], "<<1>>");
-    h.state_mut().marks_draft.range.subset = pdfcraft_ui_egui::marks::Subset::Odd;
+    h.state_mut().marks_draft.range.subset = visionpdf_ui_egui::marks::Subset::Odd;
     h.run_steps(2);
     h.get_by_label("OK").click();
     h.run_steps(4);
@@ -75,15 +75,15 @@ fn header_and_footer_dialog_draws_in_the_chosen_face() {
     h.run_steps(2);
     h.get_by_label("Times").click();
     h.run_steps(2);
-    assert_eq!(h.state().marks_draft.hf.font, pdfcraft_engine::FontFamily::Times);
+    assert_eq!(h.state().marks_draft.hf.font, visionpdf_engine::FontFamily::Times);
     h.state_mut().marks_draft.hf.text[0] = "Serif".into();
     h.run_steps(2);
     h.get_by_label("OK").click();
     h.run_steps(4);
     assert_eq!(marks(&h), [MarkKind::HeaderFooter]);
     let s = h.state();
-    let doc = pdfcraft_cos::Document::open(s.session.get(s.views[0].id).unwrap().bytes.clone()).unwrap();
-    let page = &pdfcraft_model::pages(&doc)[0];
+    let doc = visionpdf_cos::Document::open(s.session.get(s.views[0].id).unwrap().bytes.clone()).unwrap();
+    let page = &visionpdf_model::pages(&doc)[0];
     let res = doc.resolve(page.dict.get(b"Resources").unwrap());
     let fonts = doc.resolve(res.as_dict().unwrap().get(b"Font").unwrap()).as_dict().cloned().unwrap();
     let face = doc.resolve(fonts.get(b"PCTimes").expect("Times is added")).as_dict().cloned().unwrap();
@@ -181,7 +181,7 @@ fn the_background_dialog_offers_to_replace_a_white_backdrop_and_warns_about_scan
         let s = h.state();
         s.session.get(s.views[0].id).unwrap().page_backdrop(page)
     };
-    assert_eq!(backdrop(&h, 0), Some(pdfcraft_engine::Backdrop::Fill));
+    assert_eq!(backdrop(&h, 0), Some(visionpdf_engine::Backdrop::Fill));
     h.state_mut().execute("edit.background");
     h.run_steps(3);
     let replace = "Page 1 paints its own white backdrop, which would hide the background. Replace it";
@@ -192,7 +192,7 @@ fn the_background_dialog_offers_to_replace_a_white_backdrop_and_warns_about_scan
     h.run_steps(2);
     h.get_by_label("OK").click();
     h.run_steps(3);
-    assert_eq!(backdrop(&h, 0), Some(pdfcraft_engine::Backdrop::Fill));
+    assert_eq!(backdrop(&h, 0), Some(visionpdf_engine::Backdrop::Fill));
     assert!(h.state_mut().execute("edit.undo"));
     h.run_steps(2);
     // Reopened, the choice starts on again; ticked, the backdrop is replaced and the scan is
@@ -204,7 +204,7 @@ fn the_background_dialog_offers_to_replace_a_white_backdrop_and_warns_about_scan
     h.get_by_label("OK").click();
     h.run_steps(3);
     assert_eq!(backdrop(&h, 0), None);
-    assert_eq!(backdrop(&h, 1), Some(pdfcraft_engine::Backdrop::Image));
+    assert_eq!(backdrop(&h, 1), Some(visionpdf_engine::Backdrop::Image));
     // Nothing left to replace: the offer is gone. A choice left off from an earlier dialog
     // doesn't carry into Update, which restores the backdrop first and would otherwise keep it
     // with no checkbox shown.
@@ -232,7 +232,7 @@ fn the_background_preview_follows_the_replace_checkbox() {
     h.run_steps(3);
     let replace = "Page 1 paints its own white backdrop, which would hide the background. Replace it";
     h.get_by_label(replace);
-    let [red, green, blue] = pdfcraft_engine::Background::default().color.map(|c| (c * 255.0).round() as u8);
+    let [red, green, blue] = visionpdf_engine::Background::default().color.map(|c| (c * 255.0).round() as u8);
     let colour = egui::Color32::from_rgb(red, green, blue);
     let tint = |h: &mut Harness<'static, VisionPDFApp>, page: usize| {
         h.state_mut().marks_draft.preview = Some(page);
@@ -353,7 +353,7 @@ fn near(a: f32, b: f32, what: &str) {
 
 #[test]
 fn the_preview_shows_the_page_the_range_selects_under_the_marks() {
-    use pdfcraft_ui_egui::marks::{PageRange, Subset};
+    use visionpdf_ui_egui::marks::{PageRange, Subset};
     let mut h = harness_with(content_fixture());
     assert!(h.state_mut().execute("edit.header_footer"));
     h.run_steps(2);
@@ -401,7 +401,7 @@ fn the_preview_shows_the_page_the_range_selects_under_the_marks() {
     assert!(h.state_mut().execute("edit.background"));
     h.run_steps(2);
     let (_, _, tint) = wait_for_picture(&mut h, 1);
-    let [red, green, blue] = pdfcraft_engine::Background::default().color.map(|c| (c * 255.0).round() as u8);
+    let [red, green, blue] = visionpdf_engine::Background::default().color.map(|c| (c * 255.0).round() as u8);
     assert_eq!(tint, egui::Color32::from_rgb(red, green, blue), "the default background colour, opaque");
 }
 
@@ -532,7 +532,7 @@ fn update_previews_the_page_without_the_marks_it_replaces() {
     let red = |c: egui::Color32| c.r() > 200 && c.g() < 80 && c.b() < 80;
     let blue = |c: egui::Color32| c.b() > 150 && c.r() < 100 && c.g() < 100;
     let dark = |c: egui::Color32| c.r() < 60 && c.g() < 60 && c.b() < 60;
-    let apply = |h: &mut Harness<'static, VisionPDFApp>, command: &str, draft: &dyn Fn(&mut pdfcraft_ui_egui::marks::MarksDraft)| {
+    let apply = |h: &mut Harness<'static, VisionPDFApp>, command: &str, draft: &dyn Fn(&mut visionpdf_ui_egui::marks::MarksDraft)| {
         assert!(h.state_mut().execute(command));
         h.run_steps(2);
         draft(&mut h.state_mut().marks_draft);
@@ -620,13 +620,13 @@ fn page_range_from_one_to_one_selects_only_the_first_page() {
     let doc = s.session.get(s.views[0].id).unwrap();
     assert_eq!(doc.marks(), [MarkKind::Background]);
     // Rendered: page 1 has the default background colour, page 2 is still blank.
-    let mut r = pdfcraft_render::PageRenderer::new(doc.bytes.clone(), pdfcraft_render::RenderConfig::default());
-    let corner = |r: &mut pdfcraft_render::PageRenderer, page: usize| {
-        let p = r.render(pdfcraft_render::RenderRequest { page, scale: 1.0, ..Default::default() });
+    let mut r = visionpdf_render::PageRenderer::new(doc.bytes.clone(), visionpdf_render::RenderConfig::default());
+    let corner = |r: &mut visionpdf_render::PageRenderer, page: usize| {
+        let p = r.render(visionpdf_render::RenderRequest { page, scale: 1.0, ..Default::default() });
         assert!(p.error.is_none(), "{:?}", p.error);
         p.rgba[..4].to_vec()
     };
-    let [red, green, blue] = pdfcraft_engine::Background::default().color.map(|c| (c * 255.0).round() as u8);
+    let [red, green, blue] = visionpdf_engine::Background::default().color.map(|c| (c * 255.0).round() as u8);
     assert_eq!(corner(&mut r, 0), vec![red, green, blue, 255], "page 1 has the background");
     assert_eq!(corner(&mut r, 1), vec![255, 255, 255, 255], "page 2 does not");
 }

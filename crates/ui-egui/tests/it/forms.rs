@@ -2,7 +2,7 @@
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_ui_egui::VisionPDFApp;
 
 fn harness() -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
@@ -41,7 +41,7 @@ fn click_field(h: &mut Harness<'static, VisionPDFApp>, name: &str, widget: usize
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
         let f = doc.form.iter().find(|f| f.name == name).unwrap();
-        pdfcraft_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, widget).expect("on screen").center()
+        visionpdf_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, widget).expect("on screen").center()
     };
     click_at(h, p);
 }
@@ -61,7 +61,7 @@ fn rest_on_field(h: &mut Harness<'static, VisionPDFApp>, name: &str) {
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
         let f = doc.form.iter().find(|f| f.name == name).unwrap();
-        pdfcraft_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen").center()
+        visionpdf_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen").center()
     };
     h.hover_at(p);
     for _ in 0..40 {
@@ -85,8 +85,8 @@ fn hovering_a_field_shows_its_tooltip() {
 }
 
 /// Give the `city` field these properties, as the Properties dialog would.
-fn set_city(h: &mut Harness<'static, VisionPDFApp>, props: pdfcraft_engine::FieldProps) {
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::SetFieldProps { name: "city".into(), props: Box::new(props) });
+fn set_city(h: &mut Harness<'static, VisionPDFApp>, props: visionpdf_engine::FieldProps) {
+    h.state_mut().apply_edit(visionpdf_engine::Edit::SetFieldProps { name: "city".into(), props: Box::new(props) });
     h.run_steps(3);
 }
 
@@ -94,7 +94,7 @@ fn set_city(h: &mut Harness<'static, VisionPDFApp>, props: pdfcraft_engine::Fiel
 #[test]
 fn a_read_only_fields_tooltip_shows_on_hover() {
     let mut h = harness();
-    set_city(&mut h, pdfcraft_engine::FieldProps { tooltip: Some("Where you live".into()), read_only: Some(true), ..Default::default() });
+    set_city(&mut h, visionpdf_engine::FieldProps { tooltip: Some("Where you live".into()), read_only: Some(true), ..Default::default() });
     rest_on_field(&mut h, "city");
     assert!(h.query_all_by_label("Where you live").next().is_some());
 }
@@ -119,7 +119,7 @@ fn read_only_widgets_are_skipped_by_tab_navigation() {
         let locked = doc.form.iter().find(|field| field.name == "locked").unwrap();
         assert!(!locked.read_only(), "the field itself is editable");
         assert!(locked.widgets[0].read_only, "only its widget is read-only");
-        let order = pdfcraft_ui_egui::forms_ui::tab_order(&doc.form, &doc.info)
+        let order = visionpdf_ui_egui::forms_ui::tab_order(&doc.form, &doc.info)
             .into_iter()
             .filter_map(|(fi, wi)| doc.form.get(fi).map(|field| (field.name.as_str(), wi)))
             .collect::<Vec<_>>();
@@ -138,7 +138,7 @@ fn read_only_widgets_are_skipped_by_tab_navigation() {
 #[test]
 fn a_blank_tooltip_shows_nothing() {
     let mut h = harness();
-    set_city(&mut h, pdfcraft_engine::FieldProps { tooltip: Some("   ".into()), ..Default::default() });
+    set_city(&mut h, visionpdf_engine::FieldProps { tooltip: Some("   ".into()), ..Default::default() });
     let s = h.state();
     let doc = s.session.get(s.views[0].id).unwrap();
     assert_eq!(doc.form.iter().find(|f| f.name == "city").unwrap().tooltip.as_deref(), Some("   "), "the blank /TU is in the file");
@@ -154,7 +154,7 @@ fn a_field_that_doesnt_scroll_stops_taking_text_when_full() {
     let mut h = harness();
     set_city(
         &mut h,
-        pdfcraft_engine::FieldProps { flags: vec![(pdfcraft_engine::field_flags::DO_NOT_SCROLL, true)], font_size: Some(12.0), ..Default::default() },
+        visionpdf_engine::FieldProps { flags: vec![(visionpdf_engine::field_flags::DO_NOT_SCROLL, true)], font_size: Some(12.0), ..Default::default() },
     );
     let text_box = |h: &Harness<'static, VisionPDFApp>| {
         let s = h.state();
@@ -190,8 +190,8 @@ fn a_multi_line_auto_sized_field_that_doesnt_scroll_stops_when_full() {
     let mut h = harness();
     set_city(
         &mut h,
-        pdfcraft_engine::FieldProps {
-            flags: vec![(pdfcraft_engine::field_flags::DO_NOT_SCROLL, true)],
+        visionpdf_engine::FieldProps {
+            flags: vec![(visionpdf_engine::field_flags::DO_NOT_SCROLL, true)],
             multiline: Some(true),
             font_size: Some(0.0),
             ..Default::default()
@@ -222,9 +222,9 @@ fn a_multi_line_auto_sized_field_that_doesnt_scroll_stops_when_full() {
 fn a_turned_field_places_the_caret_along_its_turned_text() {
     let mut h = harness();
     // Tall and narrow, with room up it for the text.
-    let props = pdfcraft_engine::FieldProps { rect: Some((0, [240.0, 20.0, 260.0, 170.0])), font_size: Some(10.0), ..Default::default() };
+    let props = visionpdf_engine::FieldProps { rect: Some((0, [240.0, 20.0, 260.0, 170.0])), font_size: Some(10.0), ..Default::default() };
     set_city(&mut h, props);
-    set_city(&mut h, pdfcraft_engine::FieldProps { rotation: Some((0, 90)), ..Default::default() });
+    set_city(&mut h, visionpdf_engine::FieldProps { rotation: Some((0, 90)), ..Default::default() });
     click_field(&mut h, "city", 0);
     assert_eq!(h.state().views[0].forms.focus.as_ref().map(|f| f.name.as_str()), Some("city"));
     h.event(egui::Event::Text("Paris".into()));
@@ -233,7 +233,7 @@ fn a_turned_field_places_the_caret_along_its_turned_text() {
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
         let f = doc.form.iter().find(|f| f.name == "city").unwrap();
-        pdfcraft_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen")
+        visionpdf_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen")
     };
     click_at(&mut h, field.left_top() + egui::vec2(3.0, 2.0));
     h.event(egui::Event::Text("X".into()));
@@ -356,9 +356,9 @@ fn tab_and_space_fill_in_a_check_box_between_text_fields() {
 fn tab_uses_the_first_remaining_widget_when_focus_leaves_the_order() {
     let mut h = check_box_harness();
     click_field(&mut h, "pick", 0);
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::SetFieldProps {
+    h.state_mut().apply_edit(visionpdf_engine::Edit::SetFieldProps {
         name: "pick".into(),
-        props: Box::new(pdfcraft_engine::FieldProps { rect: Some((0, [320.0, 230.0, 336.0, 246.0])), ..Default::default() }),
+        props: Box::new(visionpdf_engine::FieldProps { rect: Some((0, [320.0, 230.0, 336.0, 246.0])), ..Default::default() }),
     });
     h.run_steps(3);
 
@@ -371,9 +371,9 @@ fn tab_uses_the_first_remaining_widget_when_focus_leaves_the_order() {
 fn shift_tab_uses_the_previous_remaining_widget_when_focus_leaves_the_order() {
     let mut h = check_box_harness();
     click_field(&mut h, "last", 0);
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::SetFieldProps {
+    h.state_mut().apply_edit(visionpdf_engine::Edit::SetFieldProps {
         name: "last".into(),
-        props: Box::new(pdfcraft_engine::FieldProps { rect: Some((0, [320.0, 270.0, 340.0, 292.0])), ..Default::default() }),
+        props: Box::new(visionpdf_engine::FieldProps { rect: Some((0, [320.0, 270.0, 340.0, 292.0])), ..Default::default() }),
     });
     h.run_steps(3);
 
@@ -386,9 +386,9 @@ fn shift_tab_uses_the_previous_remaining_widget_when_focus_leaves_the_order() {
 fn shift_tab_wraps_to_the_last_widget_when_focus_leaves_the_order() {
     let mut h = check_box_harness();
     click_field(&mut h, "first", 0);
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::SetFieldProps {
+    h.state_mut().apply_edit(visionpdf_engine::Edit::SetFieldProps {
         name: "first".into(),
-        props: Box::new(pdfcraft_engine::FieldProps { rect: Some((0, [320.0, 350.0, 340.0, 372.0])), ..Default::default() }),
+        props: Box::new(visionpdf_engine::FieldProps { rect: Some((0, [320.0, 350.0, 340.0, 372.0])), ..Default::default() }),
     });
     h.run_steps(3);
 
@@ -400,17 +400,17 @@ fn shift_tab_wraps_to_the_last_widget_when_focus_leaves_the_order() {
 #[test]
 fn tab_and_shift_tab_follow_widget_order_across_pages() {
     let mut h = check_box_harness();
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::AddField {
+    h.state_mut().apply_edit(visionpdf_engine::Edit::AddField {
         page: 1,
         rect: [20.0, 350.0, 180.0, 372.0],
-        kind: pdfcraft_engine::NewField::Text { multiline: false },
+        kind: visionpdf_engine::NewField::Text { multiline: false },
         name: Some("second_page".into()),
     });
     h.run_steps(4);
     let order = {
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
-        pdfcraft_ui_egui::forms_ui::tab_order(&doc.form, &doc.info)
+        visionpdf_ui_egui::forms_ui::tab_order(&doc.form, &doc.info)
             .into_iter()
             .filter_map(|(fi, wi)| doc.form.get(fi).map(|field| (field.name.clone(), wi)))
             .collect::<Vec<_>>()
@@ -556,7 +556,7 @@ fn dragging_over_another_fields_text_focuses_it_and_selects_from_the_press() {
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
         let f = doc.form.iter().find(|f| f.name == "name").unwrap();
-        let rect = pdfcraft_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen");
+        let rect = visionpdf_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen");
         (rect, egui::Id::unique(("form-field", s.views[0].view_key(), "name", 0usize)))
     };
     // From inside the first word ("Ad|a" at the field's auto size, 13.9 pt) to past the end of the text.
@@ -583,10 +583,10 @@ fn dragging_over_another_fields_text_focuses_it_and_selects_from_the_press() {
 fn date_fields_offer_a_calendar() {
     use egui_kittest::kittest::Queryable;
     let mut h = harness();
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::AddField {
+    h.state_mut().apply_edit(visionpdf_engine::Edit::AddField {
         page: 0,
         rect: [50.0, 40.0, 200.0, 60.0],
-        kind: pdfcraft_engine::NewField::Date,
+        kind: visionpdf_engine::NewField::Date,
         name: Some("due".into()),
     });
     h.run_steps(4);
@@ -609,10 +609,10 @@ fn date_fields_offer_a_calendar() {
 fn the_calendar_follows_a_complete_date_typed_while_it_is_open() {
     use egui_kittest::kittest::Queryable;
     let mut h = harness();
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::AddField {
+    h.state_mut().apply_edit(visionpdf_engine::Edit::AddField {
         page: 0,
         rect: [50.0, 40.0, 200.0, 60.0],
-        kind: pdfcraft_engine::NewField::Date,
+        kind: visionpdf_engine::NewField::Date,
         name: Some("due".into()),
     });
     h.run_steps(4);
@@ -642,16 +642,16 @@ fn the_calendar_follows_a_complete_date_typed_while_it_is_open() {
 fn an_undelimited_date_field_takes_a_typed_date_and_its_calendar_opens_on_it() {
     use egui_kittest::kittest::Queryable;
     let mut h = harness();
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::AddField {
+    h.state_mut().apply_edit(visionpdf_engine::Edit::AddField {
         page: 0,
         rect: [50.0, 40.0, 200.0, 60.0],
-        kind: pdfcraft_engine::NewField::Date,
+        kind: visionpdf_engine::NewField::Date,
         name: Some("due".into()),
     });
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::SetFieldProps {
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::SetFieldProps {
         name: "due".into(),
-        props: Box::new(pdfcraft_engine::FieldProps {
-            format: Some(pdfcraft_engine::form_scripts::Format::Date("yyyymmdd".into())),
+        props: Box::new(visionpdf_engine::FieldProps {
+            format: Some(visionpdf_engine::form_scripts::Format::Date("yyyymmdd".into())),
             ..Default::default()
         }),
     }));
@@ -679,12 +679,12 @@ fn the_calendar_picks_today_in_the_fields_format_from_any_month() {
     s.session = std::mem::take(&mut s.session).with_clock(|| 1_700_000_000);
     assert_eq!(h.state().session.today(), (2023, 11, 14));
     for (name, rect) in [("due", [50.0, 40.0, 200.0, 60.0]), ("start", [50.0, 80.0, 200.0, 100.0])] {
-        h.state_mut().apply_edit(pdfcraft_engine::Edit::AddField { page: 0, rect, kind: pdfcraft_engine::NewField::Date, name: Some(name.into()) });
+        h.state_mut().apply_edit(visionpdf_engine::Edit::AddField { page: 0, rect, kind: visionpdf_engine::NewField::Date, name: Some(name.into()) });
     }
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::SetFieldProps {
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::SetFieldProps {
         name: "start".into(),
-        props: Box::new(pdfcraft_engine::FieldProps {
-            format: Some(pdfcraft_engine::form_scripts::Format::Date("yyyy-mm-dd".into())),
+        props: Box::new(visionpdf_engine::FieldProps {
+            format: Some(visionpdf_engine::form_scripts::Format::Date("yyyy-mm-dd".into())),
             ..Default::default()
         }),
     }));
@@ -698,7 +698,7 @@ fn the_calendar_picks_today_in_the_fields_format_from_any_month() {
             h.run_steps(2);
         }
         h.get_by_label(shown);
-        if let Ok(dir) = std::env::var("PDFCRAFT_SHOTS") {
+        if let Ok(dir) = std::env::var("VISIONPDF_SHOTS") {
             h.render().unwrap().save(format!("{dir}/calendar-today-{name}.png")).unwrap();
         }
         h.get_by_label("Today").click();
@@ -722,10 +722,10 @@ fn lithuanian_calendar_localizes_months_and_weekdays_without_changing_field_valu
     use egui_kittest::kittest::Queryable;
     let mut h = harness();
     h.state_mut().set_option("language", "lt").unwrap();
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::AddField {
+    h.state_mut().apply_edit(visionpdf_engine::Edit::AddField {
         page: 0,
         rect: [50.0, 40.0, 200.0, 60.0],
-        kind: pdfcraft_engine::NewField::Date,
+        kind: visionpdf_engine::NewField::Date,
         name: Some("due".into()),
     });
     h.run_steps(4);
@@ -772,7 +772,7 @@ fn wait_for_file(h: &mut Harness<'static, VisionPDFApp>, path: &std::path::Path)
 fn scratch(name: &str) -> std::path::PathBuf {
     static NEXT: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
     let n = NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-    let dir = std::env::temp_dir().join(format!("pdfcraft-forms-{name}-{}-{n}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-forms-{name}-{}-{n}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     dir
@@ -991,7 +991,7 @@ fn pressing_another_text_field_validates_the_refused_value_once() {
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
         let f = doc.form.iter().find(|f| f.name == "note").unwrap();
-        pdfcraft_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen").center()
+        visionpdf_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen").center()
     };
     h.hover_at(p);
     h.run_steps(1);
@@ -1074,7 +1074,7 @@ fn buttons_over_text_show_the_pointing_hand_not_the_i_beam() {
         let doc = s.session.get(s.views[0].id).unwrap();
         let at = |name: &str| {
             let f = doc.form.iter().find(|f| f.name == name).unwrap();
-            pdfcraft_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen")
+            visionpdf_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen")
         };
         (at("agree"), at("strength"), at("background"))
     };
@@ -1202,9 +1202,9 @@ fn flattening_while_typing_flattens_the_typed_text() {
     let s = h.state();
     let doc = s.session.get(s.views[0].id).unwrap();
     assert!(doc.form.iter().all(|f| f.name != "name"), "the field is flattened");
-    let mut r = pdfcraft_render::PageRenderer::new(doc.bytes.clone(), Default::default());
+    let mut r = visionpdf_render::PageRenderer::new(doc.bytes.clone(), Default::default());
     let text = r
-        .render(pdfcraft_render::RenderRequest { page: 0, kind: pdfcraft_render::RequestKind::Text, scale: 1.0, ..Default::default() })
+        .render(visionpdf_render::RenderRequest { page: 0, kind: visionpdf_render::RequestKind::Text, scale: 1.0, ..Default::default() })
         .text
         .map(|t| t.plain_text())
         .unwrap_or_default();
@@ -1223,7 +1223,7 @@ mod revert_tests {
         fn new() -> Self {
             static NEXT: AtomicU64 = AtomicU64::new(0);
             for _ in 0..128 {
-                let path = std::env::temp_dir().join(format!("pdfcraft-revert-{}-{}", std::process::id(), NEXT.fetch_add(1, Ordering::Relaxed)));
+                let path = std::env::temp_dir().join(format!("visionpdf-revert-{}-{}", std::process::id(), NEXT.fetch_add(1, Ordering::Relaxed)));
                 match std::fs::create_dir(&path) {
                     Ok(()) => return Self(path),
                     Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => continue,
@@ -1244,17 +1244,17 @@ mod revert_tests {
         let dir = RevertDir::new();
         let path = dir.0.join("saved.pdf");
         let mut h = harness();
-        assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::SetFieldValue {
+        assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::SetFieldValue {
             name: "name".into(),
-            value: pdfcraft_engine::FieldValue::Text("Saved original".into()),
+            value: visionpdf_engine::FieldValue::Text("Saved original".into()),
         }));
         h.state_mut().save_override = Some(path.to_string_lossy().into_owned());
-        assert!(h.state_mut().save_active(pdfcraft_ui_egui::SaveTarget::InPlace));
+        assert!(h.state_mut().save_active(visionpdf_ui_egui::SaveTarget::InPlace));
         let saved = std::fs::read(&path).unwrap();
-        assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::SetFieldProps {
+        assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::SetFieldProps {
             name: "name".into(),
-            props: Box::new(pdfcraft_engine::FieldProps {
-                validate: Some(pdfcraft_engine::form_scripts::Validate::Range { min: Some(0.0), max: Some(10.0) }),
+            props: Box::new(visionpdf_engine::FieldProps {
+                validate: Some(visionpdf_engine::form_scripts::Validate::Range { min: Some(0.0), max: Some(10.0) }),
                 ..Default::default()
             }),
         }));
@@ -1274,12 +1274,12 @@ mod revert_tests {
         assert!(h.state().views[0].forms.focus.is_none() && h.state().views[0].pending_edit.is_none());
         assert_eq!(h.state().first_dirty(), None, "Revert discards rejected typing too");
         assert_eq!(value(&h, "name"), ["Saved original"]);
-        assert!(h.state_mut().save_active(pdfcraft_ui_egui::SaveTarget::InPlace));
+        assert!(h.state_mut().save_active(visionpdf_ui_egui::SaveTarget::InPlace));
         assert_eq!(saved_value(&path, "name"), ["Saved original"]);
         let bytes = std::fs::read(&path).unwrap();
         assert_eq!(bytes, saved, "later Save cannot resurrect the discarded draft");
-        let mut renderer = pdfcraft_render::PageRenderer::new(std::sync::Arc::new(bytes), Default::default());
-        let output = renderer.render(pdfcraft_render::RenderRequest { page: 0, kind: pdfcraft_render::RequestKind::Text, ..Default::default() });
+        let mut renderer = visionpdf_render::PageRenderer::new(std::sync::Arc::new(bytes), Default::default());
+        let output = renderer.render(visionpdf_render::RenderRequest { page: 0, kind: visionpdf_render::RequestKind::Text, ..Default::default() });
         assert!(output.error.is_none(), "saved appearance is readable: {:?}", output.error);
         assert!(output.text.unwrap().plain_text().contains("Saved original"), "saved AP still draws the original value");
     }
@@ -1288,14 +1288,14 @@ mod revert_tests {
 #[test]
 fn calculated_field_and_script_side_effect_on_another_page_re_render() {
     let mut h = harness();
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::InsertBlankPage { at: 1, width: 300.0, height: 400.0 }));
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::AddField {
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::InsertBlankPage { at: 1, width: 300.0, height: 400.0 }));
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::AddField {
         page: 1,
         rect: [20.0, 20.0, 100.0, 40.0],
-        kind: pdfcraft_engine::NewField::Text { multiline: false },
+        kind: visionpdf_engine::NewField::Text { multiline: false },
         name: Some("page2_field".into()),
     }));
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::SetFieldScript {
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::SetFieldScript {
         name: "page2_field".into(),
         event: "calculate".into(),
         script: Some("event.value = 'from_' + getField('name').value;".into()),
@@ -1328,7 +1328,7 @@ fn overlay_clears_after_fresh_tiles_zoom_then_edit_and_rejected_edit() {
     assert!(!h.state().views[0].forms.unbaked.contains(&("name".to_string(), 0)));
 
     // 2. Rejected edit: typing rejected by validate script leaves unbaked clean.
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::SetFieldScript {
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::SetFieldScript {
         name: "city".into(),
         event: "validate".into(),
         script: Some("event.rc = false;".into()),
@@ -1404,7 +1404,7 @@ fn list_box_clicks_select_directly_and_ctrl_click_toggles_multi() {
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
         let f = doc.form.iter().find(|f| f.name == "ListOne").unwrap();
-        pdfcraft_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen")
+        visionpdf_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen")
     };
     let zoom_one = r_one.height() / 70.0;
     let p_green = egui::pos2(r_one.center().x, r_one.min.y + 19.0 * zoom_one);
@@ -1422,7 +1422,7 @@ fn list_box_clicks_select_directly_and_ctrl_click_toggles_multi() {
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
         let f = doc.form.iter().find(|f| f.name == "ListMulti").unwrap();
-        pdfcraft_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen")
+        visionpdf_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen")
     };
     let zoom_multi = r_multi.height() / 70.0;
     let p_tue = egui::pos2(r_multi.center().x, r_multi.min.y + 19.0 * zoom_multi);
@@ -1483,7 +1483,7 @@ fn a_list_box_click_picks_one_of_two_options_with_the_same_export_value() {
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
         let f = doc.form.iter().find(|f| f.name == "dup").unwrap();
-        pdfcraft_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen")
+        visionpdf_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen")
     };
     let zoom = r.height() / 70.0;
     // Row 0 (One-A), then row 1 (One-B): each click changes the selection though /V stays (1).
@@ -1538,7 +1538,7 @@ fn a_click_in_a_twin_list_box_with_options_in_another_order_picks_the_row_clicke
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
         let f = doc.form.iter().filter(|f| f.name == "dup").nth(1).unwrap();
-        pdfcraft_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen")
+        visionpdf_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen")
     };
     let zoom = r.height() / 70.0;
     // Row 0 of the second list box: One-B.
@@ -1581,7 +1581,7 @@ fn a_single_select_list_box_given_two_values_shows_and_takes_one() {
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
         let f = doc.form.iter().find(|f| f.name == "pair").unwrap();
-        pdfcraft_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen")
+        visionpdf_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen")
     };
     let zoom = r.height() / 70.0;
     // Row 1 (Japan), which /V also named: clicking it makes it the one value.
@@ -1622,10 +1622,10 @@ fn on_screen_fit(h: &Harness<'static, VisionPDFApp>, name: &str, text: &str) -> 
     let f = s.session.get(s.views[0].id).unwrap().form.iter().find(|f| f.name == name).unwrap().clone();
     let w = f.widgets[0].clone();
     let painter = egui::Painter::new(h.ctx.clone(), egui::LayerId::background(), egui::Rect::EVERYTHING);
-    let size = pdfcraft_ui_egui::forms_ui::field_text_size(&painter, &f, &w, text);
+    let size = visionpdf_ui_egui::forms_ui::field_text_size(&painter, &f, &w, text);
     let (bw, bh) = ((w.rect[2] - w.rect[0]) as f32 - 6.0, (w.rect[3] - w.rect[1]) as f32 - 6.0);
     let font = egui::FontId::proportional(size);
-    if f.has(pdfcraft_engine::field_flags::MULTILINE) {
+    if f.has(visionpdf_engine::field_flags::MULTILINE) {
         (size, painter.layout(text.to_string(), font, egui::Color32::BLACK, bw).size().y, bh)
     } else {
         (size, painter.layout_no_wrap(text.to_string(), font, egui::Color32::BLACK).size().x, bw)
@@ -1689,20 +1689,20 @@ fn the_field_editor_sizes_auto_size_text_as_the_page_does() {
     let painter = egui::Painter::new(h.ctx.clone(), egui::LayerId::background(), egui::Rect::EVERYTHING);
     let screen = |name: &str, zoom: f32| {
         let f = field(name);
-        pdfcraft_ui_egui::forms_ui::field_screen_font(&painter, &f, &f.widgets[0], "Hi", zoom)
+        visionpdf_ui_egui::forms_ui::field_screen_font(&painter, &f, &f.widgets[0], "Hi", zoom)
     };
     // 100%: 96 screen points per 72 page points.
     let full = 96.0 / 72.0;
 
     let comb = field("comb");
-    let page = pdfcraft_engine::field_comb_auto_text_size(30.0 - 6.0);
+    let page = visionpdf_engine::field_comb_auto_text_size(30.0 - 6.0);
     assert_eq!(page, 12.0);
-    assert_eq!(pdfcraft_ui_egui::forms_ui::field_text_size(&painter, &comb, &comb.widgets[0], ""), 12.0, "a comb field");
+    assert_eq!(visionpdf_ui_egui::forms_ui::field_text_size(&painter, &comb, &comb.widgets[0], ""), 12.0, "a comb field");
     assert_eq!(screen("comb", full), 12.0 * full);
 
     let tall = (100.0 - 6.0) / 1.15;
     assert!((screen("tall", full) - tall as f32 * full).abs() < 0.01, "a 100 pt field at 100%: {}", screen("tall", full));
-    assert_eq!(screen("huge", full), pdfcraft_ui_egui::forms_ui::MAX_SCREEN_FONT, "past the screen-font bound");
+    assert_eq!(screen("huge", full), visionpdf_ui_egui::forms_ui::MAX_SCREEN_FONT, "past the screen-font bound");
     assert_eq!(screen("huge", 0.5), ((400.0 - 6.0) / 1.15) as f32 * 0.5, "below it at 50%");
 }
 
@@ -1746,13 +1746,13 @@ const HAND_ON_EVERY_TAB: [(&str, egui::CursorIcon); 3] =
 fn mode_tabs_keep_the_hand_over_a_text_field_scrolled_under_them() {
     let mut h = harness();
     // The page across the window, so the name field reaches under the tabs.
-    h.state_mut().views[0].fit = pdfcraft_ui_egui::canvas::Fit::Width;
+    h.state_mut().views[0].fit = visionpdf_ui_egui::canvas::Fit::Width;
     h.run_steps(4);
     let name = |h: &Harness<'static, VisionPDFApp>| {
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
         let f = doc.form.iter().find(|f| f.name == "name").unwrap();
-        pdfcraft_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen")
+        visionpdf_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen")
     };
     assert_eq!(mode_tab_cursors(&mut h, name), HAND_ON_EVERY_TAB, "the field under the tabs");
     // Open it, where it shows.
@@ -1763,7 +1763,7 @@ fn mode_tabs_keep_the_hand_over_a_text_field_scrolled_under_them() {
     assert_eq!(mode_tab_cursors(&mut h, name), HAND_ON_EVERY_TAB, "the open field under the tabs");
     let convert = mode_tab(&h, "Convert").center();
     click_at(&mut h, convert);
-    assert_eq!(h.state().mode, pdfcraft_ui_egui::Mode::Convert, "the tab takes the click, not the field's editor");
+    assert_eq!(h.state().mode, visionpdf_ui_egui::Mode::Convert, "the tab takes the click, not the field's editor");
 }
 
 /// The one-page PDF `guide_fixture` attaches as `Guide.pdf`.
@@ -1819,7 +1819,7 @@ fn a_form_button_opens_only_a_real_pdf_and_returns_to_the_tab_it_opened() {
     let tabs = |h: &Harness<'static, VisionPDFApp>| h.state().views.len();
     let id = h.state().views[0].id;
     // A text file named .pdf is offered to save, not opened.
-    let saved = std::env::temp_dir().join(format!("pdfcraft-fake-{}.pdf", std::process::id()));
+    let saved = std::env::temp_dir().join(format!("visionpdf-fake-{}.pdf", std::process::id()));
     let _ = std::fs::remove_file(&saved);
     h.state_mut().pick_override = Some(vec![saved.to_string_lossy().into_owned()]);
     h.state_mut().run_button_script(id, "go", "this.exportDataObject({cName: 'fake.pdf', nLaunch: 2});");
@@ -1976,7 +1976,7 @@ fn a_turned_editable_combo_box_places_the_caret_along_its_turned_text() {
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
         let f = doc.form.iter().find(|f| f.name == "fruit").unwrap();
-        pdfcraft_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen")
+        visionpdf_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen")
     };
     click_at(&mut h, field.left_top() + egui::vec2(3.0, 2.0));
     h.event(egui::Event::Text("X".into()));
@@ -2018,7 +2018,7 @@ fn a_form_button_shows_and_hides_the_attachments_panel() {
     h.run_steps(2);
     let id = h.state().views[0].id;
     h.state_mut().run_button_script(id, "size", "app.execMenuItem('ShowHideFileAttachment');");
-    crate::support::wait_until(&mut h, "attachments panel to open", |app| app.right == Some(pdfcraft_ui_egui::RightPanel::Attachments));
+    crate::support::wait_until(&mut h, "attachments panel to open", |app| app.right == Some(visionpdf_ui_egui::RightPanel::Attachments));
     // Show/Hide, as its name says: asked again, it closes.
     h.state_mut().run_button_script(id, "size", "app.execMenuItem('ShowHideFileAttachment');");
     crate::support::wait_until(&mut h, "attachments panel to close", |app| app.right.is_none());
@@ -2241,7 +2241,7 @@ fn list_box(objects: &[&str], name: &str) -> (Harness<'static, VisionPDFApp>, eg
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
         let f = doc.form.iter().find(|f| f.name == name).unwrap();
-        pdfcraft_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen")
+        visionpdf_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen")
     };
     (h, r)
 }
@@ -2300,7 +2300,7 @@ fn field_rect(h: &Harness<'static, VisionPDFApp>, name: &str) -> egui::Rect {
     let s = h.state();
     let doc = s.session.get(s.views[0].id).unwrap();
     let f = doc.form.iter().find(|f| f.name == name).unwrap();
-    pdfcraft_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen")
+    visionpdf_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen")
 }
 
 /// Filled triangles painted inside `within`, at any depth of the frame's shapes.
@@ -2357,9 +2357,9 @@ fn a_drop_downs_list_opens_as_wide_as_the_field_without_its_internal_name() {
 fn a_long_drop_down_list_keeps_its_scroll_bar_beside_the_items() {
     let mut h = harness();
     let options: Vec<String> = (0..30).map(|i| format!("{i:02}00")).collect();
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::SetFieldProps {
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::SetFieldProps {
         name: "country".into(),
-        props: Box::new(pdfcraft_engine::FieldProps { options: Some(options), ..Default::default() }),
+        props: Box::new(visionpdf_engine::FieldProps { options: Some(options), ..Default::default() }),
     }));
     h.run_steps(3);
     click_field(&mut h, "country", 0);
@@ -2386,9 +2386,9 @@ fn text_rect(h: &Harness<'static, VisionPDFApp>, text: &str) -> Option<egui::Rec
 /// Gives the "country" drop-down 30 options, "0000" to "2900", more than its list shows at once.
 fn long_country(h: &mut Harness<'static, VisionPDFApp>) {
     let options: Vec<String> = (0..30).map(|i| format!("{i:02}00")).collect();
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::SetFieldProps {
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::SetFieldProps {
         name: "country".into(),
-        props: Box::new(pdfcraft_engine::FieldProps { options: Some(options), ..Default::default() }),
+        props: Box::new(visionpdf_engine::FieldProps { options: Some(options), ..Default::default() }),
     }));
     h.run_steps(3);
 }
@@ -2397,9 +2397,9 @@ fn long_country(h: &mut Harness<'static, VisionPDFApp>) {
 #[test]
 fn a_drop_downs_list_aligns_its_items_as_the_field_does() {
     let mut h = harness();
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::SetFieldProps {
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::SetFieldProps {
         name: "country".into(),
-        props: Box::new(pdfcraft_engine::FieldProps { quadding: Some(1), ..Default::default() }),
+        props: Box::new(visionpdf_engine::FieldProps { quadding: Some(1), ..Default::default() }),
     }));
     h.run_steps(3);
     click_field(&mut h, "country", 0);
@@ -2510,14 +2510,14 @@ fn escape_closes_an_open_drop_downs_list_and_leaves_the_page_alone() {
 fn an_auto_sized_drop_downs_list_shows_its_items_at_the_fields_text_size() {
     let mut h = harness();
     let long = "The Commonwealth of the Northern Mariana Islands";
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::SetFieldProps {
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::SetFieldProps {
         name: "country".into(),
-        props: Box::new(pdfcraft_engine::FieldProps { options: Some(vec!["Canada".into(), long.into()]), ..Default::default() }),
+        props: Box::new(visionpdf_engine::FieldProps { options: Some(vec!["Canada".into(), long.into()]), ..Default::default() }),
     }));
     assert!(
-        h.state_mut().apply_edit(pdfcraft_engine::Edit::SetFieldValue {
+        h.state_mut().apply_edit(visionpdf_engine::Edit::SetFieldValue {
             name: "country".into(),
-            value: pdfcraft_engine::FieldValue::Choice(vec![long.into()])
+            value: visionpdf_engine::FieldValue::Choice(vec![long.into()])
         })
     );
     h.run_steps(3);
@@ -2533,7 +2533,7 @@ fn an_auto_sized_drop_downs_list_shows_its_items_at_the_fields_text_size() {
 fn in_single_page_view_the_wheel_over_an_open_list_scrolls_the_list_not_the_page() {
     let mut h = harness();
     long_country(&mut h);
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::InsertBlankPage { at: 1, width: 300.0, height: 400.0 }));
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::InsertBlankPage { at: 1, width: 300.0, height: 400.0 }));
     h.state_mut().set_option("continuous", "off").unwrap();
     h.key_press(egui::Key::Home);
     for _ in 0..60 {

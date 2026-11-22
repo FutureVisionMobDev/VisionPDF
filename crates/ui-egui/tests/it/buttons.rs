@@ -2,7 +2,7 @@
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::{Dialog, VisionPDFApp};
+use visionpdf_ui_egui::{Dialog, VisionPDFApp};
 
 /// Two pages; page 1 has a text field "name" (filled), a Reset button, a Next page button and a
 /// Print button (a JavaScript one-liner).
@@ -38,7 +38,7 @@ fn click_field(h: &mut Harness<'static, VisionPDFApp>, name: &str) {
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
         let f = doc.form.iter().find(|f| f.name == name).unwrap();
-        pdfcraft_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen").center()
+        visionpdf_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen").center()
     };
     h.hover_at(p);
     h.run_steps(1);
@@ -50,7 +50,7 @@ fn click_field(h: &mut Harness<'static, VisionPDFApp>, name: &str) {
 
 #[test]
 fn buttons_reset_navigate_and_print() {
-    let dir = std::env::temp_dir().join(format!("pdfcraft-buttons-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-buttons-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let path = dir.join("buttons.pdf");
     std::fs::write(&path, fixture()).unwrap();
@@ -116,8 +116,8 @@ fn show_hide_fixture() -> Vec<u8> {
 fn name_hidden(h: &Harness<'static, VisionPDFApp>) -> bool {
     let s = h.state();
     let bytes = s.session.save_bytes(s.views[0].id).unwrap();
-    let doc = pdfcraft_cos::Document::open(bytes).unwrap();
-    let f = doc.get(pdfcraft_cos::ObjRef::new(4, 0)).as_dict().and_then(|d| d.int(b"F")).unwrap_or(0);
+    let doc = visionpdf_cos::Document::open(bytes).unwrap();
+    let f = doc.get(visionpdf_cos::ObjRef::new(4, 0)).as_dict().and_then(|d| d.int(b"F")).unwrap_or(0);
     f & 2 != 0
 }
 
@@ -137,7 +137,7 @@ fn hide_actions_hide_and_show_fields() {
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
         let f = doc.form.iter().find(|f| f.name == "hide").unwrap();
-        pdfcraft_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen").center()
+        visionpdf_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen").center()
     };
     h.hover_at(hide_at);
     h.run_steps(2);

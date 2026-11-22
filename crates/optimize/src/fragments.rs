@@ -18,8 +18,8 @@
 //! stream can't be read back exactly is left alone. The fragments are then unused, and Clean Up
 //! drops them.
 
-use pdfcraft_content::{Matrix, Op, parse, serialize_ops};
-use pdfcraft_cos::{DecodeBudget, Dict, Document, ImageBudget, ObjRef, Object, Stream};
+use visionpdf_content::{Matrix, Op, parse, serialize_ops};
+use visionpdf_cos::{DecodeBudget, Dict, Document, ImageBudget, ObjRef, Object, Stream};
 
 use crate::images::{components, content_bytes, decodable, page_resources, pixels, resample};
 use crate::{OptimizeError, Report, Stage};
@@ -508,7 +508,7 @@ pub(crate) fn run(
 
 #[cfg(test)]
 mod tests {
-    use pdfcraft_cos::{Dict, Document, Object, Stream};
+    use visionpdf_cos::{Dict, Document, Object, Stream};
 
     use super::*;
 
@@ -585,7 +585,7 @@ mod tests {
         assert_eq!(merge_page(&mut doc.clone(), page, &mut Report::default(), &mut |_| true, &mut budget).unwrap(), 0);
         assert_eq!(budget.refused(), 1);
         // Reading each strip, inflating it, and building the picture of 8 rows of 8 they make.
-        let cost = (1 + pdfcraft_filters::FLATE_READ_WORK) * raw + 8 * (8 + 8) + 8 * 8;
+        let cost = (1 + visionpdf_filters::FLATE_READ_WORK) * raw + 8 * (8 + 8) + 8 * 8;
         let mut budget = ImageBudget::with_work(u64::MAX);
         assert_eq!(merge_page(&mut doc.clone(), page, &mut Report::default(), &mut |_| true, &mut budget).unwrap(), 8);
         assert_eq!(u64::MAX - budget.work_left(), cost);

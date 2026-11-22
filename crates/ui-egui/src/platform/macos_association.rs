@@ -1,4 +1,4 @@
-//! Best-effort recovery of an existing per-file PDFCraft binding after a successful open/save.
+//! Best-effort recovery of an existing per-file VisionPDF binding after a successful open/save.
 //! Quarantined documents with redirected bindings can be refused by LaunchServices before the
 //! app receives an open event (Apple feedback FB19468486). In-app Open remains reachable.
 //! Never remove quarantine, set type-wide defaults, or create a new preference on an open.
@@ -120,7 +120,7 @@ pub(crate) fn repair(path: &Path) {
         let (tx, rx) = mpsc::sync_channel::<RepairJob>(32);
         let pending = Arc::new(Mutex::new(HashSet::new()));
         std::thread::Builder::new()
-            .name("pdfcraft-association".into())
+            .name("visionpdf-association".into())
             .spawn(move || {
                 for job in rx {
                     if std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| objc2::rc::autoreleasepool(|_| repair_job(job)))).is_err() {
@@ -206,7 +206,7 @@ mod tests {
 
     /// Create an isolated scratch directory for parallel metadata tests.
     fn directory() -> std::path::PathBuf {
-        let p = std::env::temp_dir().join(format!("pdfcraft-association-{}-{}", std::process::id(), NEXT.fetch_add(1, Ordering::Relaxed)));
+        let p = std::env::temp_dir().join(format!("visionpdf-association-{}-{}", std::process::id(), NEXT.fetch_add(1, Ordering::Relaxed)));
         std::fs::create_dir(&p).unwrap();
         p
     }

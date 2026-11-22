@@ -3,7 +3,7 @@
 use egui::{Align, Layout};
 
 use crate::theme::{self, Tokens};
-use pdfcraft_engine::Edit;
+use visionpdf_engine::Edit;
 
 use crate::{CloseRequest, Dialog, VisionPDFApp, PropsTab, panels::human_size, widgets};
 
@@ -77,8 +77,8 @@ struct Pending {
     summarize_now: bool,
     optimize_now: bool,
     duplicate_now: Option<Edit>,
-    page_props_now: Option<(pdfcraft_engine::DocId, u64, Edit)>,
-    attachment_description_now: Option<(pdfcraft_engine::DocId, Edit)>,
+    page_props_now: Option<(visionpdf_engine::DocId, u64, Edit)>,
+    attachment_description_now: Option<(visionpdf_engine::DocId, Edit)>,
     replace_now: bool,
     open_revision: Option<usize>,
     a11y_now: bool,
@@ -629,7 +629,7 @@ fn dialog_properties(ui: &mut egui::Ui, app: &mut VisionPDFApp, req: &mut Pendin
                 row(ui, "PDF producer", i.producer.clone().unwrap_or_default());
             }
             PropsTab::InitialView => {
-                use pdfcraft_engine::{InitialLayout as L, Magnification as M, Navigation as N};
+                use visionpdf_engine::{InitialLayout as L, Magnification as M, Navigation as N};
                 let editable = doc.allows_modification();
                 let pages = i.pages.len();
                 let Some((_, v)) = app.view_draft.as_mut() else { return };
@@ -844,7 +844,7 @@ fn dialog_properties(ui: &mut egui::Ui, app: &mut VisionPDFApp, req: &mut Pendin
                 // An entry the list leaves out (not text, only padding, or past its 256) keeps its value.
                 let file_props = doc.custom_info();
                 let unlisted = doc.has_info(&name) && !file_props.iter().any(|(k, _)| *k == name);
-                let refused = pdfcraft_engine::check_custom_key(&name).err().filter(|_| !name.is_empty()).map(|e| e.to_string());
+                let refused = visionpdf_engine::check_custom_key(&name).err().filter(|_| !name.is_empty()).map(|e| e.to_string());
                 ui.label("");
                 // A file can hold a custom name that `check_custom_key` refuses, such as one
                 // with a space: the tab lists it, and Add, Update and Delete stay off for it.
@@ -1019,15 +1019,15 @@ fn dialog_split(ui: &mut egui::Ui, app: &mut VisionPDFApp, req: &mut Pending) ->
         widgets::radio_value(ui, &mut draft.mode, M::Selection, tl!("Before each selected page (select pages in Organize)"))
     });
     let plan = match draft.mode {
-        M::Pages => crate::SplitPlan::By(pdfcraft_engine::SplitBy::PageCount(draft.every)),
-        M::Selection => crate::SplitPlan::By(pdfcraft_engine::SplitBy::Before(selected)),
+        M::Pages => crate::SplitPlan::By(visionpdf_engine::SplitBy::PageCount(draft.every)),
+        M::Selection => crate::SplitPlan::By(visionpdf_engine::SplitBy::Before(selected)),
         M::Size => crate::SplitPlan::Size((draft.size_mb * 1_048_576.0) as usize),
         M::Bookmarks => crate::SplitPlan::Bookmarks,
     };
     let files = match &plan {
-        crate::SplitPlan::By(by) => Some(pdfcraft_engine::split_ranges(n, by).len()),
+        crate::SplitPlan::By(by) => Some(visionpdf_engine::split_ranges(n, by).len()),
         crate::SplitPlan::Bookmarks => {
-            Some(pdfcraft_engine::split_ranges(n, &pdfcraft_engine::SplitBy::Before(marks.iter().map(|m| m.0).collect())).len())
+            Some(visionpdf_engine::split_ranges(n, &visionpdf_engine::SplitBy::Before(marks.iter().map(|m| m.0).collect())).len())
         }
         crate::SplitPlan::Size(_) => None,
     };
@@ -1173,7 +1173,7 @@ fn dialog_extract(ui: &mut egui::Ui, app: &mut VisionPDFApp, req: &mut Pending) 
 
 /// `Dialog::RotatePages` content. Returns `false` when it has its own buttons and no footer is wanted.
 fn dialog_rotate_pages(ui: &mut egui::Ui, app: &mut VisionPDFApp, req: &mut Pending) -> bool {
-    use pdfcraft_engine::{PageOrientation as O, PageParity as P};
+    use visionpdf_engine::{PageOrientation as O, PageParity as P};
     let n = app.active_ids().and_then(|(_, id)| app.session.get(id)).map_or(1, |d| d.info.pages.len());
     let d = &mut app.rotate_draft;
     let mut typing_to = false;
@@ -1318,7 +1318,7 @@ fn dialog_summarize_comments(ui: &mut egui::Ui, app: &mut VisionPDFApp, req: &mu
     ui.horizontal(|ui| {
         ui.label(tl!("Sort comments by:"));
         craft_ui::ComboBox::from_id_salt("summary-sort").selected_text(tl!(app.summary_sort.name())).show_ui(ui, |ui| {
-            for s in pdfcraft_engine::SummarySort::ALL {
+            for s in visionpdf_engine::SummarySort::ALL {
                 ui.selectable_value(&mut app.summary_sort, s, tl!(s.name()));
             }
         });
@@ -1510,7 +1510,7 @@ fn preferences_scroll(ui: &mut egui::Ui, max: f32, add_contents: impl FnOnce(&mu
 /// `Dialog::NumberPages` content. Returns `false` when it has its own buttons and no footer is wanted.
 fn dialog_number_pages(ui: &mut egui::Ui, app: &mut VisionPDFApp, req: &mut Pending) -> bool {
     let t = Tokens::get(ui.ctx());
-    use pdfcraft_engine::LabelStyle as L;
+    use visionpdf_engine::LabelStyle as L;
     ui.label(egui::RichText::new(tl!("Number pages")).font(theme::semibold(18.0)));
     ui.add_space(8.0);
     let Some((_, id)) = app.active_ids() else { return false };
@@ -1606,14 +1606,14 @@ fn dialog_shortcuts(ui: &mut egui::Ui) -> bool {
     };
     // Registered commands first (always in sync with the real bindings), then the
     // keys the document view handles itself.
-    let mut rows: Vec<(String, String)> = pdfcraft_engine::commands::COMMANDS
+    let mut rows: Vec<(String, String)> = visionpdf_engine::commands::COMMANDS
         .iter()
         .filter_map(|c| {
             c.shortcut_for(crate::commands::mac_shortcuts(ui.ctx()))
                 .map(|k| (crate::commands::shortcut_label(ui.ctx(), k), tl!(c.label).trim_end_matches('…').to_string()))
         })
         .collect();
-    let key = |s: pdfcraft_engine::commands::Shortcut| crate::commands::shortcut_label(ui.ctx(), s);
+    let key = |s: visionpdf_engine::commands::Shortcut| crate::commands::shortcut_label(ui.ctx(), s);
     let pair = |a, b| format!("{} / {}", key(a), key(b));
     // Key names, translated where a catalog has them (not scanned as UI literals).
     let named = |k: &str| tl!(k).to_string();
@@ -1681,10 +1681,14 @@ fn dialog_about(ui: &mut egui::Ui, req: &mut Pending) -> bool {
         2 => crate::credits::models_ui(ui),
         _ => {
             ui.horizontal(|ui| {
-                widgets::visionpdf_mark(ui, 40.0);
                 ui.vertical(|ui| {
-                    ui.label(egui::RichText::new("VisionPDF").font(theme::semibold(20.0)));
-                    ui.label(crate::i18n::fmt(tl!("Version {v}"), &[("v", &pdfcraft_engine::build_info::version())]));
+                    egui::Frame::new()
+                        .fill(egui::Color32::WHITE)
+                        .inner_margin(egui::Margin::same(4))
+                        .show(ui, |ui| {
+                            widgets::visionpdf_logo(ui, 34.0);
+                        });
+                    ui.label(crate::i18n::fmt(tl!("Version {v}"), &[("v", &visionpdf_engine::build_info::version())]));
                 });
             });
             ui.add_space(6.0);
@@ -1697,11 +1701,6 @@ fn dialog_about(ui: &mut egui::Ui, req: &mut Pending) -> bool {
                 .small(),
             );
             ui.add_space(12.0);
-            ui.horizontal(|ui| {
-                ui.label(egui::RichText::new(tl!("Part of")).color(t.text_muted));
-                widgets::artcraft_logo(ui, 16.0);
-            });
-            ui.add_space(6.0);
             if let Some(cmd) = widgets::community_links(ui) {
                 req.link_command = Some(cmd);
             }
@@ -1741,7 +1740,7 @@ fn dialog_pin_tool(ui: &mut egui::Ui, app: &mut VisionPDFApp, req: &mut Pending)
     let query = app.pin_tool_search.trim().to_lowercase();
     egui::ScrollArea::vertical().max_height(380.0).auto_shrink([false, true]).show(ui, |ui| {
         let mut toggle = None;
-        for g in pdfcraft_engine::catalog::TOOL_GROUPS {
+        for g in visionpdf_engine::catalog::TOOL_GROUPS {
             let label = tl!(g.label);
             let blurb = g.sections.first().map(|s| s.items.iter().take(4).map(|i| tl!(i.label)).collect::<Vec<_>>().join(" • ")).unwrap_or_default();
             if !query.is_empty()
@@ -1840,7 +1839,7 @@ fn dialog_footer(ui: &mut egui::Ui, app: &mut VisionPDFApp, dialog: Dialog, req:
                             doc.info
                                 .attachments
                                 .iter()
-                                .find(|attachment| matches!(&attachment.source, pdfcraft_render::AttachmentSource::Document { key: attachment_key } if attachment_key == key))
+                                .find(|attachment| matches!(&attachment.source, visionpdf_render::AttachmentSource::Document { key: attachment_key } if attachment_key == key))
                                 .map(|attachment| (attachment.description.as_deref().unwrap_or_default().trim().to_owned(), attachment.has_description))
                         });
                         let normalized = description.trim();
@@ -1991,7 +1990,7 @@ fn finish_redactions_and_fields(app: &mut VisionPDFApp, req: &mut Pending) {
             app.redact_search.found = Some(n);
         }
         Some(Dialog::RemoveHidden) => {
-            let which: Vec<pdfcraft_engine::Hidden> = app.hidden_draft.found.iter().filter(|f| f.2 && f.1 > 0).map(|f| f.0).collect();
+            let which: Vec<visionpdf_engine::Hidden> = app.hidden_draft.found.iter().filter(|f| f.2 && f.1 > 0).map(|f| f.0).collect();
             let n: usize = app.hidden_draft.found.iter().filter(|f| f.2).map(|f| f.1).sum();
             if app.apply_edit(Edit::RemoveHidden { which }) {
                 if let Some((_, id)) = app.active_ids() {
@@ -2071,7 +2070,7 @@ fn finish_redactions_and_fields(app: &mut VisionPDFApp, req: &mut Pending) {
             let index =
                 widget.and_then(|obj| after.as_ref()?.iter().find(|f| f.name == name)?.widgets.iter().position(|w| w.obj == obj)).unwrap_or(d.widget);
             if let (Some(before), Some(after)) = (before, after) {
-                let n = pdfcraft_engine::form_calculations_changed(&before, &after).iter().filter(|f| **f != name).count();
+                let n = visionpdf_engine::form_calculations_changed(&before, &after).iter().filter(|f| **f != name).count();
                 if n > 0 {
                     app.notify(crate::i18n::trn(
                         crate::i18n::current(),
@@ -2089,7 +2088,7 @@ fn finish_redactions_and_fields(app: &mut VisionPDFApp, req: &mut Pending) {
 /// The sentence telling the user where the removed text is still held that applying redactions
 /// leaves as it is, or `None` when it is nowhere else. When the text couldn't be searched for,
 /// the places are those holding any text, and the sentence says they may hold it.
-pub(crate) fn still_holding_note(e: &pdfcraft_engine::RedactionElsewhere) -> Option<String> {
+pub(crate) fn still_holding_note(e: &visionpdf_engine::RedactionElsewhere) -> Option<String> {
     let count = |n: usize, one: &str, many: &str| match n {
         0 => None,
         1 => Some(tl!(one).to_string()),
@@ -2117,8 +2116,8 @@ pub(crate) fn still_holding_note(e: &pdfcraft_engine::RedactionElsewhere) -> Opt
 /// The sentence telling the user what became of the document's PDF/A or PDF/UA identification
 /// when applying redactions removed the XMP packet that held it (and the redacted text), or
 /// `None` when no such packet was removed.
-pub(crate) fn identification_note(id: &pdfcraft_engine::RedactionIdentification) -> Option<String> {
-    use pdfcraft_engine::RedactionClaim as Claim;
+pub(crate) fn identification_note(id: &visionpdf_engine::RedactionIdentification) -> Option<String> {
+    use visionpdf_engine::RedactionClaim as Claim;
     let named = |claim: Claim| -> Option<String> {
         match (id.pdfa == claim, id.pdfua == claim) {
             (true, true) => Some(tl!("PDF/A and PDF/UA").to_string()),

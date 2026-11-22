@@ -10,7 +10,7 @@ pub use craft_print::{
 mod windows_duplex;
 
 /// Windows: the in-box DLLs printing draws and describes jobs with. The executables delay-load
-/// them (`apps/pdfcraft{,-cli}/build.rs`, and `build.rs` for this crate's tests: the same list)
+/// them (`apps/visionpdf{,-cli}/build.rs`, and `build.rs` for this crate's tests: the same list)
 /// so a Windows installation without them still starts (#2630); a call into a missing
 /// delay-loaded DLL would end the process, so printing checks for them first.
 #[cfg(windows)]
@@ -104,7 +104,7 @@ pub fn xps_driver(printer: &str) -> Option<bool> {
 /// Whether `printer`'s driver is a GDI (v3) one, which the XPS print API reaches through Windows'
 /// XPS-to-GDI conversion: a page with transparency prints there with halos, as black boxes or not
 /// at all (#5838, #5940, #6155), so the copy for it has its transparent sheets flattened first
-/// (`pdfcraft_engine::spooler::spooler_copy`). False when that can't be told.
+/// (`visionpdf_engine::spooler::spooler_copy`). False when that can't be told.
 pub fn gdi_driver(printer: &str) -> bool {
     xps_driver(printer) == Some(false)
 }

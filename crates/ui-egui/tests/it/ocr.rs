@@ -3,9 +3,9 @@
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_engine::ocr::{OcrPage, OcrSettings, PlacedWord};
-use pdfcraft_engine::{AddedText, Edit, Session, export};
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_engine::ocr::{OcrPage, OcrSettings, PlacedWord};
+use visionpdf_engine::{AddedText, Edit, Session, export};
+use visionpdf_ui_egui::VisionPDFApp;
 
 /// A one-page PDF that is only a picture of a sentence.
 fn scan() -> Vec<u8> {
@@ -30,7 +30,7 @@ fn recognize_text_dialog_adds_searchable_text() {
     h.run_steps(2);
     h.get_by_label("Document language");
     h.get_by_label("Output");
-    if !pdfcraft_engine::ocr::available() {
+    if !visionpdf_engine::ocr::available() {
         eprintln!("skipped: OCR models not installed");
         return;
     }
@@ -46,18 +46,18 @@ fn recognize_text_dialog_adds_searchable_text() {
 
 #[test]
 fn recognize_text_in_multiple_files_writes_searchable_copies() {
-    if !pdfcraft_engine::ocr::available() {
+    if !visionpdf_engine::ocr::available() {
         eprintln!("skipped: OCR models not installed");
         return;
     }
-    let dir = std::env::temp_dir().join(format!("pdfcraft-ocr-ui-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-ocr-ui-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let mut app = VisionPDFApp::new();
     app.set_option("language", "en").unwrap();
     app.run_inline = true;
     app.export_dir_override = Some(dir.to_string_lossy().into_owned());
-    app.use_files(pdfcraft_ui_egui::FilePurpose::Ocr, vec![("one.pdf".into(), scan()), ("two.pdf".into(), scan())]);
+    app.use_files(visionpdf_ui_egui::FilePurpose::Ocr, vec![("one.pdf".into(), scan()), ("two.pdf".into(), scan())]);
     assert!(app.ocr_batch.is_none(), "finished");
     let toast = app.toast.clone().unwrap().0;
     assert!(toast.starts_with("Recognized ") && toast.ends_with("in 2 files"), "{toast}");
@@ -97,7 +97,7 @@ fn recognize_text_can_read_pictures_on_pages_with_text() {
     h.get_by_label("Also recognize pages that already have text").click();
     h.run_steps(2);
     assert!(!h.state().ocr_draft.settings().skip_text_pages);
-    if !pdfcraft_engine::ocr::available() {
+    if !visionpdf_engine::ocr::available() {
         eprintln!("skipped: OCR models not installed");
         return;
     }
@@ -110,8 +110,8 @@ fn recognize_text_can_read_pictures_on_pages_with_text() {
     let id = app.active_ids().unwrap().1;
     let doc = app.session.get(id).unwrap();
     assert_eq!(doc.can_undo(), Some("Recognize text"));
-    let mut r = pdfcraft_render::PageRenderer::new(doc.bytes.clone(), Default::default());
-    let text = r.render(pdfcraft_render::RenderRequest { page: 0, kind: pdfcraft_render::RequestKind::Text, scale: 1.0, ..Default::default() });
+    let mut r = visionpdf_render::PageRenderer::new(doc.bytes.clone(), Default::default());
+    let text = r.render(visionpdf_render::RenderRequest { page: 0, kind: visionpdf_render::RequestKind::Text, scale: 1.0, ..Default::default() });
     let text = text.text.unwrap().plain_text().to_lowercase();
     assert_eq!((text.matches("invoice").count(), text.matches("scanned").count()), (1, 1), "{text}");
 }
@@ -121,7 +121,7 @@ fn recognize_text_can_read_pictures_on_pages_with_text() {
 /// word instead of showing it through.
 #[test]
 fn an_ocr_word_opens_for_editing_and_stays_open() {
-    use pdfcraft_engine::ocr::PlacedWord;
+    use visionpdf_engine::ocr::PlacedWord;
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
         let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
@@ -188,7 +188,7 @@ fn edit_harness(pdf: Vec<u8>) -> Harness<'static, VisionPDFApp> {
 /// is not undone again by the next frame.
 #[test]
 fn editing_a_scanned_page_recognizes_its_text_first_and_only_once() {
-    if !pdfcraft_engine::ocr::available() {
+    if !visionpdf_engine::ocr::available() {
         eprintln!("skipped: OCR models not installed");
         return;
     }
@@ -211,7 +211,7 @@ fn editing_a_scanned_page_recognizes_its_text_first_and_only_once() {
 /// conversion happens there too.
 #[test]
 fn the_edit_panel_recognizes_a_scanned_page_too() {
-    if !pdfcraft_engine::ocr::available() {
+    if !visionpdf_engine::ocr::available() {
         eprintln!("skipped: OCR models not installed");
         return;
     }
@@ -228,7 +228,7 @@ fn the_edit_panel_recognizes_a_scanned_page_too() {
 /// comment's own words are not read into the layer, and it counts as no page text.
 #[test]
 fn editing_a_scan_with_a_comment_over_it_recognizes_the_picture() {
-    if !pdfcraft_engine::ocr::available() {
+    if !visionpdf_engine::ocr::available() {
         eprintln!("skipped: OCR models not installed");
         return;
     }
@@ -239,9 +239,9 @@ fn editing_a_scan_with_a_comment_over_it_recognizes_the_picture() {
             let p = &s.get(id).unwrap().info.pages[0];
             (p.width as f64, p.height as f64)
         };
-        let shape = pdfcraft_engine::Shape::TextBox { rect: [w * 0.1, h * 0.75, w * 0.9, h * 0.85], font_size: 18.0 };
-        let style = pdfcraft_engine::Style::default_for(&shape);
-        let note = pdfcraft_engine::NewAnnotation { page: 0, shape, style, contents: "Invoice reference 4711".into(), author: "Test".into() };
+        let shape = visionpdf_engine::Shape::TextBox { rect: [w * 0.1, h * 0.75, w * 0.9, h * 0.85], font_size: 18.0 };
+        let style = visionpdf_engine::Style::default_for(&shape);
+        let note = visionpdf_engine::NewAnnotation { page: 0, shape, style, contents: "Invoice reference 4711".into(), author: "Test".into() };
         s.apply(id, Edit::AddAnnotation(note)).unwrap();
         s.save_bytes(id).unwrap().to_vec()
     };
@@ -285,7 +285,7 @@ fn editing_a_page_with_text_over_a_background_picture_changes_nothing() {
 /// so once).
 #[test]
 fn a_page_that_becomes_a_scan_while_edit_is_on_is_recognized() {
-    if !pdfcraft_engine::ocr::available() {
+    if !visionpdf_engine::ocr::available() {
         eprintln!("skipped: OCR models not installed");
         return;
     }
@@ -315,7 +315,7 @@ fn a_page_that_becomes_a_scan_while_edit_is_on_is_recognized() {
 /// tool picked), and not beneath a dialog. The page is recognized once those are gone.
 #[test]
 fn edit_recognizes_a_scan_only_outside_read_mode_and_beneath_no_dialog() {
-    if !pdfcraft_engine::ocr::available() {
+    if !visionpdf_engine::ocr::available() {
         eprintln!("skipped: OCR models not installed");
         return;
     }
@@ -329,7 +329,7 @@ fn edit_recognizes_a_scan_only_outside_read_mode_and_beneath_no_dialog() {
     assert_eq!(undo(&h), None, "not in Read mode");
     // A dialog over the window.
     h.state_mut().set_option("mode", "edit").unwrap();
-    h.state_mut().dialog = Some(pdfcraft_ui_egui::Dialog::JsConsole);
+    h.state_mut().dialog = Some(visionpdf_ui_egui::Dialog::JsConsole);
     h.run_steps(5);
     assert_eq!(undo(&h), None, "not beneath a dialog");
     // Both gone: it is read now.
@@ -384,7 +384,7 @@ fn ocr_verify_screen_controls_keyboard_and_accept() {
     h.get_by_label("Previous uncertain");
     h.get_by_label("Page verified");
     h.get_by_label("Exit");
-    use pdfcraft_ui_egui::Phase;
+    use visionpdf_ui_egui::Phase;
     assert_eq!(h.state().ocr_verify.phase, Phase::Idle);
     // The guards hold in the real UI: Reject outside ReviewReady is ignored, not acted on.
     h.get_by_label("Reject").click();

@@ -3,7 +3,7 @@
 
 use std::sync::Arc;
 
-use pdfcraft_cos::{Document, SaveOptions, write_incremental};
+use visionpdf_cos::{Document, SaveOptions, write_incremental};
 
 use super::*;
 

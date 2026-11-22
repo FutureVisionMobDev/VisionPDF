@@ -7,8 +7,8 @@ use egui::accesskit::Role;
 use egui::{Key, Modifiers};
 use egui_kittest::Harness;
 use egui_kittest::kittest::{NodeT, Queryable};
-use pdfcraft_engine::Edit;
-use pdfcraft_ui_egui::{Dialog, VisionPDFApp, RecoveryStore};
+use visionpdf_engine::Edit;
+use visionpdf_ui_egui::{Dialog, VisionPDFApp, RecoveryStore};
 
 fn fixture(n: usize) -> Vec<u8> {
     let mut objs: Vec<String> = vec!["<< /Type /Catalog /Pages 2 0 R >>".into()];
@@ -36,7 +36,7 @@ fn fixture(n: usize) -> Vec<u8> {
 }
 
 fn store(tag: &str) -> RecoveryStore {
-    let dir = std::env::temp_dir().join(format!("pdfcraft-recovery-{tag}-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-recovery-{tag}-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     RecoveryStore::new(dir)
 }
@@ -118,9 +118,9 @@ fn saving_or_closing_clears_the_entry_and_nothing_is_written_for_clean_documents
     app.apply_edit(Edit::RotatePages { pages: vec![0], degrees: 90 });
     app.autosave_now();
     assert_eq!(s.list().len(), 1);
-    let out = std::env::temp_dir().join(format!("pdfcraft-recovery-saved-{}.pdf", std::process::id()));
+    let out = std::env::temp_dir().join(format!("visionpdf-recovery-saved-{}.pdf", std::process::id()));
     app.save_override = Some(out.to_string_lossy().into_owned());
-    assert!(app.save_active(pdfcraft_ui_egui::SaveTarget::InPlace));
+    assert!(app.save_active(visionpdf_ui_egui::SaveTarget::InPlace));
     assert_eq!(files_in(&s), 0, "saved: nothing to recover");
     // Edit again, autosave, then close and discard.
     app.apply_edit(Edit::RotatePages { pages: vec![0], degrees: 90 });
@@ -136,8 +136,8 @@ fn snapshot_holds(s: &RecoveryStore, text: &[u8]) -> bool {
     let found = |data: &[u8]| data.windows(text.len()).any(|w| w == text);
     s.list().iter().filter_map(|m| s.read(&m.key).ok()).any(|bytes| {
         found(&bytes)
-            || pdfcraft_cos::Document::open(std::sync::Arc::new(bytes)).is_ok_and(|doc| {
-                doc.scan_objects().any(|(_, o)| matches!(&*o, pdfcraft_cos::Object::Stream(st) if st.decoded().is_ok_and(|d| found(&d))))
+            || visionpdf_cos::Document::open(std::sync::Arc::new(bytes)).is_ok_and(|doc| {
+                doc.scan_objects().any(|(_, o)| matches!(&*o, visionpdf_cos::Object::Stream(st) if st.decoded().is_ok_and(|d| found(&d))))
             })
     })
 }
@@ -206,7 +206,7 @@ fn quitting_cleanly_leaves_nothing_behind() {
     h.state_mut().autosave_now();
     assert_eq!(s.list().len(), 1);
     // Quit → "Don't save" → the app closes and the autosave is removed.
-    h.state_mut().close_request = Some(pdfcraft_ui_egui::CloseRequest::Quit);
+    h.state_mut().close_request = Some(visionpdf_ui_egui::CloseRequest::Quit);
     h.run_steps(2);
     h.get_by_label("Don't save").click();
     h.run_steps(4);
@@ -217,9 +217,9 @@ fn quitting_cleanly_leaves_nothing_behind() {
 
 /// `bytes` protected with an open password (AES-256).
 fn encrypted(bytes: Vec<u8>, password: &str) -> Vec<u8> {
-    let mut doc = pdfcraft_cos::Document::open(std::sync::Arc::new(bytes)).unwrap();
-    doc.set_encryption(&pdfcraft_cos::NewEncryption {
-        algorithm: pdfcraft_cos::Algorithm::Aes256,
+    let mut doc = visionpdf_cos::Document::open(std::sync::Arc::new(bytes)).unwrap();
+    doc.set_encryption(&visionpdf_cos::NewEncryption {
+        algorithm: visionpdf_cos::Algorithm::Aes256,
         user_password: password,
         owner_password: "owner",
         permissions: -1,
@@ -227,7 +227,7 @@ fn encrypted(bytes: Vec<u8>, password: &str) -> Vec<u8> {
         seed: [2; 32],
     })
     .unwrap();
-    pdfcraft_cos::write_full(&doc, &Default::default()).unwrap()
+    visionpdf_cos::write_full(&doc, &Default::default()).unwrap()
 }
 
 /// Check that an encrypted document is autosaved without plaintext and recovered only after the password is
@@ -332,7 +332,7 @@ fn incomplete_entries_are_preserved_until_explicitly_discarded() {
 #[test]
 fn a_failed_metadata_write_keeps_the_completed_snapshot_recoverable() {
     let s = store("metadata-write-failure");
-    let meta = pdfcraft_ui_egui::RecoveryMeta {
+    let meta = visionpdf_ui_egui::RecoveryMeta {
         key: "snapshot".into(),
         name: "work.pdf".into(),
         path: Some("original.pdf".into()),
@@ -381,7 +381,7 @@ fn missing_corrupt_or_mismatched_metadata_recovers_the_snapshot_without_an_origi
         assert_eq!(recovered.len(), 1);
         assert_eq!(s.read(&recovered[0].key).unwrap(), saved);
         // The damaged sidecar was replaced with metadata for the recovered snapshot.
-        let sidecar: pdfcraft_ui_egui::RecoveryMeta = serde_json::from_slice(&std::fs::read(&sidecar).unwrap()).unwrap();
+        let sidecar: visionpdf_ui_egui::RecoveryMeta = serde_json::from_slice(&std::fs::read(&sidecar).unwrap()).unwrap();
         assert_eq!((sidecar.key.as_str(), sidecar.path.as_deref()), (recovered[0].key.as_str(), None), "{case}");
     }
 }
@@ -418,7 +418,7 @@ fn an_encrypted_snapshot_without_metadata_still_requires_its_password() {
     assert_eq!(doc.path, None);
     assert_eq!(doc.info.pages.len(), 1);
     assert_eq!(s.read(&meta.key).unwrap(), saved, "recovery must not rewrite encrypted bytes");
-    let sidecar: pdfcraft_ui_egui::RecoveryMeta =
+    let sidecar: visionpdf_ui_egui::RecoveryMeta =
         serde_json::from_slice(&std::fs::read(s.dir().join(format!("{}.json", meta.key))).unwrap()).unwrap();
     assert!(sidecar.encrypted, "the replacement metadata records that the snapshot is encrypted");
 }
@@ -429,7 +429,7 @@ fn an_encrypted_snapshot_without_metadata_still_requires_its_password() {
 fn control_click_effects_are_visible_when_the_reply_arrives() {
     let s = store("control");
     crashed_session(&s, fixture(2), None, None);
-    let slot: std::sync::Arc<std::sync::Mutex<Option<pdfcraft_ui_egui::control::ControlClient>>> = Default::default();
+    let slot: std::sync::Arc<std::sync::Mutex<Option<visionpdf_ui_egui::control::ControlClient>>> = Default::default();
     let (slot2, s2) = (slot.clone(), s.clone());
     let mut h = Harness::builder().with_size(egui::vec2(1200.0, 800.0)).build_eframe(move |cc| {
         let mut app = VisionPDFApp::new();

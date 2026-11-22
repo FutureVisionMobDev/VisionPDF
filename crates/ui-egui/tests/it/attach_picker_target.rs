@@ -3,7 +3,7 @@
 //! landing in whichever document is active by then.
 
 use egui_kittest::Harness;
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_ui_egui::VisionPDFApp;
 
 /// A one-page document with a proper xref table.
 fn fixture() -> Vec<u8> {
@@ -45,7 +45,7 @@ fn dirty(app: &VisionPDFApp, view: usize) -> bool {
 
 #[test]
 fn an_attachment_pick_is_dropped_when_the_user_switches_tabs() {
-    let dir = std::env::temp_dir().join(format!("pdfcraft-attach-target-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-attach-target-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let file = dir.join("note.txt");

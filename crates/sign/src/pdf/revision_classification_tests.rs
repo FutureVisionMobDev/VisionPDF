@@ -4,7 +4,7 @@
 
 use std::sync::Arc;
 
-use pdfcraft_cos::{Document, ObjRef, Object};
+use visionpdf_cos::{Document, ObjRef, Object};
 
 use super::Modification;
 use super::changes::classify_changes;
@@ -377,13 +377,13 @@ fn a_widget_rect_saved_back_as_integers_is_a_form_fill() {
     let save = |rect: Option<f64>| {
         let mut doc = signed.open();
         doc.update_dict(r(5, 0), |w| {
-            w.set(b"V".to_vec(), Object::String(pdfcraft_cos::PdfString::literal("Bob")));
+            w.set(b"V".to_vec(), Object::String(visionpdf_cos::PdfString::literal("Bob")));
             if let Some(x) = rect {
                 w.set(b"Rect".to_vec(), Object::Array(vec![Object::Real(x), Object::Real(20.0), Object::Real(120.0), Object::Real(40.0)]));
             }
         })
         .unwrap();
-        let bytes = pdfcraft_cos::write_incremental(&doc, &pdfcraft_cos::SaveOptions { object_streams: false, ..Default::default() }).unwrap();
+        let bytes = visionpdf_cos::write_incremental(&doc, &visionpdf_cos::SaveOptions { object_streams: false, ..Default::default() }).unwrap();
         Document::open(Arc::new(bytes)).unwrap()
     };
     let filled = save(None);

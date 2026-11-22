@@ -2,7 +2,7 @@
 
 use super::area::{SIGN_TAB_MAX, sign_tab_layout, sign_tab_on_page, sign_tabs};
 use super::*;
-use pdfcraft_engine::{FormField, FormFieldKind, FormWidget, SignatureInfo};
+use visionpdf_engine::{FormField, FormFieldKind, FormWidget, SignatureInfo};
 
 /// The widget rectangle the unit tests use (user space).
 const RECT: [f64; 4] = [20.0, 110.0, 140.0, 180.0];
@@ -33,8 +33,8 @@ fn listing(name: &str, page: usize, rect: [f64; 4]) -> SignatureInfo {
         algorithm: None,
         timestamp: false,
         timestamp_time: None,
-        status: pdfcraft_engine::SignatureStatus::Unknown,
-        modification: pdfcraft_engine::sign::Modification::None,
+        status: visionpdf_engine::SignatureStatus::Unknown,
+        modification: visionpdf_engine::sign::Modification::None,
         details: Vec::new(),
         verdict_shown: false,
     }
@@ -44,7 +44,7 @@ fn listing(name: &str, page: usize, rect: [f64; 4]) -> SignatureInfo {
 fn field(name: &str, page: usize, rect: [f64; 4]) -> FormField {
     FormField {
         name: name.into(),
-        obj: pdfcraft_cos::ObjRef::new(4, 0),
+        obj: visionpdf_cos::ObjRef::new(4, 0),
         kind: FormFieldKind::Signature,
         value: Vec::new(),
         default: Vec::new(),
@@ -59,7 +59,7 @@ fn field(name: &str, page: usize, rect: [f64; 4]) -> FormField {
         widgets: vec![FormWidget {
             mouse_up_script: None,
             mouse_down: false,
-            obj: pdfcraft_cos::ObjRef::new(4, 0),
+            obj: visionpdf_cos::ObjRef::new(4, 0),
             page: Some(page),
             rect,
             on_state: None,
@@ -135,7 +135,7 @@ fn sign_tabs_skip_fields_that_a_click_cannot_sign() {
         vec![f]
     };
     let cases = [
-        ("read-only", empty(), with(|f| f.flags = pdfcraft_engine::field_flags::READ_ONLY), true),
+        ("read-only", empty(), with(|f| f.flags = visionpdf_engine::field_flags::READ_ONLY), true),
         ("filling refused", empty(), with(|_| {}), false),
         ("no form field", empty(), Vec::new(), true),
         ("another kind", empty(), with(|f| f.kind = FormFieldKind::Text), true),

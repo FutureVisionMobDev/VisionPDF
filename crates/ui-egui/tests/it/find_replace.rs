@@ -5,7 +5,7 @@
 use egui::{Key, Modifiers};
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::{VisionPDFApp, QuickTool};
+use visionpdf_ui_egui::{VisionPDFApp, QuickTool};
 
 /// Two 300×200 pages of Helvetica text: "cat and cat" and "a cat".
 fn fixture() -> Vec<u8> {

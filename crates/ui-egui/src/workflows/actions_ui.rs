@@ -6,7 +6,7 @@ use crate::file_filter::AddFilterAnyCase as _;
 use std::sync::{Arc, Mutex};
 
 use egui::{Align, Layout};
-use pdfcraft_engine::actions::{Action, Step, builtin};
+use visionpdf_engine::actions::{Action, Step, builtin};
 
 use crate::theme::{self, Tokens};
 use crate::{VisionPDFApp, widgets};
@@ -107,7 +107,7 @@ impl VisionPDFApp {
                 if let Ok(mut s) = p.lock() {
                     s.done = i;
                 }
-                let r = pdfcraft_engine::actions::run_on(&action, &name, Arc::new(bytes), javascript, |_, _| {}).and_then(|r| {
+                let r = visionpdf_engine::actions::run_on(&action, &name, Arc::new(bytes), javascript, |_, _| {}).and_then(|r| {
                     #[cfg(not(target_arch = "wasm32"))]
                     write_result(&dir, &name, &r.bytes).map_err(|e| e.to_string())?;
                     #[cfg(target_arch = "wasm32")]
@@ -134,7 +134,7 @@ impl VisionPDFApp {
         if self.run_inline {
             work();
         } else {
-            std::thread::Builder::new().name("pdfcraft-action".into()).spawn(work).ok();
+            std::thread::Builder::new().name("visionpdf-action".into()).spawn(work).ok();
         }
         #[cfg(target_arch = "wasm32")]
         work();

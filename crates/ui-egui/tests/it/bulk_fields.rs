@@ -1,8 +1,8 @@
 //! Shared properties and multi-selection through the real Prepare-a-form shell.
 
 use egui_kittest::{Harness, kittest::Queryable};
-use pdfcraft_engine::{Edit, FieldFont, FieldProps, FieldValue, NewField, Session, field_flags};
-use pdfcraft_ui_egui::{Dialog, VisionPDFApp, bulk_fields::Tab};
+use visionpdf_engine::{Edit, FieldFont, FieldProps, FieldValue, NewField, Session, field_flags};
+use visionpdf_ui_egui::{Dialog, VisionPDFApp, bulk_fields::Tab};
 
 fn fixture() -> Vec<u8> {
     let mut s = Session::new();
@@ -58,7 +58,7 @@ fn harness() -> Harness<'static, VisionPDFApp> {
     h
 }
 
-fn doc<'a>(h: &'a Harness<'static, VisionPDFApp>) -> &'a pdfcraft_engine::Document {
+fn doc<'a>(h: &'a Harness<'static, VisionPDFApp>) -> &'a visionpdf_engine::Document {
     let s = h.state();
     s.session.get(s.views[0].id).unwrap()
 }
@@ -349,7 +349,7 @@ fn shared_properties_preserve_unchecked_changes_made_after_the_dialog_opened() {
     h.state_mut().apply_edit(Edit::SetFieldProps {
         name: "beta".into(),
         props: Box::new(FieldProps {
-            appearance: Some(pdfcraft_engine::FieldLookPatch { fill: Some(Some([0.3, 0.7, 0.1])), ..Default::default() }),
+            appearance: Some(visionpdf_engine::FieldLookPatch { fill: Some(Some([0.3, 0.7, 0.1])), ..Default::default() }),
             ..Default::default()
         }),
     });

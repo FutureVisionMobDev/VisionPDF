@@ -2,7 +2,7 @@
 //! width; Type 3 glyphs and pattern strokes on request; the pages. Fix says how many strokes
 //! changed, and refuses nothing: a document with no hairlines is told so.
 
-use pdfcraft_engine::{Edit, Hairlines};
+use visionpdf_engine::{Edit, Hairlines};
 
 use crate::pageboxes::Range;
 use crate::theme::{self, Tokens};

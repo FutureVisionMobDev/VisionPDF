@@ -4,7 +4,7 @@ use egui::Key;
 use egui::accesskit::Role;
 use egui_kittest::Harness;
 use egui_kittest::kittest::{NodeT, Queryable};
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_ui_egui::VisionPDFApp;
 
 /// A one-page document showing "Page 1".
 fn fixture() -> Vec<u8> {

@@ -17,13 +17,13 @@ impl VisionPDFApp {
             let active = self.theme_preference == ThemePreference::System;
             if self.desktop_theme_enabled && active && self.desktop_theme.is_none() {
                 let ctx = ctx.clone();
-                self.desktop_theme = Some(pdfcraft_platform::desktop_theme::DesktopTheme::start(move || ctx.request_repaint()));
+                self.desktop_theme = Some(visionpdf_platform::desktop_theme::DesktopTheme::start(move || ctx.request_repaint()));
             }
             if let Some(desktop) = &self.desktop_theme {
                 desktop.set_active(active);
                 // The standard portal supplies Linux desktop appearance. No preference
                 // must clear an earlier answer rather than retaining stale dark chrome.
-                system = desktop.get().map(|appearance| appearance == pdfcraft_platform::desktop_theme::DesktopAppearance::Dark);
+                system = desktop.get().map(|appearance| appearance == visionpdf_platform::desktop_theme::DesktopAppearance::Dark);
             }
         }
         let kind = self.theme_preference.resolve(system, ThemeKind::Light);

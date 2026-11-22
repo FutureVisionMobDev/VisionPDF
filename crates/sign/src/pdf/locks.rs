@@ -450,7 +450,7 @@ impl Same<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use pdfcraft_cos::PdfString;
+    use visionpdf_cos::PdfString;
 
     fn dict(entries: Vec<(&str, Object)>) -> Dict {
         let mut d = Dict::new();
@@ -629,8 +629,8 @@ startxref
     fn revised(doc: &Document, edit: impl FnOnce(&mut Document)) -> Document {
         let mut doc = doc.clone();
         edit(&mut doc);
-        let options = pdfcraft_cos::SaveOptions { object_streams: false, ..pdfcraft_cos::SaveOptions::default() };
-        open(pdfcraft_cos::write_incremental(&doc, &options).unwrap())
+        let options = visionpdf_cos::SaveOptions { object_streams: false, ..visionpdf_cos::SaveOptions::default() };
+        open(visionpdf_cos::write_incremental(&doc, &options).unwrap())
     }
 
     fn at(num: u32) -> ObjRef {

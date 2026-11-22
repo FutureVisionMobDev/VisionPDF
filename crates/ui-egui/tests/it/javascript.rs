@@ -3,7 +3,7 @@
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::{Dialog, VisionPDFApp};
+use visionpdf_ui_egui::{Dialog, VisionPDFApp};
 
 /// A form with a text field and a push button whose Mouse Up script fills it in.
 fn form() -> Vec<u8> {
@@ -105,7 +105,7 @@ fn text_widget_mouse_up_runs_its_menu_and_keeps_the_result() {
         let doc = app.session.get(id).unwrap();
         let field = doc.form.iter().find(|field| field.name == "greeting").unwrap();
         assert!(field.widgets[0].mouse_up_script.is_some());
-        pdfcraft_ui_egui::forms_ui::field_screen_rect(&app.views[index], &doc.info, field, 0).unwrap().center()
+        visionpdf_ui_egui::forms_ui::field_screen_rect(&app.views[index], &doc.info, field, 0).unwrap().center()
     };
     for _ in 0..2 {
         h.hover_at(point);
@@ -126,7 +126,7 @@ fn text_widget_mouse_up_runs_its_menu_and_keeps_the_result() {
 /// once the rest have been shown.
 #[test]
 fn every_message_a_script_shows_takes_the_toast_in_turn() {
-    use pdfcraft_engine::js::{MessageButtons, MessageIcon};
+    use visionpdf_engine::js::{MessageButtons, MessageIcon};
     let mut h = harness();
     let id = h.state().active_ids().unwrap().1;
     let out = h
@@ -134,7 +134,7 @@ fn every_message_a_script_shows_takes_the_toast_in_turn() {
         .session
         .run_javascript(id, "app.alert('First', 1, 0, 'Order form'); app.alert('Second', 3); app.alert('Third');", None)
         .unwrap();
-    h.state_mut().handle_js(id, pdfcraft_engine::js::JsOutput { alerts: out.alerts, ..Default::default() });
+    h.state_mut().handle_js(id, visionpdf_engine::js::JsOutput { alerts: out.alerts, ..Default::default() });
     h.run_steps(2);
     let shown = |h: &Harness<'static, VisionPDFApp>| h.state().toast.clone().map(|t| t.0);
     assert_eq!(shown(&h).as_deref(), Some("First"));
@@ -159,7 +159,7 @@ fn every_message_a_script_shows_takes_the_toast_in_turn() {
     h.state_mut().toast = None;
     h.run_steps(2);
     let out = h.state_mut().session.run_javascript(id, "this.submitForm('https://example.com/form'); app.alert('Fourth');", None).unwrap();
-    h.state_mut().handle_js(id, pdfcraft_engine::js::JsOutput { alerts: out.alerts, requests: out.requests, ..Default::default() });
+    h.state_mut().handle_js(id, visionpdf_engine::js::JsOutput { alerts: out.alerts, requests: out.requests, ..Default::default() });
     h.run_steps(2);
     let notice = shown(&h).unwrap_or_default();
     assert!(notice.contains("submitted"), "the submit notice stays: {notice}");
@@ -171,7 +171,7 @@ fn every_message_a_script_shows_takes_the_toast_in_turn() {
     // rest have been shown.
     h.state_mut().toast = None;
     h.run_steps(2);
-    let many: Vec<_> = (0..105).map(|i| pdfcraft_engine::js::Message::plain(format!("Message {i}"))).collect();
+    let many: Vec<_> = (0..105).map(|i| visionpdf_engine::js::Message::plain(format!("Message {i}"))).collect();
     h.state_mut().show_script_messages(many);
     assert_eq!(shown(&h).as_deref(), Some("Message 0"));
     for i in 1..100 {
@@ -229,7 +229,7 @@ fn document_scripts_and_preferences() {
 
 #[test]
 fn merge_data_files_into_a_spreadsheet() {
-    let dir = std::env::temp_dir().join(format!("pdfcraft-merge-ui-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-merge-ui-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let out = dir.join("report.csv");
     let mut app = VisionPDFApp::new();
@@ -244,7 +244,7 @@ fn merge_data_files_into_a_spreadsheet() {
 
 #[test]
 fn prepare_a_form_detects_fields_on_a_paper_form() {
-    let paper = pdfcraft_engine::Session::new().create_from_text("t", "Name: ____________________\n\nPhone: ____________________").unwrap().to_vec();
+    let paper = visionpdf_engine::Session::new().create_from_text("t", "Name: ____________________\n\nPhone: ____________________").unwrap().to_vec();
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
         let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
@@ -316,13 +316,13 @@ fn native_script_prompts_show_an_app_owned_caption() {
 
 #[test]
 fn native_script_prompt_uses_the_german_catalog_when_available() {
-    use pdfcraft_ui_egui::i18n::{Lang, tr};
+    use visionpdf_ui_egui::i18n::{Lang, tr};
 
     let Some(german) = Lang::from_code("de") else { return };
     let source = "This document's script is asking";
     let heading = "Das Skript dieses Dokuments fragt";
     // Older catalog pins can still build the application with the English fallback.
-    if tr(german, source) == source && std::env::var_os("PDFCRAFT_REQUIRE_SCRIPT_PROMPT_TRANSLATIONS").is_none() {
+    if tr(german, source) == source && std::env::var_os("VISIONPDF_REQUIRE_SCRIPT_PROMPT_TRANSLATIONS").is_none() {
         return;
     }
     assert_eq!(tr(german, source), heading);
@@ -356,7 +356,7 @@ fn native_button_popup_and_response_resume_without_replaying_the_script() {
             h.get_by(|n| n.role() == egui::accesskit::Role::TextInput && n.is_focused()).type_text("typed answer");
             h.run_steps(2);
         }
-        if let Ok(path) = std::env::var("PDFCRAFT_COMPAT_SCREENSHOT") {
+        if let Ok(path) = std::env::var("VISIONPDF_COMPAT_SCREENSHOT") {
             let image = h.render().unwrap();
             let crop = image::imageops::crop_imm(&image, 400, 220, 600, 460).to_image();
             crop.save(path).unwrap();
@@ -409,7 +409,7 @@ fn native_popup_completion_is_discarded_after_the_document_is_edited() {
     wait_for(&mut h, "Wait");
     h.state_mut()
         .session
-        .apply(id, pdfcraft_engine::Edit::SetFieldValue { name: "greeting".into(), value: pdfcraft_engine::FieldValue::Text("current".into()) })
+        .apply(id, visionpdf_engine::Edit::SetFieldValue { name: "greeting".into(), value: visionpdf_engine::FieldValue::Text("current".into()) })
         .unwrap();
     h.run_steps(5);
     assert!(h.query_by_label("Wait").is_none(), "the stale prompt must be dismissed");
@@ -444,7 +444,7 @@ fn native_popup_keeps_undo_shortcuts_out_of_the_document() {
     let id = h.state().active_ids().unwrap().1;
     h.state_mut()
         .session
-        .apply(id, pdfcraft_engine::Edit::SetFieldValue { name: "greeting".into(), value: pdfcraft_engine::FieldValue::Text("current".into()) })
+        .apply(id, visionpdf_engine::Edit::SetFieldValue { name: "greeting".into(), value: visionpdf_engine::FieldValue::Text("current".into()) })
         .unwrap();
     h.state_mut().run_button_script(id, "hello", "app.popUpMenuEx({cName:'Wait',cReturn:'yes'});");
     wait_for(&mut h, "Wait");
@@ -479,7 +479,7 @@ fn native_script_prompt_is_above_an_existing_dialog() {
         h.run_steps(4);
         let expected = egui::Id::unique(("document-script-prompt", id.0, 1u32));
         assert_eq!(h.ctx.memory(|m| m.top_modal_layer()).map(|l| l.id), Some(expected), "the prompt owns modal input, open_first={open_first}");
-        if let Ok(path) = std::env::var("PDFCRAFT_REVIEW4_MODAL_SCREENSHOT") {
+        if let Ok(path) = std::env::var("VISIONPDF_REVIEW4_MODAL_SCREENSHOT") {
             h.render().unwrap().save(path).unwrap();
         }
         h.get_by_label("OK").click();
@@ -497,9 +497,9 @@ fn native_script_prompt_is_above_an_existing_dialog() {
 #[test]
 fn clicking_duplicate_named_buttons_targets_the_clicked_object() {
     let _gpu = crate::gpu();
-    use pdfcraft_cos::{Dict, ObjRef, Object, PdfString};
+    use visionpdf_cos::{Dict, ObjRef, Object, PdfString};
     use std::sync::Arc;
-    let mut cos = pdfcraft_cos::Document::open(Arc::new(form())).unwrap();
+    let mut cos = visionpdf_cos::Document::open(Arc::new(form())).unwrap();
     let first = ObjRef::new(5, 0);
     let action = |caption: &str| {
         let mut a = Dict::new();
@@ -533,7 +533,7 @@ fn clicking_duplicate_named_buttons_targets_the_clicked_object() {
         d.set(b"Annots".to_vec(), Object::Array(a));
     })
     .unwrap();
-    let bytes = pdfcraft_cos::write_full(&cos, &Default::default()).unwrap();
+    let bytes = visionpdf_cos::write_full(&cos, &Default::default()).unwrap();
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
         let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
@@ -593,7 +593,7 @@ fn clicking_duplicate_named_buttons_targets_the_clicked_object() {
     assert_eq!(captions(&h), [Some("first".into()), Some("second".into())]);
     let id = h.state().active_ids().unwrap().1;
     let bytes = h.state().session.save_bytes(id).unwrap();
-    let mut reopened = pdfcraft_engine::Session::new();
+    let mut reopened = visionpdf_engine::Session::new();
     reopened.set_javascript(false);
     let reopened_id = reopened.open("saved-buttons.pdf", None, bytes, None).unwrap();
     assert_eq!(
@@ -607,7 +607,7 @@ fn clicking_duplicate_named_buttons_targets_the_clicked_object() {
             .collect::<Vec<_>>(),
         [Some("first".into()), Some("second".into())]
     );
-    if let Ok(path) = std::env::var("PDFCRAFT_REVIEW12_BUTTON_SCREENSHOT") {
+    if let Ok(path) = std::env::var("VISIONPDF_REVIEW12_BUTTON_SCREENSHOT") {
         // Let the asynchronous page raster catch up with the final accepted script edit.
         for _ in 0..60 {
             h.run_steps(2);
@@ -621,28 +621,28 @@ fn clicking_duplicate_named_buttons_targets_the_clicked_object() {
 #[test]
 fn clicking_duplicate_image_buttons_imports_only_into_the_clicked_field() {
     let _gpu = crate::gpu();
-    let mut session = pdfcraft_engine::Session::new();
+    let mut session = visionpdf_engine::Session::new();
     let bytes = session.create_blank(300.0, 300.0, 1).unwrap();
     let id = session.open("images.pdf", None, bytes, None).unwrap();
     for (name, x) in [("first", 20.0), ("second", 160.0)] {
         session
             .apply(
                 id,
-                pdfcraft_engine::Edit::AddField {
+                visionpdf_engine::Edit::AddField {
                     page: 0,
                     rect: [x, 200.0, x + 100.0, 230.0],
-                    kind: pdfcraft_engine::NewField::Image,
+                    kind: visionpdf_engine::NewField::Image,
                     name: Some(name.into()),
                 },
             )
             .unwrap();
     }
-    let mut cos = pdfcraft_cos::Document::open(session.save_bytes(id).unwrap()).unwrap();
+    let mut cos = visionpdf_cos::Document::open(session.save_bytes(id).unwrap()).unwrap();
     for field in session.get(id).unwrap().form.iter() {
-        cos.update_dict(field.obj, |d| d.set(b"T".to_vec(), pdfcraft_cos::PdfString::text("same"))).unwrap();
+        cos.update_dict(field.obj, |d| d.set(b"T".to_vec(), visionpdf_cos::PdfString::text("same"))).unwrap();
     }
-    let bytes = pdfcraft_cos::write_full(&cos, &Default::default()).unwrap();
-    let dir = std::env::temp_dir().join(format!("pdfcraft-exact-image-click-{}", std::process::id()));
+    let bytes = visionpdf_cos::write_full(&cos, &Default::default()).unwrap();
+    let dir = std::env::temp_dir().join(format!("visionpdf-exact-image-click-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let path = dir.join("synthetic.png");
     let img = craft_image_codecs::Image::from_u8(2, 2, craft_image_codecs::ChannelLayout::Rgb, vec![120u8; 12]).unwrap();
@@ -666,7 +666,7 @@ fn clicking_duplicate_image_buttons_imports_only_into_the_clicked_field() {
     h.run_steps(3);
     let icons = |h: &mut Harness<'_, VisionPDFApp>| {
         let id = h.state().active_ids().unwrap().1;
-        let cos = pdfcraft_cos::Document::open(h.state_mut().session.save_bytes(id).unwrap()).unwrap();
+        let cos = visionpdf_cos::Document::open(h.state_mut().session.save_bytes(id).unwrap()).unwrap();
         let root = cos.root().unwrap();
         let form = cos.get(root).as_dict().unwrap().get(b"AcroForm").map(|v| cos.resolve(v)).unwrap();
         form.as_dict()

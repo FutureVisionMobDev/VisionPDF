@@ -7,13 +7,13 @@
 //! `--ignored --nocapture`.
 //!
 //! A corpus that is present but **unverified** is a failure, not a skip. `xtask corpus` writes
-//! `corpus/pdfjs/.pdfcraft-corpus.json` only after the checkout matches the pinned commit and
+//! `corpus/pdfjs/.visionpdf-corpus.json` only after the checkout matches the pinned commit and
 //! manifest sha256, so these tests refuse to run against a tree nobody has checked. Without that,
 //! a half-finished or tampered checkout would quietly produce green results.
 
 use std::sync::Arc;
 
-use pdfcraft_cos::{Document, Object, SaveOptions, write_full, write_incremental};
+use visionpdf_cos::{Document, Object, SaveOptions, write_full, write_incremental};
 
 /// `corpus/pdfjs`, or `None` when nothing has been fetched.
 ///
@@ -24,7 +24,7 @@ fn checkout() -> Option<std::path::PathBuf> {
     if !dir.is_dir() {
         return None;
     }
-    let stamp = dir.join(".pdfcraft-corpus.json");
+    let stamp = dir.join(".visionpdf-corpus.json");
     assert!(
         stamp.is_file(),
         "{} exists but {} does not: the corpus has not been verified against the pin. \
@@ -83,7 +83,7 @@ fn corpus_parity() {
         let result = std::panic::catch_unwind(|| -> Result<(), String> {
             let mut doc = match Document::open(bytes.clone()) {
                 Ok(d) => d,
-                Err(pdfcraft_cos::CosError::NeedsPassword) => return Err("encrypted".into()),
+                Err(visionpdf_cos::CosError::NeedsPassword) => return Err("encrypted".into()),
                 Err(e) => return Err(format!("open: {e}")),
             };
             // hayro may repair a broken /Count; compare against the leaf walk count loosely.
@@ -147,10 +147,10 @@ fn corpus_passwords() {
     for (file, pw) in &cases {
         let Ok(bytes) = std::fs::read(dir.join(file)) else { continue };
         let bytes = Arc::new(bytes);
-        if !matches!(Document::open(bytes.clone()), Err(pdfcraft_cos::CosError::NeedsPassword)) {
+        if !matches!(Document::open(bytes.clone()), Err(visionpdf_cos::CosError::NeedsPassword)) {
             failures.push(format!("{file}: opened without a password"));
         }
-        if !matches!(Document::open_with_password(bytes.clone(), Some("definitely wrong")), Err(pdfcraft_cos::CosError::WrongPassword)) {
+        if !matches!(Document::open_with_password(bytes.clone(), Some("definitely wrong")), Err(visionpdf_cos::CosError::WrongPassword)) {
             failures.push(format!("{file}: wrong password not rejected"));
         }
         match Document::open_with_password(bytes.clone(), Some(pw)) {

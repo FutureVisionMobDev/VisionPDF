@@ -3,7 +3,7 @@
 //! Rendering runs on worker threads and is not part of the measurement.
 
 use egui_kittest::Harness;
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_ui_egui::VisionPDFApp;
 
 /// The one-minute load average, where the OS reports it (macOS `vm.loadavg`, Linux
 /// `/proc/loadavg`).

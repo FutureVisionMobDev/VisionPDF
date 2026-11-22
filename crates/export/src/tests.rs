@@ -1600,7 +1600,7 @@ fn rtf_headings_have_heading_styles() {
 /// The document's title goes into the RTF's information group, and VisionPDF is named as the
 /// application that wrote it.
 #[test]
-fn rtf_names_the_title_and_pdfcraft() {
+fn rtf_names_the_title_and_visionpdf() {
     let r = crate::rtf_with_title(&[page()], "Annual Report");
     assert_eq!(craft_rtf::doc::import(r.as_bytes()).unwrap().core.title, "Annual Report", "{r}");
     assert!(r.contains(r"{\*\generator VisionPDF;}") && !r.contains("WordCraft"), "{r}");
@@ -1627,7 +1627,7 @@ fn rtf_keeps_tables_that_touch_apart() {
 }
 
 /// A hard line ending in the text (LF, CR or CRLF) is a line break inside its paragraph or table
-/// cell, which RTF readers keep (storytold/pdfcraft#4723, by KyleKassen): they ignore a bare line
+/// cell, which RTF readers keep (https://github.com/storytold/pdfcraft#4723, by KyleKassen): they ignore a bare line
 /// ending as whitespace.
 #[test]
 fn rtf_keeps_hard_line_breaks_in_paragraphs_and_cells() {
@@ -1658,7 +1658,7 @@ fn rtf_keeps_hard_line_breaks_in_paragraphs_and_cells() {
 /// The Word export names VisionPDF as its application, its body font (Arial) in a font table that
 /// says it is a sans-serif, so a reader without it draws a like face.
 #[test]
-fn word_names_pdfcraft_and_its_fonts() {
+fn word_names_visionpdf_and_its_fonts() {
     let zip = docx(&[page()], "Report");
     assert!(part(&zip, "docProps/app.xml").contains("<Application>VisionPDF</Application>"));
     let fonts = part(&zip, "word/fontTable.xml");
@@ -1704,7 +1704,7 @@ fn word_rotated_text_is_a_turned_line() {
 }
 
 /// A line break or a tab inside a block's text stays one in its Word paragraph, in a table cell
-/// too (storytold/pdfcraft#5112 by KyleKassen made Word export write them).
+/// too (https://github.com/storytold/pdfcraft#5112 by KyleKassen made Word export write them).
 #[test]
 fn word_keeps_line_breaks_and_tabs_inside_paragraphs_and_cells() {
     let mut p = page();

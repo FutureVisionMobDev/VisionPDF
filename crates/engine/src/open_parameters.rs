@@ -5,7 +5,7 @@
 //! PDF viewers do, a fragment without `=` as a destination name. Other parameters (`zoom`, `view`,
 //! `pagemode`, `search`, …) are ignored, and the file still opens.
 
-use pdfcraft_render::{DestView, RemoteDestination};
+use visionpdf_render::{DestView, RemoteDestination};
 
 /// How many `#` of one path are tried as the end of its file name.
 const MAX_CANDIDATES: usize = 32;

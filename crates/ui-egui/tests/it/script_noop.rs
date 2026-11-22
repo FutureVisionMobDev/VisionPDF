@@ -1,7 +1,7 @@
 //! A script button with no convertible characters must not rewrite hidden source text.
 use egui_kittest::{Harness, kittest::Queryable};
-use pdfcraft_render::{PageRenderer, RenderRequest};
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_render::{PageRenderer, RenderRequest};
+use visionpdf_ui_egui::VisionPDFApp;
 use std::sync::Arc;
 
 fn hidden_text() -> Vec<u8> {

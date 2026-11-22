@@ -4,8 +4,8 @@ use std::sync::Arc;
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::VisionPDFApp;
-use pdfcraft_ui_egui::updates::UpdateSource;
+use visionpdf_ui_egui::VisionPDFApp;
+use visionpdf_ui_egui::updates::UpdateSource;
 
 fn release(tag: &str) -> craft_update::Release {
     craft_update::Release {
@@ -51,8 +51,8 @@ fn settle(h: &mut Harness<'static, VisionPDFApp>) {
 fn a_newer_release_is_offered_for_download() {
     #[cfg(target_os = "linux")]
     {
-        const FIXTURE: &str = "PDFCRAFT_TEST_UPDATE_DOWNLOAD_FIXTURE";
-        if craft_update::self_update::is_self_updating(&pdfcraft_ui_egui::UPDATE_APP) {
+        const FIXTURE: &str = "VISIONPDF_TEST_UPDATE_DOWNLOAD_FIXTURE";
+        if craft_update::self_update::is_self_updating(&visionpdf_ui_egui::UPDATE_APP) {
             assert!(std::env::var_os(FIXTURE).is_none(), "the fixture must be detected as a Cargo build");
             // nextest's extracted archive can omit Cargo's metadata. Give the child a
             // private build directory with the marker the updater uses to identify it.

@@ -9,9 +9,9 @@ use std::ops::Range;
 use std::sync::Arc;
 
 use egui::{Align2, Color32, CornerRadius, Pos2, Rect, Sense, Stroke, TextureHandle, TextureOptions, Vec2, pos2, vec2};
-use pdfcraft_engine::text_links::TextLink;
-use pdfcraft_engine::{DocId, Edit};
-use pdfcraft_render::{DestView, DocInfo, LayerOp, LinkTarget, PRINT_TAG, PageText, RenderPool, RenderRequest, RequestKind, Tile, device_pixels};
+use visionpdf_engine::text_links::TextLink;
+use visionpdf_engine::{DocId, Edit};
+use visionpdf_render::{DestView, DocInfo, LayerOp, LinkTarget, PRINT_TAG, PageText, RenderPool, RenderRequest, RequestKind, Tile, device_pixels};
 
 use crate::page_cursor::Layer;
 use crate::page_pointer::PagePointer;
@@ -106,12 +106,12 @@ impl PainterExt for egui::Painter {
 
 /// User-space editing frame: explicit PDF/editor crops apply, but the page edge does not
 /// truncate a selected image's handles. Body hit testing still respects page visibility.
-pub fn image_selectable_bounds(im: &pdfcraft_engine::PageImage) -> [f64; 4] {
+pub fn image_selectable_bounds(im: &visionpdf_engine::PageImage) -> [f64; 4] {
     im.frame_rect().unwrap_or(im.rect)
 }
 
 /// Screen-space editing frame, including selected handles outside the page.
-pub fn image_screen_rect(im: &pdfcraft_engine::PageImage, xf: &PageXform, info: &DocInfo, page: usize) -> Rect {
+pub fn image_screen_rect(im: &visionpdf_engine::PageImage, xf: &PageXform, info: &DocInfo, page: usize) -> Rect {
     xf.user_rect_f64(info, page, image_selectable_bounds(im))
 }
 
@@ -192,7 +192,7 @@ impl ImageObb {
         Self { s00, s10, s11, s01, s_bc, s_rc, s_tc, s_lc, s_rot, screen_center, u_axis, v_axis, is_rotated }
     }
 
-    pub fn from_image(im: &pdfcraft_engine::PageImage, xf: &PageXform, info: &DocInfo, page: usize) -> Self {
+    pub fn from_image(im: &visionpdf_engine::PageImage, xf: &PageXform, info: &DocInfo, page: usize) -> Self {
         let [a, b, c, d, ..] = im.matrix;
         let is_rot = b.abs() > 1e-4 || c.abs() > 1e-4 || a < 0.0 || d < 0.0;
         let bounds = image_selectable_bounds(im);
@@ -412,7 +412,7 @@ pub struct Snapshot {
 
 /// Whether what the pages show of the signatures differs between `before` and `after`: a verdict,
 /// or whether a signature's appearance draws it.
-pub(crate) fn signature_states_changed(before: &[pdfcraft_engine::SignatureInfo], after: &[pdfcraft_engine::SignatureInfo]) -> bool {
+pub(crate) fn signature_states_changed(before: &[visionpdf_engine::SignatureInfo], after: &[visionpdf_engine::SignatureInfo]) -> bool {
     before.len() != after.len()
         || before.iter().zip(after).any(|(b, a)| b.field != a.field || b.status != a.status || b.verdict_shown != a.verdict_shown)
 }
@@ -685,7 +685,7 @@ pub struct DocView {
     pub pending_edit: Option<Edit>,
     /// Edit text: the lines per page (with the document generation they were read at), and the
     /// line being edited.
-    pub(crate) edit_lines: HashMap<usize, (u64, Vec<pdfcraft_engine::TextBlock>)>,
+    pub(crate) edit_lines: HashMap<usize, (u64, Vec<visionpdf_engine::TextBlock>)>,
     /// Edit text: a click on grouped artwork with text queued [`Edit::PrepareText`] for its page:
     /// the page and the point clicked (user space), whose paragraph opens once the page is
     /// prepared, so one click on grouped text starts editing it.
@@ -697,11 +697,11 @@ pub struct DocView {
     /// The box a click switched to while another paragraph was being edited: it opens once the
     /// queued edit has applied, so its index and geometry come from the document it now is (#2022).
     /// It is held as the paragraph's text and box, not an index: the edit can regroup the page.
-    pub(crate) pending_text_open: Option<(usize, pdfcraft_engine::BlockKey)>,
+    pub(crate) pending_text_open: Option<(usize, visionpdf_engine::BlockKey)>,
     pub(crate) text_background: crate::edit_text_ui::TextBackground,
     pub(crate) move_background: crate::content_ui::MoveBackground,
     /// Edit text & images: the images per page (by document generation), and the selected one.
-    pub(crate) edit_images: HashMap<usize, (u64, Vec<pdfcraft_engine::PageImage>)>,
+    pub(crate) edit_images: HashMap<usize, (u64, Vec<visionpdf_engine::PageImage>)>,
     pub(crate) objects: crate::object_ui::ObjectSelection,
     pub image_selection: Option<crate::edit_text_ui::ImageSelection>,
     /// Select tool: the picture clicked, to copy in its original format.
@@ -733,7 +733,7 @@ pub struct DocView {
     /// The last field is the page the marks are followed up on (where a selection ended).
     pub pending_redaction: Option<(QuickTool, PageMarks, usize)>,
     /// How many Apply redactions steps are in effect in this view. While it is above 0, Save
-    /// proposes the name with `_Redacted` ([`pdfcraft_engine::redacted_file_name`]), and while it is
+    /// proposes the name with `_Redacted` ([`visionpdf_engine::redacted_file_name`]), and while it is
     /// above `redactions_downloaded`, Save asks where.
     /// Undo of an Apply redactions step takes one off and Redo adds it back. Reload and a desktop
     /// save set it to 0, and Revert sets it to `redactions_downloaded`; after a desktop save the document has the name it was saved
@@ -976,7 +976,7 @@ pub(crate) fn default_page_context_menu(ui: &mut egui::Ui, page: usize, at: [f64
     pick(
         ui.add_enabled(
             perms.can_paste,
-            egui::Button::new(tl!("Paste")).shortcut_text(crate::commands::shortcut_label(ui.ctx(), pdfcraft_engine::commands::Shortcut::cmd("V"))),
+            egui::Button::new(tl!("Paste")).shortcut_text(crate::commands::shortcut_label(ui.ctx(), visionpdf_engine::commands::Shortcut::cmd("V"))),
         ),
         ui,
         A::Paste(page, at),
@@ -1368,7 +1368,7 @@ type PageRenders = (Vec<(usize, f32, u64, Option<Tile>)>, Vec<usize>);
 /// What the page-scroll closure reads: this frame's zoom, scrolling, tool and document state.
 #[derive(Clone, Copy)]
 struct PageEnv<'a> {
-    added: &'a Vec<pdfcraft_engine::Added>,
+    added: &'a Vec<visionpdf_engine::Added>,
     allowed: bool,
     author: &'a String,
     auto_delta: Vec2,
@@ -1391,11 +1391,11 @@ struct PageEnv<'a> {
     custom_line: &'a Option<String>,
     custom_stamp: &'a Option<crate::stamps_ui::CustomStamp>,
     date_text: &'a Result<String, String>,
-    doc: &'a pdfcraft_engine::Document,
-    doc_links: &'a Vec<pdfcraft_engine::LinkItem>,
+    doc: &'a visionpdf_engine::Document,
+    doc_links: &'a Vec<visionpdf_engine::LinkItem>,
     edge_delta: Vec2,
     editing_content: bool,
-    form: &'a Arc<Vec<pdfcraft_engine::FormField>>,
+    form: &'a Arc<Vec<visionpdf_engine::FormField>>,
     generation: u64,
     glide: Vec2,
     hand: bool,
@@ -1427,7 +1427,7 @@ struct PageEnv<'a> {
     t: &'a Tokens,
     table_preview: &'a Option<crate::field_table_ui::Preview>,
     tag: u64,
-    text_style: &'a pdfcraft_engine::AddedText,
+    text_style: &'a visionpdf_engine::AddedText,
     /// Preferences: addresses written as plain page text open like links (#4207).
     text_links: bool,
     tool: QuickTool,
@@ -1754,7 +1754,7 @@ fn paint_page_tiles(
 }
 
 /// Images parsed once per page and document edit generation, shared by painting and menus.
-fn cached_edit_images<'a>(view: &'a mut DocView, doc: &pdfcraft_engine::Document, page: usize) -> &'a [pdfcraft_engine::PageImage] {
+fn cached_edit_images<'a>(view: &'a mut DocView, doc: &visionpdf_engine::Document, page: usize) -> &'a [visionpdf_engine::PageImage] {
     let generation = doc.edit_generation();
     let entry = view.edit_images.entry(page).or_insert_with(|| (generation, doc.page_images(page)));
     if entry.0 != generation {
@@ -2225,7 +2225,7 @@ fn draw_pages(
         let mut copy_image = None;
         if let Some((page, at)) = view.comments.context_at {
             // On a page still being read, these items appear when the answer comes.
-            let hit = view.pictures.get(ui.ctx(), doc, page).and_then(|pictures| pdfcraft_engine::picture_at(pictures, at)).map(|(index, _)| *index);
+            let hit = view.pictures.get(ui.ctx(), doc, page).and_then(|pictures| visionpdf_engine::picture_at(pictures, at)).map(|(index, _)| *index);
             if let Some(image) = hit {
                 if ui.button(tl!("Copy Image")).clicked() {
                     copy_image = Some(comments::CanvasAction::CopyImage(page, image));
@@ -2486,7 +2486,7 @@ fn row_bounds(view: &DocView, i: usize) -> (usize, usize) {
 /// The whole-page raster a prefetch asks for: the page at this scale, or the backdrop of a page
 /// that is tiled at this scale. A cached raster sharper than the backdrop stays demanded as it
 /// is, as `paint_page_surface` demands it under tiles.
-fn prefetch_demand(view: &DocView, p: &pdfcraft_render::PageInfo, i: usize, scale: f32, tag: u64, max_side: f32) -> (usize, f32, u64, Option<Tile>) {
+fn prefetch_demand(view: &DocView, p: &visionpdf_render::PageInfo, i: usize, scale: f32, tag: u64, max_side: f32) -> (usize, f32, u64, Option<Tile>) {
     let side = p.width.max(p.height).max(1.0);
     if side * scale <= TILE_THRESHOLD.min(max_side) {
         return (i, scale, tag, None);
@@ -2956,7 +2956,7 @@ pub(crate) fn follow_link(
     app: &mut VisionPDFApp,
     index: usize,
     target: Option<LinkTarget>,
-) -> Option<(pdfcraft_engine::DocId, String, pdfcraft_render::RemoteDestination)> {
+) -> Option<(visionpdf_engine::DocId, String, visionpdf_render::RemoteDestination)> {
     let view_id = app.views[index].id;
     match target? {
         LinkTarget::Page(p, dest) => {
@@ -3412,7 +3412,7 @@ pub fn document_area(app: &mut VisionPDFApp, index: usize, ui: &mut egui::Ui) {
     };
     let custom_line = custom_stamp.as_ref().and_then(|cs| cs.line.as_deref()).map(|t| app.session.stamp_line(t, &author));
     let mut open_props: Option<(usize, usize)> = None;
-    let mut recolour: Option<pdfcraft_engine::Rgb> = None;
+    let mut recolour: Option<visionpdf_engine::Rgb> = None;
     // The table being set up in its window, shown on its own document's page.
     let table_preview = app.field_table_draft.as_mut().filter(|d| d.doc == view.id).and_then(|d| Some(d.preview(info.pages.get(d.page)?, &form)));
     let can_modify = doc.allows_modification();
@@ -3576,7 +3576,7 @@ pub fn document_area(app: &mut VisionPDFApp, index: usize, ui: &mut egui::Ui) {
     }
     let form_notice = view.forms.notice.take();
     // One crop, then back to selecting (as Acrobat does).
-    let cropped = view.pending_edit.as_ref().is_some_and(|e| matches!(e, pdfcraft_engine::Edit::SetPageBox { .. }));
+    let cropped = view.pending_edit.as_ref().is_some_and(|e| matches!(e, visionpdf_engine::Edit::SetPageBox { .. }));
     let mut tool = app.quick_tool;
     comments::keys(ui.ctx(), keys, view, info, &mut tool, allowed);
     if preparing {
@@ -3678,9 +3678,9 @@ struct FrameRequests {
     paste_comments_at: Option<(usize, [f64; 2])>,
     comment_notice: Option<&'static str>,
     /// A colour picked for every selected comment (Colour in the page's menu).
-    recolour: Option<pdfcraft_engine::Rgb>,
-    remote_open: Option<(pdfcraft_engine::DocId, String, pdfcraft_render::RemoteDestination)>,
-    form: Arc<Vec<pdfcraft_engine::FormField>>,
+    recolour: Option<visionpdf_engine::Rgb>,
+    remote_open: Option<(visionpdf_engine::DocId, String, visionpdf_render::RemoteDestination)>,
+    form: Arc<Vec<visionpdf_engine::FormField>>,
     generation: u64,
     avail: Rect,
 }
@@ -3745,15 +3745,15 @@ fn apply_frame_requests(app: &mut VisionPDFApp, index: usize, ui: &mut egui::Ui,
     }
     if let Some((made_by, marks, head)) = app.views[index].pending_redaction.take() {
         let author = app.comment_prefs.author.clone();
-        let edits: Vec<pdfcraft_engine::Edit> = marks
+        let edits: Vec<visionpdf_engine::Edit> = marks
             .into_iter()
             .map(|(page, quads)| {
                 if made_by == QuickTool::Comment(comments::CommentTool::Highlight) {
                     // An area highlight: a highlight over the box.
                     let style = app.comment_prefs.style(comments::CommentTool::Highlight);
-                    pdfcraft_engine::Edit::AddAnnotation(pdfcraft_engine::NewAnnotation {
+                    visionpdf_engine::Edit::AddAnnotation(visionpdf_engine::NewAnnotation {
                         page,
-                        shape: pdfcraft_engine::Shape::TextMarkup { kind: pdfcraft_engine::Markup::Highlight, quads },
+                        shape: visionpdf_engine::Shape::TextMarkup { kind: visionpdf_engine::Markup::Highlight, quads },
                         style,
                         contents: String::new(),
                         author: author.clone(),
@@ -3851,7 +3851,7 @@ fn apply_frame_requests(app: &mut VisionPDFApp, index: usize, ui: &mut egui::Ui,
         }
         Some(PageMenuAction::FlattenComments) => {
             app.views[index].comments.select(None);
-            app.views[index].pending_edit = Some(pdfcraft_engine::Edit::Flatten { comments: true, fields: false });
+            app.views[index].pending_edit = Some(visionpdf_engine::Edit::Flatten { comments: true, fields: false });
         }
         Some(PageMenuAction::AddBookmark) => {
             app.bookmark_action(crate::panels::BmAction::New);
@@ -3869,7 +3869,7 @@ fn apply_frame_requests(app: &mut VisionPDFApp, index: usize, ui: &mut egui::Ui,
             app.add_image_dialog();
         }
         Some(PageMenuAction::DeletePage(page)) => {
-            app.views[index].pending_edit = Some(pdfcraft_engine::Edit::DeletePages { pages: vec![page] });
+            app.views[index].pending_edit = Some(visionpdf_engine::Edit::DeletePages { pages: vec![page] });
         }
         Some(PageMenuAction::ExportPdf) => {
             app.select_tool("export");

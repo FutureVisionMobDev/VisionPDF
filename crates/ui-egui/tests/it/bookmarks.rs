@@ -3,7 +3,7 @@
 use egui::{Key, Modifiers};
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_ui_egui::VisionPDFApp;
 
 const PAGES: &[u8] = b"%PDF-1.7
 1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj
@@ -29,7 +29,7 @@ fn harness() -> Harness<'static, VisionPDFApp> {
 
 fn outline(h: &Harness<'static, VisionPDFApp>) -> Vec<(String, Option<usize>, usize)> {
     let id = h.state().views[0].id;
-    fn flat(items: &[pdfcraft_render::OutlineItem], depth: usize, out: &mut Vec<(String, Option<usize>, usize)>) {
+    fn flat(items: &[visionpdf_render::OutlineItem], depth: usize, out: &mut Vec<(String, Option<usize>, usize)>) {
         for i in items {
             out.push((i.title.clone(), i.page, depth));
             flat(&i.children, depth + 1, out);
@@ -101,7 +101,7 @@ fn new_rename_reorder_indent_delete_and_undo() {
 
 /// The side panel's width as egui keeps it from one frame to the next.
 fn panel_width(h: &Harness<'static, VisionPDFApp>) -> f32 {
-    h.ctx.data(|data| data.get_temp::<egui::Rect>(egui::Id::unique("pdfcraft-inspector-body"))).expect("the inspector body is shown").width()
+    h.ctx.data(|data| data.get_temp::<egui::Rect>(egui::Id::unique("visionpdf-inspector-body"))).expect("the inspector body is shown").width()
 }
 
 #[test]
@@ -186,7 +186,7 @@ fn number_pages_dialog_labels_the_selected_pages() {
 
 #[test]
 fn search_finds_collapsed_bookmarks_and_keeps_original_paths() {
-    use pdfcraft_engine::Edit;
+    use visionpdf_engine::Edit;
     let mut h = harness();
     for (parent, index, title, page) in
         [(vec![], 0, "Unrelated", 0), (vec![], 1, "Reports", 0), (vec![1], 0, "Other chapter", 1), (vec![1], 1, "Résumé results", 2)]
@@ -215,7 +215,7 @@ fn search_finds_collapsed_bookmarks_and_keeps_original_paths() {
     assert!(h.query_by_label("Unrelated").is_none());
     assert!(h.query_by_label("Other chapter").is_none());
     assert_eq!(h.state().session.save_full_bytes(id).unwrap(), before, "search doesn't edit the PDF");
-    if let Ok(dir) = std::env::var("PDFCRAFT_BOOKMARK_SHOTS") {
+    if let Ok(dir) = std::env::var("VISIONPDF_BOOKMARK_SHOTS") {
         let _gpu = crate::gpu();
         h.render().unwrap().save(std::path::Path::new(&dir).join("filtered-bookmarks.png")).unwrap();
     }
@@ -278,7 +278,7 @@ trailer << /Root 1 0 R >>
     h.get_by_label("Overview");
     h.get_by_label("Method");
     assert_eq!(h.state().session.get(id).unwrap().can_undo(), Some("New bookmarks from structure"));
-    if let Ok(dir) = std::env::var("PDFCRAFT_BOOKMARK_SHOTS") {
+    if let Ok(dir) = std::env::var("VISIONPDF_BOOKMARK_SHOTS") {
         let _gpu = crate::gpu();
         h.render().unwrap().save(std::path::Path::new(&dir).join("bookmarks-from-structure.png")).unwrap();
     }
@@ -330,7 +330,7 @@ fn new_bookmarks_from_text_styles_from_the_bookmark_options() {
         h.run_steps(3);
     };
     open(&mut h);
-    assert_eq!(h.state().dialog, Some(pdfcraft_ui_egui::Dialog::BookmarksFromTextStyles));
+    assert_eq!(h.state().dialog, Some(visionpdf_ui_egui::Dialog::BookmarksFromTextStyles));
     assert_eq!(h.state().text_style_draft.levels, [Some(0), None, None, None], "the largest style is offered for level 1");
     // Cancel: nothing made.
     h.get_by_label("Cancel").click();
@@ -359,7 +359,7 @@ fn new_bookmarks_from_text_styles_from_the_bookmark_options() {
     assert_eq!(titles, [("Introduction", Some(0)), ("Results", Some(1))]);
     assert_eq!(outline[0].children[0].children[0].title, "Background");
     assert_eq!(h.state().session.get(id).unwrap().can_undo(), Some("New bookmarks from text styles"));
-    assert_eq!(h.state().right, Some(pdfcraft_ui_egui::RightPanel::Bookmarks));
+    assert_eq!(h.state().right, Some(visionpdf_ui_egui::RightPanel::Bookmarks));
     // A document with no text: nothing to choose from.
     h.state_mut().open_bytes("pages.pdf", None, PAGES.to_vec()).unwrap();
     h.run_steps(3);
@@ -372,12 +372,12 @@ fn new_bookmarks_from_text_styles_from_the_bookmark_options() {
     // The command (Pages menu, command palette) opens it too.
     assert!(h.state_mut().execute("bookmark.from_text_styles"));
     h.run_steps(2);
-    assert_eq!(h.state().dialog, Some(pdfcraft_ui_egui::Dialog::BookmarksFromTextStyles));
+    assert_eq!(h.state().dialog, Some(visionpdf_ui_egui::Dialog::BookmarksFromTextStyles));
 }
 
 #[test]
 fn expanding_and_collapsing_all_bookmarks() {
-    use pdfcraft_engine::Edit;
+    use visionpdf_engine::Edit;
     let mut h = harness();
     for (parent, title) in [(vec![], "Part"), (vec![0], "Chapter"), (vec![0, 0], "Section")] {
         h.state_mut().apply_edit(Edit::AddBookmark { parent, index: 0, title: title.into(), page: 0, left: None, top: None });
@@ -498,7 +498,7 @@ trailer << /Root 1 0 R >>
 fn active_outline(h: &Harness<'static, VisionPDFApp>) -> Vec<(String, Option<usize>, usize)> {
     let i = h.state().active.unwrap();
     let id = h.state().views[i].id;
-    fn flat(items: &[pdfcraft_render::OutlineItem], depth: usize, out: &mut Vec<(String, Option<usize>, usize)>) {
+    fn flat(items: &[visionpdf_render::OutlineItem], depth: usize, out: &mut Vec<(String, Option<usize>, usize)>) {
         for i in items {
             out.push((i.title.clone(), i.page, depth));
             flat(&i.children, depth + 1, out);

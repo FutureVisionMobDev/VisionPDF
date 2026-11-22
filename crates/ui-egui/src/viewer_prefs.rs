@@ -30,7 +30,7 @@ impl HiddenInterface {
     pub const ALL: Self = Self { toolbar: true, menubar: true, window_ui: true };
 
     /// What a document's viewer preferences ask to hide.
-    pub fn asked_by(v: &pdfcraft_engine::InitialView) -> Self {
+    pub fn asked_by(v: &visionpdf_engine::InitialView) -> Self {
         Self { toolbar: v.hide_toolbar, menubar: v.hide_menubar, window_ui: v.hide_window_ui }
     }
 
@@ -82,7 +82,7 @@ impl TabInterface {
 /// on screen is known only once it is laid out).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct PendingWindow {
-    pub doc: pdfcraft_engine::DocId,
+    pub doc: visionpdf_engine::DocId,
     pub fit: bool,
     pub center: bool,
     /// Frames left to wait for the document to be laid out before giving up.
@@ -187,8 +187,8 @@ impl crate::VisionPDFApp {
     /// - `FitWindow`, `CenterWindow` wait for the page to be laid out
     ///   ([`Self::window_preferences_frame`]), and only for the window's only document: a
     ///   document opened in a tab beside others doesn't resize or move their window.
-    pub(crate) fn apply_viewer_preferences(&mut self, index: usize, v: &pdfcraft_engine::InitialView, activate: bool) {
-        use pdfcraft_engine::{InitialLayout as L, Magnification as M};
+    pub(crate) fn apply_viewer_preferences(&mut self, index: usize, v: &visionpdf_engine::InitialView, activate: bool) {
+        use visionpdf_engine::{InitialLayout as L, Magnification as M};
         let own_view = self.always_default_view;
         let only_document = self.views.len() == 1 && !self.combine_tab.open;
         let Some(view) = self.views.get_mut(index) else { return };
@@ -220,7 +220,7 @@ impl crate::VisionPDFApp {
     }
 
     fn notify_interface_hidden(&mut self) {
-        let key = pdfcraft_engine::commands::command(TOGGLE)
+        let key = visionpdf_engine::commands::command(TOGGLE)
             .and_then(|c| c.shortcut_for(cfg!(target_os = "macos")))
             .map(|s| s.label(cfg!(target_os = "macos")))
             .unwrap_or_default();

@@ -2,7 +2,7 @@
 //! log files, crash-recovery autosaves and new digital IDs in `<exe dir>/VisionPDFData`, so a
 //! portable copy (on a USB stick, say) writes nothing to `%APPDATA%`. In `%LOCALAPPDATA%` it keeps
 //! only its single-instance socket and lock, two empty files in `%LOCALAPPDATA%\VisionPDF` that
-//! must stay private to the user (#889, `apps/pdfcraft/src/single_instance.rs`). The Windows
+//! must stay private to the user (#889, `apps/visionpdf/src/single_instance.rs`). The Windows
 //! portable zip ships with `portable.txt`; the MSI doesn't. PhotoCraft uses the same scheme
 //! (`photocraft/apps/photocraft/src/app_dirs.rs`).
 //!
@@ -74,6 +74,19 @@ pub fn resolve(exe_dir: Option<&Path>) -> Portable {
         return Portable::default();
     };
     let folder = exe_dir.join(DATA_DIR);
+    // Keep portable users' settings and recovery files across the folder rename. Rename only
+    // when the new location is absent; never merge over files from a newer VisionPDF install.
+    if !folder.exists() {
+        for old_name in ["PdfCraftData", "pdfcraft-data"] {
+            let old_folder = exe_dir.join(old_name);
+            if old_folder.is_dir() {
+                if let Err(e) = std::fs::rename(&old_folder, &folder) {
+                    log::warn!("could not migrate portable data {} to {}: {e}", old_folder.display(), folder.display());
+                }
+                break;
+            }
+        }
+    }
     match ensure_writable(&folder) {
         Ok(()) => Portable { dir: Some(folder), unwritable: None },
         Err(e) => Portable { dir: None, unwritable: Some(Unwritable { marker, folder, error: e.to_string() }) },
@@ -102,7 +115,7 @@ mod tests {
 
     fn temp(tag: &str) -> PathBuf {
         static N: AtomicUsize = AtomicUsize::new(0);
-        let d = std::env::temp_dir().join(format!("pdfcraft-portable-{tag}-{}-{}", std::process::id(), N.fetch_add(1, Ordering::Relaxed)));
+        let d = std::env::temp_dir().join(format!("visionpdf-portable-{tag}-{}-{}", std::process::id(), N.fetch_add(1, Ordering::Relaxed)));
         let _ = std::fs::remove_dir_all(&d);
         std::fs::create_dir_all(&d).unwrap();
         d

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Build, sign and (optionally) notarize the macOS release artifacts:
 #
-#   $DIST/pdfcraft-<version>-macos-<arch>.dmg          VisionPDF.app on a drag-to-Applications DMG
-#   $DIST/pdfcraft-cli-<version>-macos-<arch>.zip      the headless CLI
+#   $DIST/visionpdf-<version>-macos-<arch>.dmg          VisionPDF.app on a drag-to-Applications DMG
+#   $DIST/visionpdf-cli-<version>-macos-<arch>.zip      the headless CLI
 #
 # Usage: packaging/macos/package.sh [--arch universal|aarch64|x86_64] [--skip-build]
 #
@@ -40,8 +40,8 @@ IDENTITY="${MACOS_SIGN_IDENTITY:--}"
 SHORT_VERSION="${VERSION%%-*}"
 WORK="$CARGO_TARGET_DIR/macos-package"
 APP="$WORK/VisionPDF.app"
-DMG="$DIST/pdfcraft-$VERSION-macos-$ARCH.dmg"
-CLI_ZIP="$DIST/pdfcraft-cli-$VERSION-macos-$ARCH.zip"
+DMG="$DIST/visionpdf-$VERSION-macos-$ARCH.dmg"
+CLI_ZIP="$DIST/visionpdf-cli-$VERSION-macos-$ARCH.zip"
 
 NOTARIZE=0
 if [[ "$IDENTITY" = "-" ]]; then
@@ -58,12 +58,12 @@ echo "==> VisionPDF $VERSION for macOS ($ARCH), identity: $IDENTITY, notarize: $
 if [[ "$SKIP_BUILD" = 0 ]]; then
   args=()
   for t in "${TARGETS[@]}"; do args+=(--target "$t"); done
-  (cd "$ROOT" && cargo build --release --locked -p pdfcraft -p pdfcraft-cli "${args[@]}")
+  (cd "$ROOT" && cargo build --release --locked -p visionpdf -p visionpdf-cli "${args[@]}")
 fi
 
 rm -rf "$WORK"
 mkdir -p "$WORK/bin"
-for bin in pdfcraft pdfcraft-cli; do
+for bin in visionpdf visionpdf-cli; do
   inputs=()
   for t in "${TARGETS[@]}"; do inputs+=("$CARGO_TARGET_DIR/$t/release/$bin"); done
   lipo -create -output "$WORK/bin/$bin" "${inputs[@]}"
@@ -116,8 +116,8 @@ notarize() {
 echo "==> assembling $APP"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 # Executable and icon carry the display name (CFBundleExecutable / CFBundleIconFile).
-cp "$WORK/bin/pdfcraft" "$APP/Contents/MacOS/VisionPDF"
-cp "$ROOT/assets/app-icon/pdfcraft.icns" "$APP/Contents/Resources/VisionPDF.icns"
+cp "$WORK/bin/visionpdf" "$APP/Contents/MacOS/VisionPDF"
+cp "$ROOT/assets/app-icon/visionpdf.icns" "$APP/Contents/Resources/VisionPDF.icns"
 # Required embedded-font notices are independent of optional font inputs.
 cp "$ROOT/NOTICE" "$APP/Contents/Resources/NOTICE"
 # The standard About panel (VisionPDF menu > About VisionPDF) shows Credits.rtf under the version:
@@ -128,7 +128,7 @@ copy_docs "$APP/Contents/Resources"
 # bundle's seal covers them.
 stage_models "$APP/Contents/Resources/models"
 sed -e "s/@VERSION@/$VERSION/g" -e "s/@SHORT_VERSION@/$SHORT_VERSION/g" \
-  -e "s/@BUILD_SHA@/${PDFCRAFT_BUILD_SHA:-unknown}/g" \
+  -e "s/@BUILD_SHA@/${VISIONPDF_BUILD_SHA:-unknown}/g" \
   "$HERE/Info.plist.in" >"$APP/Contents/Info.plist"
 plutil -lint "$APP/Contents/Info.plist"
 printf 'APPL????' >"$APP/Contents/PkgInfo"
@@ -200,17 +200,17 @@ fi
 
 # ---- CLI ---------------------------------------------------------------------------------------
 echo "==> building $CLI_ZIP"
-CLI_DIR="$WORK/pdfcraft-cli-$VERSION-macos-$ARCH"
+CLI_DIR="$WORK/visionpdf-cli-$VERSION-macos-$ARCH"
 mkdir -p "$CLI_DIR"
-cp "$WORK/bin/pdfcraft-cli" "$CLI_DIR/"
+cp "$WORK/bin/visionpdf-cli" "$CLI_DIR/"
 copy_docs "$CLI_DIR"
-sign --options runtime "$CLI_DIR/pdfcraft-cli"
-codesign --verify --strict --verbose=2 "$CLI_DIR/pdfcraft-cli"
+sign --options runtime "$CLI_DIR/visionpdf-cli"
+codesign --verify --strict --verbose=2 "$CLI_DIR/visionpdf-cli"
 rm -f "$CLI_ZIP"
 ditto -c -k --keepParent "$CLI_DIR" "$CLI_ZIP"
 # A bare Mach-O can't carry a stapled ticket; Gatekeeper looks the notarization up online.
 if [[ "$NOTARIZE" = 1 ]]; then notarize "$CLI_ZIP"; fi
 
-"$WORK/bin/pdfcraft-cli" --version
+"$WORK/bin/visionpdf-cli" --version
 echo "==> done"
 ls -lh "$DMG" "$CLI_ZIP"

@@ -5,8 +5,8 @@ use egui::Pos2;
 use egui::accesskit::Role;
 use egui_kittest::Harness;
 use egui_kittest::kittest::{Queryable, by};
-use pdfcraft_engine::field_table::TableColumn;
-use pdfcraft_ui_egui::{Dialog, VisionPDFApp, QuickTool};
+use visionpdf_engine::field_table::TableColumn;
+use visionpdf_ui_egui::{Dialog, VisionPDFApp, QuickTool};
 
 fn harness() -> Harness<'static, VisionPDFApp> {
     harness_with("form.pdf", include_bytes!("../data/form.pdf").to_vec())
@@ -69,7 +69,7 @@ fn text_center_near(h: &Harness<'static, VisionPDFApp>, label: &str, expected: P
 #[test]
 fn shift_selected_small_widgets_have_blue_tags_and_visible_outlines() {
     use egui::{Color32, Event, Modifiers, PointerButton, Shape, StrokeKind};
-    use pdfcraft_engine::{Edit, NewField, Session};
+    use visionpdf_engine::{Edit, NewField, Session};
 
     let mut session = Session::new();
     let bytes = session.create_blank(300.0, 400.0, 1).unwrap();
@@ -168,7 +168,7 @@ fn placing_moving_editing_and_deleting_a_field() {
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
         assert_eq!(doc.can_undo(), Some("Change field properties"));
-        assert!(doc.form.iter().find(|f| f.name == "email").unwrap().has(pdfcraft_engine::field_flags::REQUIRED));
+        assert!(doc.form.iter().find(|f| f.name == "email").unwrap().has(visionpdf_engine::field_flags::REQUIRED));
         assert_eq!(s.views[0].prepare.selected.as_ref().map(|s| s.0.as_str()), Some("email"));
     }
     // Delete removes the selected field.
@@ -277,7 +277,7 @@ fn a_shift_drag_keeps_its_axis_when_it_crosses_the_diagonal() {
 #[test]
 fn alt_arrows_navigate_instead_of_nudging_the_selected_field() {
     let mut h = harness();
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::InsertBlankPage { at: 1, width: 612.0, height: 792.0 }));
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::InsertBlankPage { at: 1, width: 612.0, height: 792.0 }));
     h.run_steps(2);
     h.state_mut().execute("form.add.text");
     h.run_steps(1);
@@ -307,7 +307,7 @@ fn alt_arrows_navigate_instead_of_nudging_the_selected_field() {
 
 #[test]
 fn format_validate_and_calculate_tabs() {
-    use pdfcraft_engine::form_scripts::{Calculate, Format, Validate};
+    use visionpdf_engine::form_scripts::{Calculate, Format, Validate};
     let mut h = harness();
     h.state_mut().execute("form.prepare");
     h.run_steps(2);
@@ -356,7 +356,7 @@ fn with_calculate_script(js: &str) -> Harness<'static, VisionPDFApp> {
 
 /// Sets `city`'s calculate script, as form_set_script does.
 fn set_calculate_script(h: &mut Harness<'static, VisionPDFApp>, js: &str) {
-    let edit = pdfcraft_engine::Edit::SetFieldScript { name: "city".into(), event: "calculate".into(), script: Some(js.into()) };
+    let edit = visionpdf_engine::Edit::SetFieldScript { name: "city".into(), event: "calculate".into(), script: Some(js.into()) };
     assert!(h.state_mut().apply_edit(edit));
     h.run_steps(2);
 }
@@ -388,7 +388,7 @@ fn chosen(h: &Harness<'static, VisionPDFApp>, label: &str) -> bool {
 }
 
 /// `city`'s calculation as the document has it: the recognised one and the script of its own.
-fn city_calculation(h: &Harness<'static, VisionPDFApp>) -> (pdfcraft_engine::form_scripts::Calculate, Option<String>) {
+fn city_calculation(h: &Harness<'static, VisionPDFApp>) -> (visionpdf_engine::form_scripts::Calculate, Option<String>) {
     let s = h.state();
     let f = s.session.get(s.views[0].id).unwrap().form.iter().find(|f| f.name == "city").unwrap().clone();
     (f.actions.calculate, f.actions.scripts.calculate)
@@ -440,7 +440,7 @@ fn the_calculate_tab_shows_a_custom_calculation_script() {
     assert_eq!(script_boxes(&h), [js]);
     assert_eq!(h.state().field_props.as_ref().and_then(|d| d.props()), None, "an untouched tab changes nothing");
     press(&mut h, "OK");
-    assert_eq!(city_calculation(&h), (pdfcraft_engine::form_scripts::Calculate::None, Some(js.to_owned())));
+    assert_eq!(city_calculation(&h), (visionpdf_engine::form_scripts::Calculate::None, Some(js.to_owned())));
 }
 
 /// Only a script that is no sum or notation opens as a custom script: a sum stays a sum, and a
@@ -462,7 +462,7 @@ fn a_sum_or_no_calculation_does_not_open_as_a_custom_script() {
 /// An edited custom script is written as typed, and "Value is not calculated" removes it.
 #[test]
 fn an_edited_custom_script_is_written_and_no_calculation_removes_it() {
-    use pdfcraft_engine::form_scripts::Calculate;
+    use visionpdf_engine::form_scripts::Calculate;
     let mut h = with_calculate_script("event.value = 1;");
     open_calculate(&mut h, "city");
     let edited = "event.value = this.getField(\"name\").value; // città";
@@ -482,7 +482,7 @@ fn an_edited_custom_script_is_written_and_no_calculation_removes_it() {
 /// is taken.
 #[test]
 fn an_edit_past_256_kib_is_refused_and_the_next_edit_is_taken() {
-    use pdfcraft_engine::form_scripts::Calculate;
+    use visionpdf_engine::form_scripts::Calculate;
     let js = "event.value = 1;";
     let mut h = with_calculate_script(js);
     open_calculate(&mut h, "city");
@@ -513,7 +513,7 @@ fn an_edit_past_256_kib_is_refused_and_the_next_edit_is_taken() {
 /// choosing Custom again brings back the field's own script, not an edit that was left.
 #[test]
 fn a_refusal_is_forgotten_on_another_choice_or_reopening() {
-    use pdfcraft_engine::form_scripts::Calculate;
+    use visionpdf_engine::form_scripts::Calculate;
     let js = "event.value = 1;";
     let mut h = with_calculate_script(js);
     open_calculate(&mut h, "city");
@@ -539,7 +539,7 @@ fn a_refusal_is_forgotten_on_another_choice_or_reopening() {
 /// inside one), says why, and OK keeps the whole script.
 #[test]
 fn a_script_past_256_kib_shows_its_start_and_is_kept() {
-    use pdfcraft_engine::form_scripts::Calculate;
+    use visionpdf_engine::form_scripts::Calculate;
     // 18 + 3 × 100 Ki + 2 bytes: 256 KiB falls inside a euro sign.
     let long = format!("event.value = 1;/*{}*/", "€".repeat(100 * 1024));
     let mut h = with_calculate_script(&long);
@@ -563,7 +563,7 @@ fn a_script_past_256_kib_shows_its_start_and_is_kept() {
 /// step, and says how many changed.
 #[test]
 fn renaming_a_field_says_how_many_calculations_now_use_the_new_name() {
-    use pdfcraft_engine::form_scripts::Calculate;
+    use visionpdf_engine::form_scripts::Calculate;
     let mut h = harness();
     h.state_mut().execute("form.prepare");
     h.run_steps(2);
@@ -600,7 +600,7 @@ fn renaming_a_field_says_how_many_calculations_now_use_the_new_name() {
 
 #[test]
 fn appearance_tab_restyles_the_field() {
-    use pdfcraft_engine::{BorderStyle, FieldFont};
+    use visionpdf_engine::{BorderStyle, FieldFont};
     let mut h = harness();
     h.state_mut().execute("form.prepare");
     h.run_steps(2);
@@ -698,12 +698,12 @@ fn position_tab_rotates_a_field() {
 #[test]
 fn options_tab_sets_the_check_box_style() {
     // #94: Check Box Style on the Options tab.
-    use pdfcraft_engine::CheckStyle;
+    use visionpdf_engine::CheckStyle;
     let mut h = harness();
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::AddField {
+    h.state_mut().apply_edit(visionpdf_engine::Edit::AddField {
         page: 0,
         rect: [40.0, 300.0, 56.0, 316.0],
-        kind: pdfcraft_engine::NewField::CheckBox,
+        kind: visionpdf_engine::NewField::CheckBox,
         name: Some("agree".into()),
     });
     h.state_mut().open_field_props("agree", 0);
@@ -721,7 +721,7 @@ fn options_tab_sets_the_check_box_style() {
 
 #[test]
 fn button_label_is_editable_without_renaming_the_field() {
-    use pdfcraft_engine::{Edit, NewField};
+    use visionpdf_engine::{Edit, NewField};
     let mut h = harness();
     // The byte comparisons below must not vary with the save's /ModDate.
     let session = &mut h.state_mut().session;
@@ -747,7 +747,7 @@ fn button_label_is_editable_without_renaming_the_field() {
     let id = app.views[0].id;
     let field = app.session.get(id).unwrap().form.iter().find(|f| f.name == "clear_button").unwrap();
     let bytes = app.session.save_bytes(id).unwrap();
-    let doc = pdfcraft_cos::Document::open(bytes).unwrap();
+    let doc = visionpdf_cos::Document::open(bytes).unwrap();
     let widget = doc.get(field.widgets[0].obj);
     let mk = doc.resolve(widget.as_dict().unwrap().get(b"MK").unwrap());
     assert_eq!(doc.resolve(mk.as_dict().unwrap().get(b"CA").unwrap()).as_string().unwrap().to_text(), "Clear Form");
@@ -777,16 +777,16 @@ fn button_label_is_editable_without_renaming_the_field() {
 
 #[test]
 fn dropdown_alignment_is_editable_and_preserved() {
-    choice_alignment(pdfcraft_engine::NewField::Combo { options: vec!["One".into(), "Two".into()], editable: false }, "Center", 1);
+    choice_alignment(visionpdf_engine::NewField::Combo { options: vec!["One".into(), "Two".into()], editable: false }, "Center", 1);
 }
 
 #[test]
 fn list_box_alignment_is_editable_and_preserved() {
-    choice_alignment(pdfcraft_engine::NewField::List { options: vec!["One".into(), "Two".into()], multi: true }, "Left", 0);
+    choice_alignment(visionpdf_engine::NewField::List { options: vec!["One".into(), "Two".into()], multi: true }, "Left", 0);
 }
 
-fn choice_alignment(kind: pdfcraft_engine::NewField, label: &str, quadding: i64) {
-    use pdfcraft_engine::{Edit, FieldProps, FieldValue};
+fn choice_alignment(kind: visionpdf_engine::NewField, label: &str, quadding: i64) {
+    use visionpdf_engine::{Edit, FieldProps, FieldValue};
     let mut h = harness();
     h.state_mut().apply_edit(Edit::AddField { page: 0, rect: [40.0, 260.0, 240.0, 310.0], kind, name: Some("aligned_choice".into()) });
     h.state_mut()
@@ -827,7 +827,7 @@ fn choice_alignment(kind: pdfcraft_engine::NewField, label: &str, quadding: i64)
     let id = app.views[0].id;
     assert_eq!(app.session.get(id).unwrap().can_undo(), Some("Change field properties"));
     let bytes = app.session.save_bytes(id).unwrap();
-    let mut reopened = pdfcraft_engine::Session::new();
+    let mut reopened = visionpdf_engine::Session::new();
     let reopened_id = reopened.open("saved.pdf", None, bytes, None).unwrap();
     assert_eq!(reopened.get(reopened_id).unwrap().form.iter().find(|f| f.name == "aligned_choice").unwrap().quadding, quadding);
     h.state_mut().execute("edit.undo");
@@ -840,7 +840,7 @@ fn choice_alignment(kind: pdfcraft_engine::NewField, label: &str, quadding: i64)
 
 #[test]
 fn options_tab_sets_flags_alignment_and_defaults() {
-    use pdfcraft_engine::field_flags as ff;
+    use visionpdf_engine::field_flags as ff;
     let mut h = harness();
     h.state_mut().open_field_props("city", 0);
     h.run_steps(2);
@@ -897,12 +897,12 @@ fn tab_numbers_follow_fill_order_without_dirtying_the_document() {
     let (order, rects, undo) = {
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
-        let order = pdfcraft_ui_egui::forms_ui::tab_order(&doc.form, &doc.info);
+        let order = visionpdf_ui_egui::forms_ui::tab_order(&doc.form, &doc.info);
         let rects = order
             .iter()
             .map(|(fi, wi)| {
                 let field = doc.form.get(*fi).expect("the traversal field exists");
-                pdfcraft_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, field, *wi).unwrap()
+                visionpdf_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, field, *wi).unwrap()
             })
             .collect::<Vec<_>>();
         (order, rects, doc.can_undo())
@@ -948,10 +948,10 @@ fn tab_badge_tracks_its_widget_during_a_drag() {
     let (name, widget, rect) = {
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
-        let order = pdfcraft_ui_egui::forms_ui::tab_order(&doc.form, &doc.info);
+        let order = visionpdf_ui_egui::forms_ui::tab_order(&doc.form, &doc.info);
         let (fi, wi) = *order.first().expect("the form has a fillable widget");
         let field = doc.form.get(fi).expect("the first fillable field exists");
-        (field.name.clone(), wi, pdfcraft_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, field, wi).unwrap())
+        (field.name.clone(), wi, visionpdf_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, field, wi).unwrap())
     };
     let start = rect.center();
     let badge_before = text_center_near(&h, "1", rect.min + egui::vec2(10.0, 10.0)).expect("the first badge is painted");
@@ -982,14 +982,14 @@ fn tab_badge_tracks_its_widget_during_a_drag() {
 #[test]
 fn duplicating_a_field_onto_every_page() {
     let mut h = harness();
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::InsertBlankPage { at: 1, width: 300.0, height: 400.0 });
+    h.state_mut().apply_edit(visionpdf_engine::Edit::InsertBlankPage { at: 1, width: 300.0, height: 400.0 });
     h.state_mut().execute("form.prepare");
     h.run_steps(3);
     let (n, p) = {
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
         let f = doc.form.iter().find(|f| f.name == "city").unwrap();
-        (doc.info.pages.len(), pdfcraft_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen").center())
+        (doc.info.pages.len(), visionpdf_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen").center())
     };
     assert!(n >= 2, "the fixture has {n} pages");
     h.hover_at(p);
@@ -1013,13 +1013,13 @@ fn duplicating_a_field_onto_every_page() {
 
 #[test]
 fn aligning_distributing_and_sizing_several_fields() {
-    use pdfcraft_ui_egui::prepare::{Arrange, arrange};
+    use visionpdf_ui_egui::prepare::{Arrange, arrange};
     let mut h = harness();
     for (name, x, y, w) in [("a", 20.0, 300.0, 60.0), ("b", 120.0, 280.0, 80.0), ("c", 260.0, 260.0, 30.0)] {
-        h.state_mut().apply_edit(pdfcraft_engine::Edit::AddField {
+        h.state_mut().apply_edit(visionpdf_engine::Edit::AddField {
             page: 0,
             rect: [x, y, x + w, y + 20.0],
-            kind: pdfcraft_engine::NewField::Text { multiline: false },
+            kind: visionpdf_engine::NewField::Text { multiline: false },
             name: Some(name.into()),
         });
     }
@@ -1050,10 +1050,10 @@ fn aligning_distributing_and_sizing_several_fields() {
 fn deleting_several_selected_fields_and_detecting_fields_from_the_panel() {
     let mut h = harness();
     for (name, x) in [("a", 20.0), ("b", 120.0), ("c", 220.0)] {
-        h.state_mut().apply_edit(pdfcraft_engine::Edit::AddField {
+        h.state_mut().apply_edit(visionpdf_engine::Edit::AddField {
             page: 0,
             rect: [x, 300.0, x + 60.0, 320.0],
-            kind: pdfcraft_engine::NewField::Text { multiline: false },
+            kind: visionpdf_engine::NewField::Text { multiline: false },
             name: Some(name.into()),
         });
     }
@@ -1118,7 +1118,7 @@ fn image_fields_take_a_picture_when_clicked() {
     drag(&mut h, a, b);
     assert_eq!(names(&h).last().map(String::as_str), Some("Image1"));
     // A picture to choose (the picker is bypassed in tests).
-    let path = std::env::temp_dir().join(format!("pdfcraft-image-field-{}.png", std::process::id()));
+    let path = std::env::temp_dir().join(format!("visionpdf-image-field-{}.png", std::process::id()));
     image::RgbImage::from_pixel(8, 4, image::Rgb([200, 30, 30])).save(&path).unwrap();
     h.state_mut().save_override = Some(path.to_string_lossy().into_owned());
     // Fill it in as a reader would.
@@ -1137,7 +1137,7 @@ fn image_fields_take_a_picture_when_clicked() {
 
 #[test]
 fn actions_tab_adds_and_removes_actions() {
-    use pdfcraft_engine::{FieldAction, FieldTrigger};
+    use visionpdf_engine::{FieldAction, FieldTrigger};
     let mut h = harness();
     h.state_mut().execute("form.prepare");
     h.run_steps(2);
@@ -1181,7 +1181,7 @@ fn actions_tab_adds_and_removes_actions() {
 
 #[test]
 fn actions_tab_edits_the_script_of_an_existing_action() {
-    use pdfcraft_engine::{FieldAction, FieldTrigger};
+    use visionpdf_engine::{FieldAction, FieldTrigger};
     let mut h = harness();
     h.state_mut().execute("form.prepare");
     h.run_steps(2);
@@ -1200,7 +1200,7 @@ fn actions_tab_edits_the_script_of_an_existing_action() {
     open(&mut h);
     for (trigger, kind, text) in [(FieldTrigger::MouseUp, 0, script), (FieldTrigger::OnBlur, 1, "https://example.org")] {
         let d = h.state_mut().field_props.as_mut().unwrap();
-        d.new_action = pdfcraft_ui_egui::prepare::ActionDraft { trigger, kind, text: text.into() };
+        d.new_action = visionpdf_ui_egui::prepare::ActionDraft { trigger, kind, text: text.into() };
         h.run_steps(3);
         h.get_by_label("Add").click();
         h.run_steps(2);
@@ -1333,7 +1333,7 @@ fn a_radio_button_joining_a_group_by_name_stays_selected() {
 #[test]
 fn actions_tab_shows_a_chain_and_keeps_it_when_the_first_action_is_replaced() {
     use egui_kittest::kittest::NodeT;
-    use pdfcraft_engine::FieldTrigger;
+    use visionpdf_engine::FieldTrigger;
     let mut h = harness_with("chain.pdf", chained_action_fixture());
     h.state_mut().execute("form.prepare");
     h.run_steps(2);
@@ -1359,7 +1359,7 @@ fn actions_tab_shows_a_chain_and_keeps_it_when_the_first_action_is_replaced() {
     {
         let d = h.state_mut().field_props.as_mut().unwrap();
         d.actions.retain(|(t, _)| *t != FieldTrigger::MouseUp);
-        d.new_action = pdfcraft_ui_egui::prepare::ActionDraft { trigger: FieldTrigger::MouseUp, kind: 1, text: "https://example.com".into() };
+        d.new_action = visionpdf_ui_egui::prepare::ActionDraft { trigger: FieldTrigger::MouseUp, kind: 1, text: "https://example.com".into() };
     }
     h.run_steps(3);
     h.get_by_label("Add").click();
@@ -1492,7 +1492,7 @@ fn dragging_a_column_divider_between_many_columns() {
 #[test]
 fn the_table_window_closes_when_its_document_is_left() {
     let mut h = harness();
-    let blank = pdfcraft_engine::Session::new().create_blank(300.0, 400.0, 1).unwrap().to_vec();
+    let blank = visionpdf_engine::Session::new().create_blank(300.0, 400.0, 1).unwrap().to_vec();
     h.state_mut().open_bytes("other.pdf", None, blank).unwrap();
     h.state_mut().active = Some(0);
     h.run_steps(4);
@@ -1547,7 +1547,7 @@ fn the_table_window_closes_when_the_document_changes_under_it() {
     let mut h = harness();
     let before = names(&h);
     draw_table(&mut h);
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::RotatePages { pages: vec![0], degrees: 90 }));
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::RotatePages { pages: vec![0], degrees: 90 }));
     h.run_steps(2);
     assert_eq!((h.state().dialog, h.state().field_table_draft.is_some()), (None, false), "closed by the rotation");
     assert_eq!(names(&h), before, "nothing added");
@@ -1599,7 +1599,7 @@ fn a_table_clicked_near_the_page_edge_stays_on_the_page() {
 /// prepared, says when nothing calculates, and Back returns to Prepare a form.
 #[test]
 fn the_calculation_order_is_a_page_of_prepare_a_form() {
-    use pdfcraft_ui_egui::LeftPanel;
+    use visionpdf_ui_egui::LeftPanel;
     let mut h = harness();
     h.state_mut().execute("form.prepare");
     h.run_steps(3);
@@ -1640,8 +1640,8 @@ fn the_calculation_order_is_a_page_of_prepare_a_form() {
 #[test]
 fn the_calculation_order_is_moved_dragged_and_fixed() {
     use egui::{Key, Modifiers};
-    use pdfcraft_engine::form_scripts::{CalcOp, Calculate, Format};
-    use pdfcraft_engine::{Edit, FieldProps, FieldValue, NewField};
+    use visionpdf_engine::form_scripts::{CalcOp, Calculate, Format};
+    use visionpdf_engine::{Edit, FieldProps, FieldValue, NewField};
     let mut h = harness();
     for (i, name) in ["qty", "sub", "total", "other"].into_iter().enumerate() {
         let y = 200.0 + 30.0 * i as f64;
@@ -1725,9 +1725,9 @@ fn the_calculation_order_is_moved_dragged_and_fixed() {
 /// link opens the first one's formula.
 #[test]
 fn a_loop_has_its_own_card_that_opens_the_formula() {
-    use pdfcraft_engine::form_scripts::Calculate;
-    use pdfcraft_engine::{Edit, FieldProps, NewField};
-    use pdfcraft_ui_egui::prepare::FieldTab;
+    use visionpdf_engine::form_scripts::Calculate;
+    use visionpdf_engine::{Edit, FieldProps, NewField};
+    use visionpdf_ui_egui::prepare::FieldTab;
     let mut h = harness();
     for (i, (name, formula)) in [("a", "b + 1"), ("b", "a + 1")].into_iter().enumerate() {
         let y = 200.0 + 30.0 * i as f64;
@@ -1753,15 +1753,15 @@ fn a_loop_has_its_own_card_that_opens_the_formula() {
 fn radio_group_harness() -> Harness<'static, VisionPDFApp> {
     let mut h = harness();
     for (x, export) in [(20.0, "S"), (60.0, "M"), (100.0, "L")] {
-        h.state_mut().apply_edit(pdfcraft_engine::Edit::AddField {
+        h.state_mut().apply_edit(visionpdf_engine::Edit::AddField {
             page: 0,
             rect: [x, 300.0, x + 14.0, 314.0],
-            kind: pdfcraft_engine::NewField::Radio { group: Some("shirt".into()), export: export.into() },
+            kind: visionpdf_engine::NewField::Radio { group: Some("shirt".into()), export: export.into() },
             name: Some("shirt".into()),
         });
     }
     h.state_mut()
-        .apply_edit(pdfcraft_engine::Edit::SetFieldValue { name: "shirt".into(), value: pdfcraft_engine::FieldValue::Radio(Some("L".into())) });
+        .apply_edit(visionpdf_engine::Edit::SetFieldValue { name: "shirt".into(), value: visionpdf_engine::FieldValue::Radio(Some("L".into())) });
     assert!(h.state_mut().execute("form.prepare"));
     h.run_steps(3);
     h
@@ -1783,7 +1783,7 @@ fn deleting_one_radio_button_keeps_the_rest_of_its_group() {
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
         let f = doc.form.iter().find(|f| f.name == "shirt").unwrap();
-        pdfcraft_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 1).expect("on screen").center()
+        visionpdf_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 1).expect("on screen").center()
     };
     h.hover_at(p);
     h.run_steps(1);
@@ -1878,8 +1878,8 @@ fn fields_sharing_a_name_each_show_their_own_formula() {
 /// is fixed, OK applies it and closes.
 #[test]
 fn a_notation_that_cannot_be_stored_keeps_field_properties_open() {
-    use pdfcraft_engine::form_scripts::Calculate;
-    use pdfcraft_engine::{Edit, FieldProps, NewField};
+    use visionpdf_engine::form_scripts::Calculate;
+    use visionpdf_engine::{Edit, FieldProps, NewField};
     let mut h = harness();
     for (i, name) in ["qty", "sub"].into_iter().enumerate() {
         let y = 200.0 + 30.0 * i as f64;
@@ -1914,9 +1914,9 @@ fn a_notation_that_cannot_be_stored_keeps_field_properties_open() {
 /// builds the names it reads gets a note.
 #[test]
 fn a_formula_reading_a_missing_field_has_its_own_card() {
-    use pdfcraft_engine::form_scripts::Calculate;
-    use pdfcraft_engine::{Edit, FieldProps, NewField};
-    use pdfcraft_ui_egui::prepare::FieldTab;
+    use visionpdf_engine::form_scripts::Calculate;
+    use visionpdf_engine::{Edit, FieldProps, NewField};
+    use visionpdf_ui_egui::prepare::FieldTab;
     let mut h = harness();
     for (i, name) in ["qty", "discount", "sub", "rows"].into_iter().enumerate() {
         let y = 200.0 + 30.0 * i as f64;
@@ -2003,7 +2003,7 @@ fn field_rect(h: &Harness<'static, VisionPDFApp>, name: &str) -> egui::Rect {
     let s = h.state();
     let doc = s.session.get(s.views[0].id).unwrap();
     let f = doc.form.iter().find(|f| f.name == name).unwrap();
-    pdfcraft_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen")
+    visionpdf_ui_egui::forms_ui::field_screen_rect(&s.views[0], &doc.info, f, 0).expect("on screen")
 }
 
 /// A right-click while a field is dragged leaves the dragged field selected, so the drag moves it
@@ -2077,7 +2077,7 @@ fn with_prepare_open_a_double_click_on_a_field_leaves_the_polygon_unfinished() {
     let s = h.state();
     let polygons = s.session.get(s.views[0].id).unwrap().info.annotations.iter().filter(|a| a.subtype == "Polygon").count();
     assert_eq!(polygons, 0, "the polygon is not finished");
-    assert!(matches!(s.views[0].comments.gesture, Some(pdfcraft_ui_egui::comments::Gesture::Draw { .. })), "it is still being clicked out");
+    assert!(matches!(s.views[0].comments.gesture, Some(visionpdf_ui_egui::comments::Gesture::Draw { .. })), "it is still being clicked out");
 }
 
 /// Delete and Escape with a dialog open are the dialog's: the field selected behind it stays and

@@ -2,8 +2,8 @@
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_engine::links;
-use pdfcraft_ui_egui::{Dialog, VisionPDFApp};
+use visionpdf_engine::links;
+use visionpdf_ui_egui::{Dialog, VisionPDFApp};
 
 fn harness(setup: impl FnOnce(&mut VisionPDFApp) + 'static) -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
@@ -74,7 +74,7 @@ fn help_commands_open_each_link() {
         let mut h = harness(|_| {});
         assert!(h.state_mut().execute(l.command), "{}", l.command);
         assert_eq!(h.state().last_opened_url.as_deref(), Some(l.url));
-        assert_eq!(pdfcraft_engine::commands::command(l.command).unwrap().menu, Some("Help"));
+        assert_eq!(visionpdf_engine::commands::command(l.command).unwrap().menu, Some("Help"));
     }
 }
 

@@ -3,8 +3,8 @@
 //! their outlines, a click selects one, a double-click edits it and Delete removes it.
 
 use egui::{Color32, CornerRadius, Pos2, Rect, Stroke};
-use pdfcraft_engine::{Edit, LinkAction, LinkHighlight, LinkItem, LinkStyle, LinkZoom};
-use pdfcraft_render::{DocInfo, LinkTarget};
+use visionpdf_engine::{Edit, LinkAction, LinkHighlight, LinkItem, LinkStyle, LinkZoom};
+use visionpdf_render::{DocInfo, LinkTarget};
 
 use crate::canvas::{DocView, PageToolContext, PageXform};
 use crate::page_cursor::Layer;
@@ -447,7 +447,7 @@ pub(crate) fn edit_for(d: &LinkDraft) -> Edit {
 #[cfg(test)]
 mod tests {
     use super::{LinkDraft, edit_for, zoom_label};
-    use pdfcraft_engine::{Edit, LinkAction, LinkStyle, LinkZoom};
+    use visionpdf_engine::{Edit, LinkAction, LinkStyle, LinkZoom};
 
     fn draft(current: LinkAction) -> LinkDraft {
         LinkDraft {

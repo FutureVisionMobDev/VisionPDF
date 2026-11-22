@@ -1,8 +1,8 @@
-//! pdfcraft-create — create PDFs from nothing, images, text or (through LibreOffice) Office documents (L4). See the README.
+//! visionpdf-create — create PDFs from nothing, images, text or (through LibreOffice) Office documents (L4). See the README.
 
 #![deny(clippy::unwrap_used, clippy::expect_used, clippy::panic, clippy::unimplemented, clippy::todo, clippy::unreachable)]
 
-use pdfcraft_cos::{Dict, Document, ObjRef, Object, PdfString, Stream, serialize};
+use visionpdf_cos::{Dict, Document, ObjRef, Object, PdfString, Stream, serialize};
 
 mod extract;
 mod text_font;
@@ -17,7 +17,7 @@ mod office;
 #[cfg(not(target_arch = "wasm32"))]
 pub use office::libreoffice;
 pub use office::{OFFICE_EXTENSIONS, is_office, office_to_pdf};
-use pdfcraft_fonts::wrap_with;
+use visionpdf_fonts::wrap_with;
 use text_font::TextFont;
 
 #[derive(Debug, thiserror::Error, PartialEq)]
@@ -223,8 +223,8 @@ fn add_image(doc: &mut Document, img: Embedded, profiles: &mut Vec<(Vec<u8>, Obj
         };
         let mut flate_dict = d.clone();
         flate_dict.set(b"Filter".to_vec(), Object::name("FlateDecode"));
-        let flate = pdfcraft_filters::encode_flate(&packed);
-        (d, data) = match pdfcraft_filters::encode_g4(&packed, img.px.0, img.px.1) {
+        let flate = visionpdf_filters::encode_flate(&packed);
+        (d, data) = match visionpdf_filters::encode_g4(&packed, img.px.0, img.px.1) {
             Ok(g4) => {
                 let mut parms = Dict::new();
                 parms.set(b"K".to_vec(), Object::Int(-1));
@@ -659,7 +659,7 @@ fn embed(name: &str, bytes: &[u8], wanted: usize) -> Result<Vec<Embedded>, Creat
     } else if is_tiff(bytes) {
         tiff_pages(name, bytes, wanted)
     } else if bytes.starts_with(b"BM") {
-        Ok(vec![decoded(name, &pdfcraft_xfa::image::bmp_with_pixel_offset(bytes), craft_image_codecs::Format::Bmp)?])
+        Ok(vec![decoded(name, &visionpdf_xfa::image::bmp_with_pixel_offset(bytes), craft_image_codecs::Format::Bmp)?])
     } else if is_gif(bytes) {
         Ok(vec![decoded(name, bytes, craft_image_codecs::Format::Gif)?])
     } else if is_pcx(bytes) {
@@ -776,7 +776,7 @@ pub fn from_text(title: &str, text: &str, page: (f64, f64), font_size: f64) -> R
 /// The line (1-based) and character of the first one Helvetica can't draw. Line breaks, tabs and
 /// form feeds (new pages) are layout, not drawn.
 fn first_undrawable_line(text: &str) -> Option<(usize, char)> {
-    text.split('\n').enumerate().find_map(|(i, l)| pdfcraft_fonts::first_undrawable(&l.replace('\u{c}', "")).map(|c| (i + 1, c)))
+    text.split('\n').enumerate().find_map(|(i, l)| visionpdf_fonts::first_undrawable(&l.replace('\u{c}', "")).map(|c| (i + 1, c)))
 }
 
 /// What a PDF made from text VisionPDF generated says, in its first line, about characters it
@@ -796,7 +796,7 @@ pub fn from_text_escaped(title: &str, text: &str, page: (f64, f64), font_size: f
     let mut escaped = 0usize;
     let mut out = String::with_capacity(text.len());
     for c in text.chars() {
-        if matches!(c, '\n' | '\r' | '\u{c}') || pdfcraft_fonts::first_undrawable(c.encode_utf8(&mut [0; 4])).is_none() {
+        if matches!(c, '\n' | '\r' | '\u{c}') || visionpdf_fonts::first_undrawable(c.encode_utf8(&mut [0; 4])).is_none() {
             out.push(c);
         } else {
             escaped = escaped.saturating_add(1);

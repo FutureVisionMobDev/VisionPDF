@@ -3,9 +3,9 @@
 use egui::{Modifiers, PointerButton, Pos2};
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_engine::{AddedText, Edit, Session};
-use pdfcraft_render::{PageRenderer, RenderRequest, RequestKind};
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_engine::{AddedText, Edit, Session};
+use visionpdf_render::{PageRenderer, RenderRequest, RequestKind};
+use visionpdf_ui_egui::VisionPDFApp;
 
 fn document(prefix: &str) -> std::sync::Arc<Vec<u8>> {
     // Use the engine's synthetic document builder rather than another PDF serializer.

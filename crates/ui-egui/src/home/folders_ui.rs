@@ -302,7 +302,7 @@ impl VisionPDFApp {
         };
         if self.run_inline {
             work();
-        } else if std::thread::Builder::new().name("pdfcraft-folders".into()).spawn(work).is_err() {
+        } else if std::thread::Builder::new().name("visionpdf-folders".into()).spawn(work).is_err() {
             // No worker: try again when the next listing is due.
             return;
         }
@@ -541,7 +541,7 @@ mod tests {
 
     #[test]
     fn a_missing_folder_lists_as_unavailable() {
-        let missing = std::env::temp_dir().join(format!("pdfcraft-no-such-folder-{}", std::process::id()));
+        let missing = std::env::temp_dir().join(format!("visionpdf-no-such-folder-{}", std::process::id()));
         let l = list(&missing.to_string_lossy());
         assert!(l.unavailable);
         assert!(l.files.is_empty());

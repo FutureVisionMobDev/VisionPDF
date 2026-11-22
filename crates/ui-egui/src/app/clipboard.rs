@@ -38,7 +38,7 @@ impl VisionPDFApp {
     /// not. Reading aloud and accessibility tools don't ask (assistive technology may read
     /// anything, §7.6.4.2).
     pub(crate) fn may_copy(&mut self, id: DocId) -> bool {
-        if self.session.get(id).is_none_or(pdfcraft_engine::Document::allows_copying) {
+        if self.session.get(id).is_none_or(visionpdf_engine::Document::allows_copying) {
             return true;
         }
         self.notify(copy_refused().to_string());
@@ -150,7 +150,7 @@ impl VisionPDFApp {
         self.document_copy = None;
         let text = clip.text();
         let picture =
-            clip.objects().iter().find(|o| o.target.kind == pdfcraft_engine::ObjectKind::Image && o.content_type == "image").map(|o| o.target.index);
+            clip.objects().iter().find(|o| o.target.kind == visionpdf_engine::ObjectKind::Image && o.content_type == "image").map(|o| o.target.index);
         self.object_clip_mark = if !text.is_empty() {
             ctx.copy_text(text.clone());
             ObjectClipMark::Text(text)
@@ -162,8 +162,8 @@ impl VisionPDFApp {
         } else {
             ObjectClipMark::None
         };
-        self.object_clipboard = Some(pdfcraft_engine::ObjectClipboard::new(clip));
-        if cut && let Some(delete) = pdfcraft_engine::Edit::delete_objects(page, targets) {
+        self.object_clipboard = Some(visionpdf_engine::ObjectClipboard::new(clip));
+        if cut && let Some(delete) = visionpdf_engine::Edit::delete_objects(page, targets) {
             self.apply_edit(delete);
         }
         true
@@ -174,7 +174,7 @@ impl VisionPDFApp {
     fn pastes_objects(&self, pastes: &[ClipboardPaste]) -> bool {
         pastes.iter().all(|paste| match (paste, &self.object_clip_mark) {
             (ClipboardPaste::Text(text), ObjectClipMark::Text(copied)) => text.replace("\r\n", "\n").trim_end() == copied.trim_end(),
-            (ClipboardPaste::Text(text), ObjectClipMark::None) => !pdfcraft_engine::is_xfdf_comments(text),
+            (ClipboardPaste::Text(text), ObjectClipMark::None) => !visionpdf_engine::is_xfdf_comments(text),
             (ClipboardPaste::Image(image), ObjectClipMark::Picture(hash)) => {
                 let rgba: Vec<u8> = image.pixels.iter().flat_map(egui::Color32::to_srgba_unmultiplied).collect();
                 picture_hash(image.size[0], image.size[1], &rgba) == *hash
@@ -237,7 +237,7 @@ impl VisionPDFApp {
     /// nothing legible (a word copied in another app since is that word, not the comments copied
     /// before it).
     fn paste_comment_text(&mut self, i: usize, text: String) {
-        if pdfcraft_engine::is_xfdf_comments(&text) {
+        if visionpdf_engine::is_xfdf_comments(&text) {
             self.paste_comments(i, Some(text), None);
         } else if text.trim().is_empty() && self.comment_clipboard.is_some() {
             self.paste_comments(i, None, None);
@@ -287,20 +287,20 @@ impl VisionPDFApp {
             self.notify_tr("The document's security settings don't allow this change");
             return false;
         }
-        let count = pdfcraft_engine::comment_count(&xfdf);
-        let Some(bounds) = pdfcraft_engine::comments_bounds(&xfdf).filter(|_| count > 0) else {
+        let count = visionpdf_engine::comment_count(&xfdf);
+        let Some(bounds) = visionpdf_engine::comments_bounds(&xfdf).filter(|_| count > 0) else {
             self.notify_tr("The clipboard holds no comments");
             return false;
         };
         match at {
             Some((page, [x, y])) => {
                 let offset = [x - (bounds[0] + bounds[2]) / 2.0, y - (bounds[1] + bounds[3]) / 2.0];
-                self.apply_edit(pdfcraft_engine::Edit::PasteComments { xfdf, page, offset: Some(offset) })
+                self.apply_edit(visionpdf_engine::Edit::PasteComments { xfdf, page, offset: Some(offset) })
             }
             None => {
                 let Some(view) = self.views.get_mut(i) else { return false };
                 view.comments.clear_selection();
-                let outlines = pdfcraft_engine::comment_outlines(&xfdf);
+                let outlines = visionpdf_engine::comment_outlines(&xfdf);
                 view.comments.gesture = Some(comments::Gesture::Place { xfdf, bounds, count, outlines });
                 self.notify_tr("Click where the copied comments go; Escape lets them go");
                 true
@@ -324,7 +324,7 @@ impl VisionPDFApp {
             if !self.may_copy(id) {
                 return false;
             }
-            let job = |v: &crate::DocView, doc: &pdfcraft_engine::Document| match waiting {
+            let job = |v: &crate::DocView, doc: &visionpdf_engine::Document| match waiting {
                 Some(span) if !v.all_text => DocumentCopyJob::of_selection(v, doc, span),
                 _ => DocumentCopyJob::of(v, doc),
             };
@@ -534,7 +534,7 @@ mod review_tests {
         app.views[0].organize = true;
         assert_eq!(frame(&mut app, &ctx, 2.0, vec![delivered()]), 0);
         app.views[0].organize = false;
-        app.apply_edit(pdfcraft_engine::Edit::Protect(pdfcraft_engine::Protection {
+        app.apply_edit(visionpdf_engine::Edit::Protect(visionpdf_engine::Protection {
             permissions_password: Some("owner".into()),
             ..Default::default()
         }));
@@ -626,10 +626,10 @@ mod review_tests {
         let mut app = VisionPDFApp::new();
         app.system_clipboard = false;
         app.create_blank();
-        let shape = pdfcraft_engine::Shape::Rectangle { rect: [10.0, 10.0, 50.0, 50.0] };
-        let style = pdfcraft_engine::Style::default_for(&shape);
-        let note = pdfcraft_engine::NewAnnotation { page: 0, shape, style, contents: String::new(), author: String::new() };
-        assert!(app.apply_edit(pdfcraft_engine::Edit::AddAnnotation(note)));
+        let shape = visionpdf_engine::Shape::Rectangle { rect: [10.0, 10.0, 50.0, 50.0] };
+        let style = visionpdf_engine::Style::default_for(&shape);
+        let note = visionpdf_engine::NewAnnotation { page: 0, shape, style, contents: String::new(), author: String::new() };
+        assert!(app.apply_edit(visionpdf_engine::Edit::AddAnnotation(note)));
         app.views[0].comments.select_only((0, 0));
         // The page's text is not read yet: the selection waits for it.
         app.views[0].texts.clear();

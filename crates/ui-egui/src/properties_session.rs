@@ -1,7 +1,7 @@
 //! Document Properties keeps its widget buffers local and commits one revision-bound draft.
 
 use edit_session::EditSession;
-use pdfcraft_engine::{DocId, Document, Edit, InitialView};
+use visionpdf_engine::{DocId, Document, Edit, InitialView};
 
 use crate::{CustomDraft, VisionPDFApp};
 

@@ -5,13 +5,13 @@
 //! and a reviewer can read a change in the diff. Positions are left out, so moving a widget is not
 //! a change but adding, removing or renaming one is.
 //!
-//! `UPDATE_SNAPSHOTS=1 cargo test -p pdfcraft-ui-egui --test it panel_snapshots` rewrites the files.
+//! `UPDATE_SNAPSHOTS=1 cargo test -p visionpdf-ui-egui --test it panel_snapshots` rewrites the files.
 
 use egui::accesskit::{Role, Toggled};
 use egui_kittest::kittest::{NodeT, Queryable};
 use egui_kittest::{Harness, Node};
-use pdfcraft_engine::Session;
-use pdfcraft_ui_egui::{VisionPDFApp, RightPanel};
+use visionpdf_engine::Session;
+use visionpdf_ui_egui::{VisionPDFApp, RightPanel};
 
 use crate::support;
 

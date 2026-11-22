@@ -4,7 +4,7 @@
 //! step land in the same frame.
 
 use egui_kittest::Harness;
-use pdfcraft_ui_egui::VisionPDFApp;
+use visionpdf_ui_egui::VisionPDFApp;
 
 /// The word searched for, placed (x, y in PDF user space) on each page.
 const NEEDLE: &str = "needle";
@@ -285,7 +285,7 @@ fn a_step_during_a_wheel_zoom_keeps_the_match_when_the_pointer_leaves_and_return
 /// Single page and two-up, scrolling or a page (spread) at a time: each step shows its match.
 #[test]
 fn every_page_display_shows_the_match_after_zooming() {
-    use pdfcraft_ui_egui::canvas::PageLayout;
+    use visionpdf_ui_egui::canvas::PageLayout;
     let mut h = harness();
     for (layout, continuous) in [(PageLayout::Single, false), (PageLayout::TwoUp, true), (PageLayout::TwoUp, false)] {
         h.state_mut().views[0].set_display(layout, continuous);

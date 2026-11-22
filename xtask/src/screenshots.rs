@@ -16,33 +16,33 @@ use anyhow::{Context, Result, bail};
 
 /// (file stem, title, what it shows, shot arguments after the PDF path).
 pub const SCENES: &[(&str, &str, &str, &[&str])] = &[
-    ("pdfcraft-viewer", "Viewer with comments", "README hero", &["--panel", "comments", "--zoom", "72"]),
-    ("pdfcraft-dark", "Dark theme", "README: themes", &["--theme", "dark", "--panel", "comments", "--page", "11", "--zoom", "80", "--notice", "off"]),
-    ("pdfcraft-organize", "Organize pages", "README: organize", &["--organize", "on", "--panel", "none", "--select", "5,6,7"]),
-    ("pdfcraft-find", "Find text", "README: search", &["--find", "type", "--page", "4", "--zoom", "90", "--panel", "none", "--notice", "off"]),
-    ("pdfcraft-bookmarks", "Bookmarks", "README: navigation", &["--panel", "bookmarks", "--page", "7", "--zoom", "75", "--notice", "off"]),
-    ("pdfcraft-forms", "Interactive form", "README: forms", &["--page", "13", "--fields", "on", "--zoom", "80", "--panel", "fields"]),
-    ("pdfcraft-layers", "Layers", "README: layers", &["--panel", "layers", "--page", "12", "--zoom", "75", "--notice", "off"]),
+    ("visionpdf-viewer", "Viewer with comments", "README hero", &["--panel", "comments", "--zoom", "72"]),
+    ("visionpdf-dark", "Dark theme", "README: themes", &["--theme", "dark", "--panel", "comments", "--page", "11", "--zoom", "80", "--notice", "off"]),
+    ("visionpdf-organize", "Organize pages", "README: organize", &["--organize", "on", "--panel", "none", "--select", "5,6,7"]),
+    ("visionpdf-find", "Find text", "README: search", &["--find", "type", "--page", "4", "--zoom", "90", "--panel", "none", "--notice", "off"]),
+    ("visionpdf-bookmarks", "Bookmarks", "README: navigation", &["--panel", "bookmarks", "--page", "7", "--zoom", "75", "--notice", "off"]),
+    ("visionpdf-forms", "Interactive form", "README: forms", &["--page", "13", "--fields", "on", "--zoom", "80", "--panel", "fields"]),
+    ("visionpdf-layers", "Layers", "README: layers", &["--panel", "layers", "--page", "12", "--zoom", "75", "--notice", "off"]),
     (
-        "pdfcraft-scripts",
+        "visionpdf-scripts",
         "Scripts of the world",
         "README: rendering",
         &["--page", "7", "--zoom", "125", "--left", "closed", "--panel", "none", "--notice", "off"],
     ),
-    ("pdfcraft-properties", "Document properties", "README: metadata", &["--dialog", "properties", "--notice", "off"]),
-    ("pdfcraft-palette", "Command palette", "README: tools", &["--palette", "page", "--notice", "off"]),
-    ("pdfcraft-split", "Split dialog", "README: split", &["--organize", "on", "--panel", "none", "--dialog", "split", "--notice", "off"]),
-    ("pdfcraft-tools", "All tools", "README: tool catalogue", &["--tools", "expanded", "--home", "on"]),
+    ("visionpdf-properties", "Document properties", "README: metadata", &["--dialog", "properties", "--notice", "off"]),
+    ("visionpdf-palette", "Command palette", "README: tools", &["--palette", "page", "--notice", "off"]),
+    ("visionpdf-split", "Split dialog", "README: split", &["--organize", "on", "--panel", "none", "--dialog", "split", "--notice", "off"]),
+    ("visionpdf-tools", "All tools", "README: tool catalogue", &["--tools", "expanded", "--home", "on"]),
     (
-        "pdfcraft-twoup",
+        "visionpdf-twoup",
         "Two-up reading",
         "README: layouts",
         &["--layout", "two-up", "--mode", "read", "--page", "4", "--theme", "dark", "--notice", "off"],
     ),
-    ("pdfcraft-ocr-verify", "OCR Verify screen", "README: OCR review", &["--size", "1680x1000", "--ocr-verify", "on"]),
+    ("visionpdf-ocr-verify", "OCR Verify screen", "README: OCR review", &["--size", "1680x1000", "--ocr-verify", "on"]),
 ];
 
-const PDF: &str = "dist/demo/pdfcraft-showcase.pdf";
+const PDF: &str = "dist/demo/visionpdf-showcase.pdf";
 
 pub fn run(args: &[String]) -> Result<()> {
     let root = crate::assets::root();
@@ -51,7 +51,7 @@ pub fn run(args: &[String]) -> Result<()> {
         crate::demo_pdf::run(&[])?;
     }
     let status = Command::new(env!("CARGO"))
-        .args(["build", "--release", "-p", "pdfcraft-ui-egui", "--example", "shot"])
+        .args(["build", "--release", "-p", "visionpdf-ui-egui", "--example", "shot"])
         .current_dir(&root)
         .status()
         .context("building the shot example")?;
@@ -72,7 +72,7 @@ pub fn run(args: &[String]) -> Result<()> {
             .args(["--size", "1440x900", "--scale", "2", "--width", "1600"])
             .args(*scene)
             // Published images show only the embedded, openly licensed fonts (licences.md).
-            .env("PDFCRAFT_SYSTEM_FONTS", "0")
+            .env("VISIONPDF_SYSTEM_FONTS", "0")
             .current_dir(&root)
             .status()
             .with_context(|| format!("running shot for {name}"))?;

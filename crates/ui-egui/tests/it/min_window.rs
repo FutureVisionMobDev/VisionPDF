@@ -4,7 +4,7 @@
 use egui::accesskit::Role;
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::{MIN_WINDOW_SIZE, VisionPDFApp};
+use visionpdf_ui_egui::{MIN_WINDOW_SIZE, VisionPDFApp};
 
 fn harness(size: egui::Vec2) -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(size).build_eframe(|_cc| {
@@ -68,12 +68,12 @@ fn fixture(n: usize) -> Vec<u8> {
 }
 
 fn protected(user: &str, owner: &str, permissions: i32) -> Vec<u8> {
-    protected_with(pdfcraft_cos::Algorithm::Aes256, user, owner, permissions)
+    protected_with(visionpdf_cos::Algorithm::Aes256, user, owner, permissions)
 }
 
-fn protected_with(algorithm: pdfcraft_cos::Algorithm, user: &str, owner: &str, permissions: i32) -> Vec<u8> {
-    let mut doc = pdfcraft_cos::Document::open(std::sync::Arc::new(fixture(2))).unwrap();
-    doc.set_encryption(&pdfcraft_cos::NewEncryption {
+fn protected_with(algorithm: visionpdf_cos::Algorithm, user: &str, owner: &str, permissions: i32) -> Vec<u8> {
+    let mut doc = visionpdf_cos::Document::open(std::sync::Arc::new(fixture(2))).unwrap();
+    doc.set_encryption(&visionpdf_cos::NewEncryption {
         algorithm,
         user_password: user,
         owner_password: owner,
@@ -82,7 +82,7 @@ fn protected_with(algorithm: pdfcraft_cos::Algorithm, user: &str, owner: &str, p
         seed: [4; 32],
     })
     .unwrap();
-    pdfcraft_cos::write_full(&doc, &Default::default()).unwrap()
+    visionpdf_cos::write_full(&doc, &Default::default()).unwrap()
 }
 
 /// A narrow window: the stacked notice bar keeps both buttons inside the window and apart.

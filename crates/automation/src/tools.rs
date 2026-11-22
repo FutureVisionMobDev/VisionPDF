@@ -5,7 +5,7 @@
 
 use serde_json::{Value, json};
 
-use pdfcraft_engine::REDACT_PATTERNS;
+use visionpdf_engine::REDACT_PATTERNS;
 
 use crate::ToolError;
 
@@ -88,7 +88,7 @@ fn schema(props: Value, required: &[&str]) -> Value {
 /// The language codes the engines read, as the `language` enum — from the engine's own table,
 /// so the schema and the validator can never disagree.
 fn language_enum() -> Value {
-    Value::Array(pdfcraft_engine::ocr::LANGUAGES.iter().map(|(code, _)| json!(code)).collect())
+    Value::Array(visionpdf_engine::ocr::LANGUAGES.iter().map(|(code, _)| json!(code)).collect())
 }
 
 struct T {
@@ -1009,7 +1009,7 @@ pub fn tools() -> Vec<ToolDef> {
                 "country": { "type": "string", "description": "Two-letter country code." },
                 "key": { "type": "string", "enum": ["rsa2048", "rsa3072", "rsa4096", "p256"] },
                 "years": { "type": "integer", "minimum": 1, "maximum": 50 },
-                "password": { "type": "string", "minLength": pdfcraft_engine::sign::pkcs12::MIN_PASSWORD_CHARS },
+                "password": { "type": "string", "minLength": visionpdf_engine::sign::pkcs12::MIN_PASSWORD_CHARS },
                 "path": { "type": "string", "description": "The .p12 file to write." },
             }),
             &["name", "password", "path"],
@@ -1608,7 +1608,7 @@ pub fn tools() -> Vec<ToolDef> {
                 }),
                 &["paths", "folder"],
             )),
-        t("ocr_status", "OCR status", "Whether text recognition is available, where it looks for models (release packages include them; a source build fetches them with `cargo xtask models`; PDFCRAFT_MODELS overrides), its languages, and the engines: ocrs (built in, models) and tesseract (an installed program, with its path).")
+        t("ocr_status", "OCR status", "Whether text recognition is available, where it looks for models (release packages include them; a source build fetches them with `cargo xtask models`; VISIONPDF_MODELS overrides), its languages, and the engines: ocrs (built in, models) and tesseract (an installed program, with its path).")
             .ro()
             .cmd("ocr.recognize")
             .with(schema(json!({}), &[])),

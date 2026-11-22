@@ -5,7 +5,7 @@
 //! incrementally, and a missing translation never fails a build, a test or a release.
 //!
 //! The catalogs live in [storytold/craft-i18n](https://github.com/storytold/craft-i18n)
-//! (`locales/<code>/common.tsv`, shared by the Crafting Apps, and `pdfcraft.tsv`), not in this
+//! (`locales/<code>/common.tsv`, shared by the Crafting Apps, and `visionpdf.tsv`), not in this
 //! repository. `build.rs` embeds them from `CRAFT_I18N_DIR` (CI and releases check out the commit
 //! in `craft-i18n.rev`); without it the build is English only. Lookup, fallback (VisionPDF's rows
 //! over shared ones), plural forms (CLDR) and language names are the `craft-i18n` crate's
@@ -13,12 +13,12 @@
 //! `{name}` placeholders stay here.
 //!
 //! # Adding or changing a translation
-//! In craft-i18n: add rows to `locales/<code>/pdfcraft.tsv` (its `docs/integration.md`). They show
+//! In craft-i18n: add rows to `locales/<code>/visionpdf.tsv` (its `docs/integration.md`). They show
 //! here once `craft-i18n.rev` moves to a commit that has them. A feature PR here adds the English
 //! only.
 //!
 //! # Adding a language
-//! 1. craft-i18n gets `locales/<code>/pdfcraft.tsv` with its `@id language.name` row.
+//! 1. craft-i18n gets `locales/<code>/visionpdf.tsv` with its `@id language.name` row.
 //! 2. Add one row to [`LANGUAGES`] (code, right to left), and its English name to
 //!    [`Lang::english_name`].
 //!
@@ -301,7 +301,7 @@ impl Lang {
         self.info().is_some_and(|l| l.rtl)
     }
 
-    /// Whether VisionPDF's own catalog (`pdfcraft.tsv`, not the shared `common.tsv`) has the row
+    /// Whether VisionPDF's own catalog (`visionpdf.tsv`, not the shared `common.tsv`) has the row
     /// (`context`, `source`). The shared catalog's `@id` rows are keyed by the other apps' command
     /// ids, which can name another command (in Bulgarian and Indonesian its `file.close` row holds
     /// an id rather than a label), so command-id lookups ask this; every `@id` row VisionPDF had is
@@ -648,7 +648,7 @@ pub fn action_label(text: &str) -> String {
 /// looked up whole and the document's own word goes into its `{}` afterwards, so a file or field
 /// name is never read as part of the wording. This is exact where [`action_label`] has to guess
 /// from the English text, and is what the engine's own labels go through.
-pub fn edit_label(label: &pdfcraft_engine::Label) -> String {
+pub fn edit_label(label: &visionpdf_engine::Label) -> String {
     // A batch's wording is only the hole: it carries its name as text, which from below L7 is one
     // of `BATCH_LABELS` and so is looked up too.
     if let Some(name) = label.value.as_deref().filter(|_| label.wording == "{batch}") {

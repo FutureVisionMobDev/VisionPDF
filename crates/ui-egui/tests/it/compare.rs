@@ -3,8 +3,8 @@
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_engine::Session;
-use pdfcraft_ui_egui::{VisionPDFApp, RightPanel};
+use visionpdf_engine::Session;
+use visionpdf_ui_egui::{VisionPDFApp, RightPanel};
 
 #[test]
 fn compare_two_versions() {
@@ -40,9 +40,9 @@ fn compare_two_versions() {
     assert_eq!(h.state().views[old_i].compare_marks.len(), 2, "replaced words shaded on the old file too");
     assert!(h.state().views[old_i].flash.is_some(), "the old half jumped to the change");
     h.state_mut().views[i].zoom = 1.5;
-    h.state_mut().views[i].fit = pdfcraft_ui_egui::canvas::Fit::None;
+    h.state_mut().views[i].fit = visionpdf_ui_egui::canvas::Fit::None;
     h.run_steps(3);
-    assert_eq!((h.state().views[old_i].zoom, h.state().views[old_i].fit), (1.5, pdfcraft_ui_egui::canvas::Fit::None), "the old half follows");
+    assert_eq!((h.state().views[old_i].zoom, h.state().views[old_i].fit), (1.5, visionpdf_ui_egui::canvas::Fit::None), "the old half follows");
     h.get_by_label("New file only").click();
     h.run_steps(2);
     assert!(!h.state().compare.as_ref().unwrap().side_by_side);
@@ -104,10 +104,10 @@ fn text_and_visual_versions() -> (Vec<u8>, Vec<u8>) {
     let v1 = s.create_from_text("t", "Delivery within five days. Returns accepted.").unwrap().to_vec();
     let text = s.create_from_text("t", "Delivery within three days. Returns accepted.").unwrap();
     let id = s.open("v2.pdf", None, text, None).unwrap();
-    let square = pdfcraft_engine::Shape::Rectangle { rect: [100.0, 80.0, 300.0, 200.0] };
-    let style = pdfcraft_engine::Style::default_for(&square);
-    let new = pdfcraft_engine::NewAnnotation { page: 0, shape: square, style, contents: String::new(), author: "Ada".into() };
-    s.apply(id, pdfcraft_engine::Edit::AddAnnotation(new)).unwrap();
+    let square = visionpdf_engine::Shape::Rectangle { rect: [100.0, 80.0, 300.0, 200.0] };
+    let style = visionpdf_engine::Style::default_for(&square);
+    let new = visionpdf_engine::NewAnnotation { page: 0, shape: square, style, contents: String::new(), author: "Ada".into() };
+    s.apply(id, visionpdf_engine::Edit::AddAnnotation(new)).unwrap();
     (v1, s.save_bytes(id).unwrap().to_vec())
 }
 
@@ -197,10 +197,10 @@ fn compare_dialog_pages_field_rejects_out_of_range() {
     assert_ne!(h.state().right, Some(RightPanel::Compare));
 }
 
-/// Writes a screenshot of the Compare panel when PDFCRAFT_SHOT is set (for review).
+/// Writes a screenshot of the Compare panel when VISIONPDF_SHOT is set (for review).
 #[test]
 fn compare_panel_screenshot() {
-    let Ok(out) = std::env::var("PDFCRAFT_SHOT") else { return };
+    let Ok(out) = std::env::var("VISIONPDF_SHOT") else { return };
     let _gpu = crate::gpu();
     let s = Session::new();
     let v1 = s.create_from_text("t", "Delivery within five days. Returns accepted.").unwrap().to_vec();
@@ -303,7 +303,7 @@ fn pdfa_dialog_shows_a_declared_pdfua() {
 #[test]
 fn export_to_word_html_and_rtf() {
     let doc = Session::new().create_from_text("t", "Exported words").unwrap().to_vec();
-    let dir = std::env::temp_dir().join(format!("pdfcraft-office-ui-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-office-ui-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let mut app = VisionPDFApp::new();
     app.set_option("language", "en").unwrap();

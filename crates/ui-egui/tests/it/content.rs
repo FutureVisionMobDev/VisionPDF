@@ -4,7 +4,7 @@
 use egui::{Pos2, pos2};
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::{VisionPDFApp, QuickTool};
+use visionpdf_ui_egui::{VisionPDFApp, QuickTool};
 
 use crate::gpu;
 
@@ -47,7 +47,7 @@ fn click(h: &mut Harness<'static, VisionPDFApp>, p: Pos2) {
     h.run_steps(3);
 }
 
-fn added(h: &Harness<'static, VisionPDFApp>) -> Vec<pdfcraft_engine::Added> {
+fn added(h: &Harness<'static, VisionPDFApp>) -> Vec<visionpdf_engine::Added> {
     let s = h.state();
     s.session.get(s.views[0].id).unwrap().added().to_vec()
 }
@@ -66,7 +66,7 @@ fn texts(h: &Harness<'static, VisionPDFApp>) -> Vec<String> {
     added(h)
         .into_iter()
         .filter_map(|a| match a.content {
-            pdfcraft_engine::AddedContent::Text(t) => Some(t.text),
+            visionpdf_engine::AddedContent::Text(t) => Some(t.text),
             _ => None,
         })
         .collect()
@@ -87,18 +87,18 @@ fn text_tool_drafts_grow_for_latin_and_arabic() {
         let draft = h.state().views[0].content.draft.as_ref().unwrap();
         assert!(draft.rect[2] - draft.rect[0] > before[2] - before[0] + 10.0, "the editor grows before wrapping: {}", text);
         assert!(draft.rect[2] <= 300.0 && draft.rect[1] < before[1], "the frame stays on the page and grows vertically");
-        if let Ok(dir) = std::env::var("PDFCRAFT_SHOTS") {
+        if let Ok(dir) = std::env::var("VISIONPDF_SHOTS") {
             let language = if text.starts_with("Wide") { "latin" } else { "arabic" };
             h.render().unwrap().save(format!("{dir}/growing-{language}-text.png")).unwrap();
         }
         h.get_by_label("Done adding text").click();
         h.run_steps(3);
-        if text.starts_with("سلام") && pdfcraft_fonts::document_arabic_font().is_none() {
+        if text.starts_with("سلام") && visionpdf_fonts::document_arabic_font().is_none() {
             assert!(h.state().views[0].content.draft.is_some(), "without a document font the draft remains available");
             assert!(added(&h).is_empty());
             continue;
         }
-        let pdfcraft_engine::AddedContent::Text(saved) = &added(&h)[0].content else { panic!() };
+        let visionpdf_engine::AddedContent::Text(saved) = &added(&h)[0].content else { panic!() };
         assert_eq!(saved.text, text.trim_end());
         assert!(saved.rect[2] - saved.rect[0] > before[2] - before[0] + 10.0, "Save uses the grown width");
     }
@@ -108,13 +108,13 @@ fn text_tool_drafts_grow_for_latin_and_arabic() {
 fn text_tool_single_click_retypes_added_text_without_another_item() {
     for command in ["edit.text", "edit.edit_text"] {
         for (original, replacement) in [("Original", "Replacement"), ("سلام", "سلام عليكم ورحمة الله")] {
-            if original == "سلام" && pdfcraft_fonts::document_arabic_font().is_none() {
+            if original == "سلام" && visionpdf_fonts::document_arabic_font().is_none() {
                 continue;
             }
             let mut h = harness();
-            assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::AddText {
+            assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::AddText {
                 page: 0,
-                text: pdfcraft_engine::AddedText { rect: [40.0, 195.0, 140.0, 210.0], text: original.into(), ..Default::default() },
+                text: visionpdf_engine::AddedText { rect: [40.0, 195.0, 140.0, 210.0], text: original.into(), ..Default::default() },
             }));
             assert!(h.state_mut().execute(command));
             h.run_steps(3);
@@ -131,10 +131,10 @@ fn text_tool_single_click_retypes_added_text_without_another_item() {
             assert_eq!(texts(&h), [replacement]);
             let state = h.state();
             let bytes = state.session.save_bytes(state.views[0].id).unwrap();
-            let mut reopened = pdfcraft_engine::Session::new();
+            let mut reopened = visionpdf_engine::Session::new();
             let id = reopened.open("again.pdf", None, bytes, None).unwrap();
             assert_eq!(reopened.get(id).unwrap().added().len(), 1);
-            let pdfcraft_engine::AddedContent::Text(text) = &reopened.get(id).unwrap().added()[0].content else { panic!() };
+            let visionpdf_engine::AddedContent::Text(text) = &reopened.get(id).unwrap().added()[0].content else { panic!() };
             assert_eq!(text.text, replacement);
         }
     }
@@ -144,9 +144,9 @@ fn text_tool_single_click_retypes_added_text_without_another_item() {
 fn text_tool_deleting_a_draft_hides_the_old_added_glyphs_and_cancel_restores_them() {
     let _gpu = gpu();
     let mut h = harness();
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::AddText {
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::AddText {
         page: 0,
-        text: pdfcraft_engine::AddedText { rect: [40.0, 195.0, 240.0, 220.0], text: "Original glyphs".into(), size: 18.0, ..Default::default() },
+        text: visionpdf_engine::AddedText { rect: [40.0, 195.0, 240.0, 220.0], text: "Original glyphs".into(), size: 18.0, ..Default::default() },
     }));
     let bytes = h.state().session.get(h.state().views[0].id).unwrap().bytes.clone();
     assert!(h.state_mut().execute("edit.edit_text"));
@@ -165,7 +165,7 @@ fn text_tool_deleting_a_draft_hides_the_old_added_glyphs_and_cancel_restores_the
             assert!(r > 200 && g > 200 && b > 200 && a == 255, "old glyph ink remains at {x},{y}: {r},{g},{b},{a}");
         }
     }
-    if let Ok(dir) = std::env::var("PDFCRAFT_SHOTS") {
+    if let Ok(dir) = std::env::var("VISIONPDF_SHOTS") {
         shot.save(format!("{dir}/cleared-added-text.png")).unwrap();
     }
     assert_eq!(h.state().session.get(h.state().views[0].id).unwrap().bytes, bytes, "previewing does not edit the document");
@@ -222,7 +222,7 @@ fn typing_moving_styling_and_deleting_added_content() {
     h.run_steps(3);
     let a = added(&h);
     assert_eq!(a.len(), 1);
-    let pdfcraft_engine::AddedContent::Text(t) = &a[0].content else { panic!() };
+    let visionpdf_engine::AddedContent::Text(t) = &a[0].content else { panic!() };
     assert_eq!(t.text, "Reviewed");
     assert_eq!(h.state().quick_tool, QuickTool::Select);
     h.run_steps(2);
@@ -231,7 +231,7 @@ fn typing_moving_styling_and_deleting_added_content() {
     h.get_by_label("Bold").click();
     h.run_steps(3);
 
-    let pdfcraft_engine::AddedContent::Text(t) = &added(&h)[0].content else { panic!() };
+    let visionpdf_engine::AddedContent::Text(t) = &added(&h)[0].content else { panic!() };
     assert!(t.bold);
     {
         let s = h.state();
@@ -254,11 +254,11 @@ fn typing_moving_styling_and_deleting_added_content() {
     h.get_by_label("Rotate clockwise").click();
     h.run_steps(3);
     let a = added(&h);
-    let pdfcraft_engine::AddedContent::Image(img) = &a[0].content else { panic!() };
+    let visionpdf_engine::AddedContent::Image(img) = &a[0].content else { panic!() };
     assert_eq!((img.rotation, img.rect), (3, [140.0, 185.0, 160.0, 215.0]));
     h.get_by_label("Flip horizontal").click();
     h.run_steps(3);
-    let pdfcraft_engine::AddedContent::Image(img) = &added(&h)[0].content else { panic!() };
+    let visionpdf_engine::AddedContent::Image(img) = &added(&h)[0].content else { panic!() };
     assert!(img.flip_h);
 }
 
@@ -266,11 +266,11 @@ fn typing_moving_styling_and_deleting_added_content() {
 /// browser) places it on the current page, as Add Image does.
 #[test]
 fn a_picture_on_the_clipboard_is_pasted_onto_the_page() {
-    use pdfcraft_ui_egui::Clip;
+    use visionpdf_ui_egui::Clip;
     // Three frames between modifier releases represent a short real key gesture.
     let mut h = harness_with_step_dt(1.0 / 60.0);
     let v = |pressed, modifiers| egui::Event::Key { key: egui::Key::V, physical_key: None, pressed, repeat: false, modifiers };
-    let images = |h: &Harness<'static, VisionPDFApp>| added(h).iter().filter(|a| matches!(a.content, pdfcraft_engine::AddedContent::Image(_))).count();
+    let images = |h: &Harness<'static, VisionPDFApp>| added(h).iter().filter(|a| matches!(a.content, visionpdf_engine::AddedContent::Image(_))).count();
     // Text on the clipboard: egui gets a Paste event instead of the press; nothing lands on the page.
     h.state_mut().clipboard_override = Some(Clip::Text("hello".into()));
     h.event(egui::Event::Paste("hello".into()));
@@ -289,7 +289,7 @@ fn a_picture_on_the_clipboard_is_pasted_onto_the_page() {
     h.run_steps(3);
     let a = added(&h);
     assert_eq!(a.len(), 1);
-    let pdfcraft_engine::AddedContent::Image(img) = &a[0].content else { panic!("an image was added") };
+    let visionpdf_engine::AddedContent::Image(img) = &a[0].content else { panic!("an image was added") };
     assert_eq!(img.rect, [135.0, 190.0, 165.0, 210.0], "in the middle of the page, at its own size");
     assert_eq!(h.state().views[0].content.selected, Some((0, 0)));
     {
@@ -345,7 +345,7 @@ fn text_the_standard_fonts_cant_draw_stays_in_the_editor() {
     h.event(egui::Event::Text("Hello 世界".into()));
     h.run_steps(2);
     h.get_by_label_contains("can't draw “世” (U+4E16)");
-    if let Ok(dir) = std::env::var("PDFCRAFT_SHOTS") {
+    if let Ok(dir) = std::env::var("VISIONPDF_SHOTS") {
         h.render().unwrap().save(format!("{dir}/undrawable-text.png")).unwrap();
     }
     h.get_by_label("Done adding text").click();
@@ -377,7 +377,7 @@ fn a_kept_draft_goes_with_its_deleted_page() {
         return;
     }
     let mut h = harness();
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::InsertBlankPage { at: 1, width: 612.0, height: 792.0 }));
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::InsertBlankPage { at: 1, width: 612.0, height: 792.0 }));
     h.run_steps(2);
     assert!(h.state_mut().execute("edit.text"));
     h.state_mut().views[0].go_to_page(1);
@@ -387,18 +387,18 @@ fn a_kept_draft_goes_with_its_deleted_page() {
     h.event(egui::Event::Text("日本語".into()));
     h.run_steps(2);
     assert_eq!(h.state().views[0].content.draft.as_ref().map(|d| (d.page, d.text.as_str())), Some((1, "日本語")));
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::DeletePages { pages: vec![1] }));
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::DeletePages { pages: vec![1] }));
     h.run_steps(2);
     assert!(h.state().views[0].content.draft.is_none());
 }
 
 #[test]
 fn typing_thai_text_keeps_marks_and_commits_to_page() {
-    if pdfcraft_fonts::document_thai_font().is_none() {
+    if visionpdf_fonts::document_thai_font().is_none() {
         return;
     }
-    let fonts = pdfcraft_ui_egui::theme::font_definitions();
-    let face = pdfcraft_fonts::document_thai_font().unwrap();
+    let fonts = visionpdf_ui_egui::theme::font_definitions();
+    let face = visionpdf_fonts::document_thai_font().unwrap();
     assert!(fonts.families[&egui::FontFamily::Proportional].contains(&face.name()));
     let mut h = harness();
     assert!(h.state_mut().execute("edit.text"));
@@ -601,7 +601,7 @@ fn dragged_text_follows_the_pointer_before_release() {
     let _gpu = gpu();
     let mut h = harness();
     let (rect, from, to, end) = drag_added_text(&mut h);
-    if let Ok(dir) = std::env::var("PDFCRAFT_SHOTS") {
+    if let Ok(dir) = std::env::var("VISIONPDF_SHOTS") {
         h.render().unwrap().save(format!("{dir}/added-text-drag.png")).unwrap();
     }
     let (old, new) = ink_at(&mut h, from, to);
@@ -626,7 +626,7 @@ fn dragged_text_leaves_what_it_covered_behind() {
     let mut h = harness_bytes(pdf.into_bytes());
     let (rect, from, to, end) = drag_added_text(&mut h);
     assert!(rect[0] > 20.0 && rect[2] < 260.0 && rect[1] > 60.0 && rect[3] < 130.0, "the text starts on the red square: {rect:?}");
-    if let Ok(dir) = std::env::var("PDFCRAFT_SHOTS") {
+    if let Ok(dir) = std::env::var("VISIONPDF_SHOTS") {
         h.render().unwrap().save(format!("{dir}/added-text-drag-over-red.png")).unwrap();
     }
     let pixels = h.render().unwrap();
@@ -763,7 +763,7 @@ fn format_text_fits_the_tools_pane_at_its_narrowest() {
 #[test]
 fn format_text_lists_fit_the_narrowest_tools_pane_in_every_language() {
     use egui::accesskit::Role;
-    for lang in pdfcraft_ui_egui::i18n::Lang::all() {
+    for lang in visionpdf_ui_egui::i18n::Lang::all() {
         let mut h = harness();
         // A script with no face on this machine (Lao without system fonts) can't be drawn at all.
         if !h.ctx.fonts_mut(|f| f.has_glyphs(&egui::FontId::proportional(13.0), lang.name())) {
@@ -781,7 +781,7 @@ fn format_text_lists_fit_the_narrowest_tools_pane_in_every_language() {
             assert!(r.right() <= font.right() + 0.5, "{}: {r:?} reaches past the font list ({font:?})", lang.code());
         }
         // The size row too: its field reserves room for a translated "Mixed".
-        let align = h.get_by_label(pdfcraft_ui_egui::i18n::t("Alignment")).rect();
+        let align = h.get_by_label(visionpdf_ui_egui::i18n::t("Alignment")).rect();
         assert!(align.right() <= font.right() + 0.5, "{}: Alignment {align:?} reaches past the font list ({font:?})", lang.code());
     }
 }
@@ -800,7 +800,7 @@ fn format_text_panel_sets_alignment_and_lists_planned_controls_disabled() {
     h.run_steps(2);
     h.get_by_label("Centre").click();
     h.run_steps(2);
-    assert_eq!(h.state().text_style.align, pdfcraft_engine::TextAlign::Center);
+    assert_eq!(h.state().text_style.align, visionpdf_engine::TextAlign::Center);
     h.get_by_label("Bold").click();
     h.run_steps(2);
     assert!(h.state().text_style.bold);
@@ -813,8 +813,8 @@ fn the_text_editor_keeps_the_boxs_alignment() {
     let _gpu = gpu();
     let mut h = harness();
     let rect = [40.0, 195.0, 240.0, 210.0];
-    let text = pdfcraft_engine::AddedText { rect, text: "Hi".into(), align: pdfcraft_engine::TextAlign::Right, ..Default::default() };
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::AddText { page: 0, text }));
+    let text = visionpdf_engine::AddedText { rect, text: "Hi".into(), align: visionpdf_engine::TextAlign::Right, ..Default::default() };
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::AddText { page: 0, text }));
     assert!(h.state_mut().execute("edit.text"));
     h.run_steps(3);
     let point = at(&h, 200.0, 195.0);
@@ -835,8 +835,8 @@ fn the_text_editor_aligns_a_narrow_box_to_its_own_edge() {
     let _gpu = gpu();
     let mut h = harness();
     let rect = [40.0, 195.0, 60.0, 210.0];
-    let text = pdfcraft_engine::AddedText { rect, text: "Hi".into(), align: pdfcraft_engine::TextAlign::Right, ..Default::default() };
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::AddText { page: 0, text }));
+    let text = visionpdf_engine::AddedText { rect, text: "Hi".into(), align: visionpdf_engine::TextAlign::Right, ..Default::default() };
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::AddText { page: 0, text }));
     assert!(h.state_mut().execute("edit.text"));
     h.run_steps(3);
     let point = at(&h, 50.0, 195.0);
@@ -883,9 +883,9 @@ fn the_text_editor_aligns_a_narrow_box_whose_lines_share_an_alignment() {
     let _gpu = gpu();
     let mut h = harness();
     let rect = [40.0, 195.0, 60.0, 210.0];
-    let text = pdfcraft_engine::AddedText { rect, text: "Hi".into(), aligns: vec![Some(pdfcraft_engine::TextAlign::Right)], ..Default::default() };
-    assert_eq!(text.align, pdfcraft_engine::TextAlign::Left);
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::AddText { page: 0, text }));
+    let text = visionpdf_engine::AddedText { rect, text: "Hi".into(), aligns: vec![Some(visionpdf_engine::TextAlign::Right)], ..Default::default() };
+    assert_eq!(text.align, visionpdf_engine::TextAlign::Left);
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::AddText { page: 0, text }));
     assert!(h.state_mut().execute("edit.text"));
     h.run_steps(3);
     let point = at(&h, 50.0, 195.0);
@@ -948,7 +948,7 @@ fn mode_tabs_keep_the_hand_over_added_text_scrolled_under_them() {
     assert!(h.state_mut().execute("edit.text"));
     h.state_mut().set_option("left", "closed").unwrap();
     // The page across the window, so text placed at its left edge reaches under the tabs.
-    h.state_mut().views[0].fit = pdfcraft_ui_egui::canvas::Fit::Width;
+    h.state_mut().views[0].fit = visionpdf_ui_egui::canvas::Fit::Width;
     h.run_steps(4);
     assert_eq!(h.state().quick_tool, QuickTool::AddText);
     // The empty page, ready for text.
@@ -972,7 +972,7 @@ fn mode_tabs_keep_the_hand_over_added_text_scrolled_under_them() {
     assert_eq!(mode_tab_cursors(&mut h, draft), HAND_ON_EVERY_TAB, "the open box under the tabs");
     let convert = mode_tab(&h, "Convert").center();
     click(&mut h, convert);
-    assert_eq!(h.state().mode, pdfcraft_ui_egui::Mode::Convert, "the tab takes the click, not the box");
+    assert_eq!(h.state().mode, visionpdf_ui_egui::Mode::Convert, "the tab takes the click, not the box");
 }
 
 /// Red pixels in `r`: the test picture.
@@ -1113,10 +1113,10 @@ fn added_picture_resizes_repeatedly_and_drags_back_from_out_of_bounds_without_sm
     // raster, then drag it up into the page: the out-of-bounds bottom half must not smear the
     // page edge's red texels across the lower half during the drag preview.
     let img = match &added(&h)[0].content {
-        pdfcraft_engine::AddedContent::Image(i) => pdfcraft_engine::AddedImage { rect: [120.0, -30.0, 180.0, 30.0], ..i.clone() },
+        visionpdf_engine::AddedContent::Image(i) => visionpdf_engine::AddedImage { rect: [120.0, -30.0, 180.0, 30.0], ..i.clone() },
         _ => panic!(),
     };
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::UpdateContent { page: 0, index: 0, content: pdfcraft_engine::AddedContent::Image(img) }));
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::UpdateContent { page: 0, index: 0, content: visionpdf_engine::AddedContent::Image(img) }));
     crate::support::settle(&mut h);
     let from = item_on_screen(&h, [120.0, -30.0, 180.0, 30.0]);
     let grab = pos2(from.center().x, from.top() + 10.0);
@@ -1134,7 +1134,7 @@ fn added_picture_resizes_repeatedly_and_drags_back_from_out_of_bounds_without_sm
     let upper_half = egui::Rect::from_min_max(moved.min + egui::vec2(4.0, 4.0), pos2(moved.max.x - 4.0, moved.center().y - 4.0));
     let lower_half = egui::Rect::from_min_max(pos2(moved.min.x + 4.0, moved.center().y + 4.0), moved.max - egui::vec2(4.0, 4.0));
     let pixels = h.render().unwrap();
-    if let Ok(dir) = std::env::var("PDFCRAFT_SHOTS") {
+    if let Ok(dir) = std::env::var("VISIONPDF_SHOTS") {
         pixels.save(format!("{dir}/added-image-outside-page-drag.png")).unwrap();
     }
     assert!(red(&pixels, upper_half) > 100, "the in-bounds half of the picture follows the drag");
@@ -1157,10 +1157,10 @@ fn a_handle_in_the_viewport_below_a_short_page_starts_another_resize() {
     h.state_mut().add_image("red.png".into(), png);
     h.run_steps(3);
     let img = match &added(&h)[0].content {
-        pdfcraft_engine::AddedContent::Image(i) => pdfcraft_engine::AddedImage { rect: [40.0, 0.0, 100.0, 40.0], ..i.clone() },
+        visionpdf_engine::AddedContent::Image(i) => visionpdf_engine::AddedImage { rect: [40.0, 0.0, 100.0, 40.0], ..i.clone() },
         _ => panic!("added an image"),
     };
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::UpdateContent { page: 0, index: 0, content: pdfcraft_engine::AddedContent::Image(img) }));
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::UpdateContent { page: 0, index: 0, content: visionpdf_engine::AddedContent::Image(img) }));
     h.run_steps(3);
     let page = h.state().views[0].page_screen_rect(0).unwrap();
     let grip = item_on_screen(&h, [40.0, 0.0, 100.0, 40.0]).expand(1.0).right_bottom();
@@ -1201,8 +1201,8 @@ fn a_handle_in_the_viewport_below_a_short_page_starts_another_resize() {
 fn aligning_a_selected_line_of_added_text_aligns_only_that_line() {
     let mut h = harness();
     let rect = [40.0, 195.0, 240.0, 220.0];
-    let text = pdfcraft_engine::AddedText { rect, text: "Line one\nLine two".into(), ..Default::default() };
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::AddText { page: 0, text }));
+    let text = visionpdf_engine::AddedText { rect, text: "Line one\nLine two".into(), ..Default::default() };
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::AddText { page: 0, text }));
     assert!(h.state_mut().execute("edit.text"));
     h.run_steps(3);
     let point = at(&h, 45.0, 195.0);
@@ -1216,23 +1216,23 @@ fn aligning_a_selected_line_of_added_text_aligns_only_that_line() {
     let item = h.get_by_label("Align right").rect().center();
     click(&mut h, item);
     let aligns = |h: &Harness<'static, VisionPDFApp>| match &added(h)[0].content {
-        pdfcraft_engine::AddedContent::Text(t) => (t.align, t.aligns.clone()),
+        visionpdf_engine::AddedContent::Text(t) => (t.align, t.aligns.clone()),
         _ => panic!(),
     };
-    assert_eq!(aligns(&h), (pdfcraft_engine::TextAlign::Left, vec![None, Some(pdfcraft_engine::TextAlign::Right)]));
+    assert_eq!(aligns(&h), (visionpdf_engine::TextAlign::Left, vec![None, Some(visionpdf_engine::TextAlign::Right)]));
     assert!(h.state().views[0].content.draft.is_some(), "the box stays open");
     // A second choice, the line still selected, is for that line again.
     let button = h.get_by_label("Alignment").rect().center();
     click(&mut h, button);
     let item = h.get_by_label("Centre").rect().center();
     click(&mut h, item);
-    assert_eq!(aligns(&h), (pdfcraft_engine::TextAlign::Left, vec![None, Some(pdfcraft_engine::TextAlign::Center)]));
+    assert_eq!(aligns(&h), (visionpdf_engine::TextAlign::Left, vec![None, Some(visionpdf_engine::TextAlign::Center)]));
     h.key_press_modifiers(egui::Modifiers::COMMAND, egui::Key::Z);
     h.run_steps(4);
-    assert_eq!(aligns(&h), (pdfcraft_engine::TextAlign::Left, vec![None, Some(pdfcraft_engine::TextAlign::Right)]), "Undo puts it back");
+    assert_eq!(aligns(&h), (visionpdf_engine::TextAlign::Left, vec![None, Some(visionpdf_engine::TextAlign::Right)]), "Undo puts it back");
     assert!(h.state().views[0].content.draft.is_none(), "and closes the box");
     assert!(h.state_mut().execute("edit.undo"));
-    assert_eq!(aligns(&h), (pdfcraft_engine::TextAlign::Left, vec![]));
+    assert_eq!(aligns(&h), (visionpdf_engine::TextAlign::Left, vec![]));
 }
 
 /// Two lines of added text with the same words, each aligned its own way: deleting the first line
@@ -1240,11 +1240,11 @@ fn aligning_a_selected_line_of_added_text_aligns_only_that_line() {
 /// 648dd428).
 #[test]
 fn deleting_the_first_of_two_same_lines_keeps_the_second_lines_alignment() {
-    use pdfcraft_engine::TextAlign::{Center, Right};
+    use visionpdf_engine::TextAlign::{Center, Right};
     let mut h = harness();
     let rect = [40.0, 195.0, 240.0, 220.0];
-    let text = pdfcraft_engine::AddedText { rect, text: "Same\nSame".into(), aligns: vec![Some(Center), Some(Right)], ..Default::default() };
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::AddText { page: 0, text }));
+    let text = visionpdf_engine::AddedText { rect, text: "Same\nSame".into(), aligns: vec![Some(Center), Some(Right)], ..Default::default() };
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::AddText { page: 0, text }));
     assert!(h.state_mut().execute("edit.text"));
     h.run_steps(3);
     let point = at(&h, 120.0, 195.0);
@@ -1270,14 +1270,14 @@ fn deleting_the_first_of_two_same_lines_keeps_the_second_lines_alignment() {
 fn aligning_a_selected_line_of_added_text_by_keyboard_keeps_the_box_open() {
     let mut h = harness();
     let rect = [40.0, 195.0, 240.0, 220.0];
-    let text = pdfcraft_engine::AddedText {
+    let text = visionpdf_engine::AddedText {
         rect,
         text: "Line one
 Line two"
             .into(),
         ..Default::default()
     };
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::AddText { page: 0, text }));
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::AddText { page: 0, text }));
     assert!(h.state_mut().execute("edit.text"));
     h.run_steps(3);
     let point = at(&h, 45.0, 195.0);
@@ -1295,15 +1295,15 @@ Line two"
         }
     };
     let aligns = |h: &Harness<'static, VisionPDFApp>| match &added(h)[0].content {
-        pdfcraft_engine::AddedContent::Text(t) => (t.align, t.aligns.clone()),
+        visionpdf_engine::AddedContent::Text(t) => (t.align, t.aligns.clone()),
         _ => panic!(),
     };
     align_by_focus(&mut h, "Align right");
     assert!(h.state().views[0].content.draft.is_some(), "the box stays open");
-    assert_eq!(aligns(&h), (pdfcraft_engine::TextAlign::Left, vec![None, Some(pdfcraft_engine::TextAlign::Right)]));
+    assert_eq!(aligns(&h), (visionpdf_engine::TextAlign::Left, vec![None, Some(visionpdf_engine::TextAlign::Right)]));
     align_by_focus(&mut h, "Centre");
     assert!(h.state().views[0].content.draft.is_some(), "the box is still open");
-    assert_eq!(aligns(&h), (pdfcraft_engine::TextAlign::Left, vec![None, Some(pdfcraft_engine::TextAlign::Center)]));
+    assert_eq!(aligns(&h), (visionpdf_engine::TextAlign::Left, vec![None, Some(visionpdf_engine::TextAlign::Center)]));
 }
 
 /// The same in an added text box: Redo after Undo puts the typing back in the box, and the
@@ -1312,10 +1312,10 @@ Line two"
 fn redo_after_undoing_typing_in_added_text_puts_it_back() {
     let mut h = harness();
     let rect = [40.0, 195.0, 240.0, 210.0];
-    let text = pdfcraft_engine::AddedText { rect, text: "Reviewed".into(), ..Default::default() };
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::AddText { page: 0, text: text.clone() }));
-    let bold = pdfcraft_engine::AddedText { bold: true, ..text };
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::UpdateContent { page: 0, index: 0, content: pdfcraft_engine::AddedContent::Text(bold) }));
+    let text = visionpdf_engine::AddedText { rect, text: "Reviewed".into(), ..Default::default() };
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::AddText { page: 0, text: text.clone() }));
+    let bold = visionpdf_engine::AddedText { bold: true, ..text };
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::UpdateContent { page: 0, index: 0, content: visionpdf_engine::AddedContent::Text(bold) }));
     assert!(h.state_mut().execute("edit.undo"));
     assert!(h.state_mut().execute("edit.text"));
     h.run_steps(3);
@@ -1343,10 +1343,10 @@ fn redo_after_undoing_typing_in_added_text_puts_it_back() {
 fn redo_from_the_menu_with_retyping_in_the_box_keeps_the_documents_redo() {
     let mut h = harness();
     let rect = [40.0, 195.0, 240.0, 210.0];
-    let text = pdfcraft_engine::AddedText { rect, text: "Reviewed".into(), ..Default::default() };
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::AddText { page: 0, text: text.clone() }));
-    let bold = pdfcraft_engine::AddedText { bold: true, ..text };
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::UpdateContent { page: 0, index: 0, content: pdfcraft_engine::AddedContent::Text(bold) }));
+    let text = visionpdf_engine::AddedText { rect, text: "Reviewed".into(), ..Default::default() };
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::AddText { page: 0, text: text.clone() }));
+    let bold = visionpdf_engine::AddedText { bold: true, ..text };
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::UpdateContent { page: 0, index: 0, content: visionpdf_engine::AddedContent::Text(bold) }));
     assert!(h.state_mut().execute("edit.undo"));
     assert!(h.state_mut().execute("edit.text"));
     h.run_steps(3);
@@ -1375,10 +1375,10 @@ fn redo_from_the_menu_with_retyping_in_the_box_keeps_the_documents_redo() {
 fn undo_from_the_menu_takes_back_retyping_in_the_added_text_box() {
     let mut h = harness();
     let rect = [40.0, 195.0, 240.0, 210.0];
-    let text = pdfcraft_engine::AddedText { rect, text: "Reviewed".into(), ..Default::default() };
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::AddText { page: 0, text: text.clone() }));
-    let bold = pdfcraft_engine::AddedText { bold: true, ..text };
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::UpdateContent { page: 0, index: 0, content: pdfcraft_engine::AddedContent::Text(bold) }));
+    let text = visionpdf_engine::AddedText { rect, text: "Reviewed".into(), ..Default::default() };
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::AddText { page: 0, text: text.clone() }));
+    let bold = visionpdf_engine::AddedText { bold: true, ..text };
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::UpdateContent { page: 0, index: 0, content: visionpdf_engine::AddedContent::Text(bold) }));
     assert!(h.state_mut().execute("edit.undo"));
     assert!(h.state_mut().execute("edit.text"));
     h.run_steps(3);
@@ -1407,8 +1407,8 @@ fn undo_from_the_menu_takes_back_retyping_in_the_added_text_box() {
 fn redo_from_the_menu_is_enabled_for_the_added_text_boxs_own_typing() {
     let mut h = harness();
     let rect = [40.0, 195.0, 240.0, 210.0];
-    let text = pdfcraft_engine::AddedText { rect, text: "Reviewed".into(), ..Default::default() };
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::AddText { page: 0, text }));
+    let text = visionpdf_engine::AddedText { rect, text: "Reviewed".into(), ..Default::default() };
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::AddText { page: 0, text }));
     assert!(h.state_mut().execute("edit.text"));
     h.run_steps(3);
     let point = at(&h, 45.0, 195.0);
@@ -1437,12 +1437,12 @@ fn redo_from_the_menu_is_enabled_for_the_added_text_boxs_own_typing() {
 /// alignment, and finishing the box would have saved that.
 #[test]
 fn undo_brings_a_deleted_line_of_added_text_back_with_its_alignment() {
-    use pdfcraft_engine::TextAlign::{Center, Right};
+    use visionpdf_engine::TextAlign::{Center, Right};
     let mut h = harness();
     let rect = [40.0, 170.0, 240.0, 215.0];
     let aligns = vec![None, Some(Center), Some(Right)];
-    let text = pdfcraft_engine::AddedText { rect, text: "A\nB\nC".into(), aligns: aligns.clone(), ..Default::default() };
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::AddText { page: 0, text }));
+    let text = visionpdf_engine::AddedText { rect, text: "A\nB\nC".into(), aligns: aligns.clone(), ..Default::default() };
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::AddText { page: 0, text }));
     assert!(h.state_mut().execute("edit.text"));
     h.run_steps(3);
     // On the first line, at the top of the box.
@@ -1479,7 +1479,7 @@ fn undo_after_a_round_trip_through_another_tab_takes_back_added_text_typing() {
     let mut h = harness();
     h.state_mut().open_bytes("copy.pdf", None, include_bytes!("../data/form.pdf").to_vec()).unwrap();
     h.run_steps(4);
-    let text = pdfcraft_engine::AddedText { rect: [40.0, 195.0, 240.0, 210.0], text: "Reviewed".into(), ..Default::default() };
+    let text = visionpdf_engine::AddedText { rect: [40.0, 195.0, 240.0, 210.0], text: "Reviewed".into(), ..Default::default() };
     let open_in = |h: &mut Harness<'static, VisionPDFApp>, tab: usize| {
         h.state_mut().active = Some(tab);
         h.run_steps(2);
@@ -1492,7 +1492,7 @@ fn undo_after_a_round_trip_through_another_tab_takes_back_added_text_typing() {
     };
     for tab in [0, 1] {
         h.state_mut().active = Some(tab);
-        assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::AddText { page: 0, text: text.clone() }));
+        assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::AddText { page: 0, text: text.clone() }));
     }
     open_in(&mut h, 0);
     h.key_press_modifiers(egui::Modifiers::COMMAND, egui::Key::End);
@@ -1519,8 +1519,8 @@ fn undo_in_the_frame_of_the_switch_back_takes_back_added_text_typing() {
     let rect = [40.0, 195.0, 240.0, 210.0];
     for (tab, text) in [(0, "Reviewed"), (1, "Approved")] {
         h.state_mut().active = Some(tab);
-        let text = pdfcraft_engine::AddedText { rect, text: text.into(), ..Default::default() };
-        assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::AddText { page: 0, text }));
+        let text = visionpdf_engine::AddedText { rect, text: text.into(), ..Default::default() };
+        assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::AddText { page: 0, text }));
     }
     let open_in = |h: &mut Harness<'static, VisionPDFApp>, tab: usize| {
         h.state_mut().active = Some(tab);
@@ -1552,8 +1552,8 @@ fn redo_after_restyling_open_added_text_never_brings_back_typing_undone_before_i
     for route in ["key", "menu"] {
         let mut h = harness();
         let rect = [40.0, 195.0, 240.0, 210.0];
-        let text = pdfcraft_engine::AddedText { rect, text: "Reviewed".into(), ..Default::default() };
-        assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::AddText { page: 0, text }));
+        let text = visionpdf_engine::AddedText { rect, text: "Reviewed".into(), ..Default::default() };
+        assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::AddText { page: 0, text }));
         assert!(h.state_mut().execute("edit.text"));
         h.run_steps(3);
         let point = at(&h, 45.0, 195.0);
@@ -1567,7 +1567,7 @@ fn redo_after_restyling_open_added_text_never_brings_back_typing_undone_before_i
         assert_eq!(h.state().views[0].content.draft.as_ref().map(|d| d.text.as_str()), Some("Reviewed"), "{route}: taken back");
         h.get_by_label("Bold").click();
         h.run_steps(4);
-        let pdfcraft_engine::AddedContent::Text(now) = &added(&h)[0].content else { panic!() };
+        let visionpdf_engine::AddedContent::Text(now) = &added(&h)[0].content else { panic!() };
         assert!(now.bold, "{route}: the bold is applied to the item");
         assert!(h.state().views[0].content.draft.is_some(), "{route}: the box stays open");
         if route == "key" {
@@ -1579,7 +1579,7 @@ fn redo_after_restyling_open_added_text_never_brings_back_typing_undone_before_i
         h.run_steps(3);
         let draft = h.state().views[0].content.draft.as_ref().map(|d| d.text.clone());
         assert_eq!(draft.as_deref(), Some("Reviewed"), "{route}: the retyping undone before the bold comes back in the box");
-        let pdfcraft_engine::AddedContent::Text(now) = &added(&h)[0].content else { panic!() };
+        let visionpdf_engine::AddedContent::Text(now) = &added(&h)[0].content else { panic!() };
         assert_eq!(now.text, "Reviewed", "{route}: nor in the document");
     }
 }
@@ -1591,12 +1591,12 @@ fn redo_after_restyling_open_added_text_never_brings_back_typing_undone_before_i
 fn redo_with_an_unchanged_box_open_redoes_the_document() {
     let mut h = harness();
     let rect = [40.0, 195.0, 240.0, 210.0];
-    let text = pdfcraft_engine::AddedText { rect, text: "Reviewed ".into(), ..Default::default() };
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::AddText { page: 0, text }));
-    let pdfcraft_engine::AddedContent::Text(saved) = added(&h)[0].content.clone() else { panic!() };
+    let text = visionpdf_engine::AddedText { rect, text: "Reviewed ".into(), ..Default::default() };
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::AddText { page: 0, text }));
+    let visionpdf_engine::AddedContent::Text(saved) = added(&h)[0].content.clone() else { panic!() };
     assert_eq!(saved.text, "Reviewed ", "the trailing space is kept");
-    let bold = pdfcraft_engine::AddedText { bold: true, ..saved };
-    assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::UpdateContent { page: 0, index: 0, content: pdfcraft_engine::AddedContent::Text(bold) }));
+    let bold = visionpdf_engine::AddedText { bold: true, ..saved };
+    assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::UpdateContent { page: 0, index: 0, content: visionpdf_engine::AddedContent::Text(bold) }));
     assert!(h.state_mut().execute("edit.undo"));
     assert!(h.state_mut().execute("edit.text"));
     h.run_steps(3);
@@ -1605,7 +1605,7 @@ fn redo_with_an_unchanged_box_open_redoes_the_document() {
     assert_eq!(h.state().views[0].content.draft.as_ref().and_then(|d| d.index), Some(0), "the editor opened on the text");
     h.key_press_modifiers(egui::Modifiers::COMMAND | egui::Modifiers::SHIFT, egui::Key::Z);
     h.run_steps(4);
-    let pdfcraft_engine::AddedContent::Text(now) = &added(&h)[0].content else { panic!() };
+    let visionpdf_engine::AddedContent::Text(now) = &added(&h)[0].content else { panic!() };
     assert!(now.bold, "the waiting Redo was redone");
     assert!(h.state().views[0].content.draft.is_none(), "the box closed with the step");
 }
@@ -1617,7 +1617,7 @@ fn typing_in_one_tab_never_reaches_another_tabs_added_text() {
     let mut h = harness();
     h.state_mut().open_bytes("copy.pdf", None, include_bytes!("../data/form.pdf").to_vec()).unwrap();
     h.run_steps(4);
-    let text = pdfcraft_engine::AddedText { rect: [40.0, 195.0, 240.0, 210.0], text: "Reviewed".into(), ..Default::default() };
+    let text = visionpdf_engine::AddedText { rect: [40.0, 195.0, 240.0, 210.0], text: "Reviewed".into(), ..Default::default() };
     let open_in = |h: &mut Harness<'static, VisionPDFApp>, tab: usize| {
         h.state_mut().active = Some(tab);
         h.run_steps(2);
@@ -1630,7 +1630,7 @@ fn typing_in_one_tab_never_reaches_another_tabs_added_text() {
     };
     for tab in [0, 1] {
         h.state_mut().active = Some(tab);
-        assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::AddText { page: 0, text: text.clone() }));
+        assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::AddText { page: 0, text: text.clone() }));
     }
     open_in(&mut h, 1);
     open_in(&mut h, 0);
@@ -1661,16 +1661,16 @@ fn image_context_menu_requires_visible_body_even_when_the_frame_crosses_the_page
         h.state_mut().add_image("edge.png".into(), png);
         h.run_steps(3);
         let image = match &added(&h)[0].content {
-            pdfcraft_engine::AddedContent::Image(i) => pdfcraft_engine::AddedImage { rect: [260.0, 150.0, 340.0, 230.0], ..i.clone() },
+            visionpdf_engine::AddedContent::Image(i) => visionpdf_engine::AddedImage { rect: [260.0, 150.0, 340.0, 230.0], ..i.clone() },
             _ => panic!("added an image"),
         };
-        assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::UpdateContent {
+        assert!(h.state_mut().apply_edit(visionpdf_engine::Edit::UpdateContent {
             page: 0,
             index: 0,
-            content: pdfcraft_engine::AddedContent::Image(image),
+            content: visionpdf_engine::AddedContent::Image(image),
         }));
         h.run_steps(3);
-        h.state_mut().views[0].image_selection = Some(pdfcraft_ui_egui::ImageSelection::at(0, 0));
+        h.state_mut().views[0].image_selection = Some(visionpdf_ui_egui::ImageSelection::at(0, 0));
         let x = if visible { 280.0 } else { 320.0 };
         let point = item_on_screen(&h, [x, 190.0, x, 190.0]).center();
         assert_eq!(h.state().views[0].page_screen_rect(0).unwrap().contains(point), visible);
@@ -1725,7 +1725,7 @@ fn selected_added_text() -> Harness<'static, VisionPDFApp> {
 fn delete_and_escape_under_a_dialog_leave_the_selected_added_text() {
     for key in [egui::Key::Delete, egui::Key::Escape] {
         let mut h = selected_added_text();
-        h.state_mut().dialog = Some(pdfcraft_ui_egui::Dialog::Shortcuts);
+        h.state_mut().dialog = Some(visionpdf_ui_egui::Dialog::Shortcuts);
         h.run_steps(3);
         h.key_press(key);
         h.run_steps(3);
@@ -1752,6 +1752,6 @@ fn escape_closing_a_dialog_over_added_text_being_typed_keeps_the_typing() {
     h.run_steps(3);
     assert!(h.state().dialog.is_none(), "Escape closes the dialog");
     let open = h.state().views[0].content.draft.as_ref().is_some_and(|d| d.text.contains("Reviewed"));
-    let added = added(&h).iter().any(|a| matches!(&a.content, pdfcraft_engine::AddedContent::Text(t) if t.text.contains("Reviewed")));
+    let added = added(&h).iter().any(|a| matches!(&a.content, visionpdf_engine::AddedContent::Text(t) if t.text.contains("Reviewed")));
     assert!(open || added, "the typing stays");
 }

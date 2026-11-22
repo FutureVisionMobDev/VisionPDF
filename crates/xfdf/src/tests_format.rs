@@ -5,7 +5,7 @@
 use std::sync::Arc;
 
 use base64::Engine as _;
-use pdfcraft_cos::{SaveOptions, Stream, write_full};
+use visionpdf_cos::{SaveOptions, Stream, write_full};
 use proptest::prelude::*;
 
 use super::*;
@@ -31,7 +31,7 @@ fn pages(n: usize) -> Document {
 }
 
 fn page_ref(doc: &Document, i: usize) -> ObjRef {
-    pdfcraft_model::pages(doc)[i].obj
+    visionpdf_model::pages(doc)[i].obj
 }
 
 /// Add an annotation dictionary to page 0 as an object of its own.
@@ -577,7 +577,7 @@ fn many_appearances_share_one_import_budget() {
 }
 
 #[test]
-fn an_imported_redaction_mark_is_always_drawn_by_pdfcraft() {
+fn an_imported_redaction_mark_is_always_drawn_by_visionpdf() {
     let inner = b64(
         r#"<DICT KEY="AP"><STREAM KEY="N"><ARRAY KEY="BBox"><INT VAL="0"/><INT VAL="0"/><INT VAL="1"/><INT VAL="1"/></ARRAY><DATA ENCODING="ASCII">%nothing</DATA></STREAM></DICT>"#,
     );

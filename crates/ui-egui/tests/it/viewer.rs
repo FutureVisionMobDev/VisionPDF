@@ -3,7 +3,7 @@
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::{By, Queryable};
-use pdfcraft_ui_egui::{Dialog, VisionPDFApp};
+use visionpdf_ui_egui::{Dialog, VisionPDFApp};
 
 /// `n` pages of 200×300; page i says "Page i+1" plus "page" and "Pages" for find tests.
 fn fixture(n: usize) -> Vec<u8> {
@@ -48,18 +48,18 @@ fn harness() -> Harness<'static, VisionPDFApp> {
 fn close_all_asks_only_for_changed_documents() {
     let mut h = harness();
     // Change the active document (b.pdf).
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::RotatePages { pages: vec![0], degrees: 90 });
+    h.state_mut().apply_edit(visionpdf_engine::Edit::RotatePages { pages: vec![0], degrees: 90 });
     h.state_mut().execute("file.close_all");
     h.run_steps(2);
     assert_eq!(h.state().views.len(), 1, "the clean document closed at once");
-    assert_eq!(h.state().close_request, Some(pdfcraft_ui_egui::CloseRequest::All), "b.pdf asks to be saved");
+    assert_eq!(h.state().close_request, Some(visionpdf_ui_egui::CloseRequest::All), "b.pdf asks to be saved");
     h.get_by_label_contains("Save changes");
 }
 
 #[test]
 fn revert_after_confirming() {
     let mut h = harness();
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::DeletePages { pages: vec![0] });
+    h.state_mut().apply_edit(visionpdf_engine::Edit::DeletePages { pages: vec![0] });
     assert!(h.state_mut().execute("file.revert"));
     h.run_steps(2);
     assert_eq!(h.state().dialog, Some(Dialog::Revert));
@@ -388,10 +388,10 @@ fn marking_while_searching_does_not_jitter_or_reset_search_state() {
     assert!(h.state().views[0].goto.is_none());
 
     // User draws or marks an annotation on page 0
-    let shape = pdfcraft_engine::Shape::Ink { strokes: vec![vec![[10.0, 10.0], [20.0, 20.0]]] };
-    let stroke = pdfcraft_engine::Edit::AddAnnotation(pdfcraft_engine::NewAnnotation {
+    let shape = visionpdf_engine::Shape::Ink { strokes: vec![vec![[10.0, 10.0], [20.0, 20.0]]] };
+    let stroke = visionpdf_engine::Edit::AddAnnotation(visionpdf_engine::NewAnnotation {
         page: 0,
-        style: pdfcraft_engine::Style::default_for(&shape),
+        style: visionpdf_engine::Style::default_for(&shape),
         shape,
         contents: String::new(),
         author: "tester".into(),
@@ -424,10 +424,10 @@ fn marking_while_searching_does_not_jitter_or_reset_search_state() {
     h.run_steps(2);
     h.state_mut().views[0].goto = None;
     for p in 1..=4 {
-        let shape = pdfcraft_engine::Shape::Ink { strokes: vec![vec![[15.0 * p as f64, 20.0], [30.0 * p as f64, 40.0]]] };
-        let stroke = pdfcraft_engine::Edit::AddAnnotation(pdfcraft_engine::NewAnnotation {
+        let shape = visionpdf_engine::Shape::Ink { strokes: vec![vec![[15.0 * p as f64, 20.0], [30.0 * p as f64, 40.0]]] };
+        let stroke = visionpdf_engine::Edit::AddAnnotation(visionpdf_engine::NewAnnotation {
             page: p,
-            style: pdfcraft_engine::Style::default_for(&shape),
+            style: visionpdf_engine::Style::default_for(&shape),
             shape,
             contents: String::new(),
             author: "tester".into(),
@@ -449,7 +449,7 @@ fn marking_while_searching_does_not_jitter_or_reset_search_state() {
 
 #[test]
 fn layouts_fit_height_labels_and_system_theme() {
-    use pdfcraft_ui_egui::canvas::{Fit, PageLayout};
+    use visionpdf_ui_egui::canvas::{Fit, PageLayout};
     let mut h = harness();
     h.state_mut().active = Some(0);
     // Fit height: the page's height fills the view (less the margins).
@@ -474,10 +474,10 @@ fn layouts_fit_height_labels_and_system_theme() {
     assert!(a.left() > vp.center().x - 1.0, "the cover sits on the right");
     assert!(b.top() > a.bottom() && (b.top() - c.top()).abs() < 1.0, "then pairs 2–3");
     // Page labels in the page box.
-    h.state_mut().apply_edit(pdfcraft_engine::Edit::NumberPages {
+    h.state_mut().apply_edit(visionpdf_engine::Edit::NumberPages {
         from: 0,
         to: 1,
-        style: pdfcraft_engine::LabelStyle::LowerRoman,
+        style: visionpdf_engine::LabelStyle::LowerRoman,
         prefix: String::new(),
         first: 1,
     });
@@ -495,7 +495,7 @@ fn layouts_fit_height_labels_and_system_theme() {
     assert!(!h.state_mut().views[0].go_to_typed("xx", &labels));
     // Follow the system theme.
     h.state_mut().set_option("theme", "system").unwrap();
-    assert_eq!(h.state().theme_preference, pdfcraft_ui_egui::theme::ThemePreference::System);
+    assert_eq!(h.state().theme_preference, visionpdf_ui_egui::theme::ThemePreference::System);
 }
 
 fn page_input_focused(h: &Harness<'static, VisionPDFApp>) -> bool {
@@ -523,7 +523,7 @@ fn type_page_input(h: &mut Harness<'static, VisionPDFApp>, text: &str) {
 }
 
 fn restart_page_labels(h: &mut Harness<'static, VisionPDFApp>) {
-    use pdfcraft_engine::{Edit, LabelStyle};
+    use visionpdf_engine::{Edit, LabelStyle};
     let session = std::mem::take(&mut h.state_mut().session);
     h.state_mut().session = session.with_clock(|| 1_700_000_000);
     h.state_mut().active = Some(0);
@@ -540,7 +540,7 @@ fn end_shows_the_bottom_of_the_last_page() {
     use egui::Key;
     let mut h = harness();
     h.state_mut().active = Some(0);
-    h.state_mut().views[0].fit = pdfcraft_ui_egui::canvas::Fit::Width;
+    h.state_mut().views[0].fit = visionpdf_ui_egui::canvas::Fit::Width;
     h.run_steps(4);
     let vp = h.state().views[0].viewport_rect();
     assert!(h.state().views[0].page_screen_rect(0).is_some_and(|r| r.height() > vp.height()), "a page is taller than the window");
@@ -607,13 +607,13 @@ fn page_label_input_keeps_current_page_when_submitted_unchanged() {
     assert_eq!(after.can_undo().map(str::to_owned), undo);
     assert_eq!(after.dirty, dirty, "navigation does not edit the PDF");
     assert_eq!(h.state().session.save_bytes(id).unwrap(), before_bytes, "navigation preserves saved PDF bytes");
-    let mut empty = pdfcraft_ui_egui::canvas::DocView::new(pdfcraft_engine::DocId(0), &Default::default(), Default::default());
+    let mut empty = visionpdf_ui_egui::canvas::DocView::new(visionpdf_engine::DocId(0), &Default::default(), Default::default());
     assert!(!empty.go_to_typed("1", &[]), "an empty view has no current page to retain");
 }
 
 #[test]
 fn page_label_input_resolves_labels_numbers_and_restores_invalid_input() {
-    use pdfcraft_engine::{Edit, LabelStyle};
+    use visionpdf_engine::{Edit, LabelStyle};
     let mut h = harness();
     restart_page_labels(&mut h);
     h.state_mut().apply_edit(Edit::NumberPages { from: 4, to: 4, style: LabelStyle::Decimal, prefix: "A-".into(), first: 8 });
@@ -675,8 +675,8 @@ fn page_label_input_takes_a_position_in_parentheses() {
 
 #[test]
 fn page_label_input_preserves_literal_whitespace_before_trimmed_lookup() {
-    use pdfcraft_render::{DocInfo, PageInfo};
-    use pdfcraft_ui_egui::canvas::DocView;
+    use visionpdf_render::{DocInfo, PageInfo};
+    use visionpdf_ui_egui::canvas::DocView;
     // The importer trims label prefixes, so supply literal labels directly to the view.
     for label in [" 1", "1 "] {
         let info = DocInfo {
@@ -687,7 +687,7 @@ fn page_label_input_preserves_literal_whitespace_before_trimmed_lookup() {
             ..Default::default()
         };
         let labels: Vec<String> = info.pages.iter().map(|page| page.label.clone()).collect();
-        let mut view = DocView::new(pdfcraft_engine::DocId(0), &info, Default::default());
+        let mut view = DocView::new(visionpdf_engine::DocId(0), &info, Default::default());
         view.document_replaced(&info);
         assert_eq!(view.page_input, label, "the displayed label retains its literal whitespace");
         let unchanged = view.page_input.clone();
@@ -723,7 +723,7 @@ fn page_label_input_focus_command_refreshes_same_frame_navigation_and_preserves_
 
 #[test]
 fn page_label_input_new_document_does_not_inherit_or_commit_the_previous_draft() {
-    use pdfcraft_engine::{Edit, LabelStyle, Session};
+    use visionpdf_engine::{Edit, LabelStyle, Session};
     let mut h = harness();
     restart_page_labels(&mut h);
     h.state_mut().views[0].go_to_page(3);
@@ -796,7 +796,7 @@ fn page_label_input_preserves_typing_and_refreshes_after_navigation_and_tab_chan
 
 #[test]
 fn page_label_input_same_document_replacement_refreshes_the_focused_label() {
-    use pdfcraft_engine::{Edit, LabelStyle, Session};
+    use visionpdf_engine::{Edit, LabelStyle, Session};
     use std::sync::Arc;
     for (pages, roman, page, label) in [(5, false, 3, "4"), (5, true, 3, "iv"), (3, false, 2, "3")] {
         let mut h = harness();
@@ -848,7 +848,7 @@ fn page_label_input_same_document_replacement_refreshes_the_focused_label() {
 
 #[test]
 fn page_label_input_same_document_replacement_keeps_full_label_selected_for_typing() {
-    use pdfcraft_engine::{Edit, LabelStyle, Session};
+    use visionpdf_engine::{Edit, LabelStyle, Session};
     use std::sync::Arc;
     for settling_frames in [3, 0] {
         let mut h = harness();
@@ -915,7 +915,7 @@ fn page_label_input_same_document_replacement_keeps_full_label_selected_for_typi
 fn two_page_view_steps_a_spread_at_a_time() {
     // #70: ⌘→ went to the right-hand page of the same spread, so the view never moved.
     use egui::{Key, Modifiers};
-    use pdfcraft_ui_egui::canvas::{Fit, PageLayout};
+    use visionpdf_ui_egui::canvas::{Fit, PageLayout};
     let mut h = harness();
     h.state_mut().active = Some(0);
     h.state_mut().views[0].fit = Fit::Width;
@@ -955,15 +955,15 @@ trailer << /Root 1 0 R >>
     h.get_by_label_contains("This file was damaged and has been repaired.");
     h.get_by_label("Details").click();
     h.run_steps(3);
-    assert_eq!(h.state().dialog, Some(Dialog::Properties(pdfcraft_ui_egui::PropsTab::Advanced)));
+    assert_eq!(h.state().dialog, Some(Dialog::Properties(visionpdf_ui_egui::PropsTab::Advanced)));
     h.get_by_label("Repair log");
 }
 
 #[test]
 fn initial_view_is_edited_and_honoured_on_open() {
-    use pdfcraft_engine::{InitialLayout, Magnification, Navigation};
+    use visionpdf_engine::{InitialLayout, Magnification, Navigation};
     let mut h = harness();
-    h.state_mut().dialog = Some(Dialog::Properties(pdfcraft_ui_egui::PropsTab::InitialView));
+    h.state_mut().dialog = Some(Dialog::Properties(visionpdf_ui_egui::PropsTab::InitialView));
     h.run_steps(2);
     h.get_by_label("Open to page");
     {
@@ -990,16 +990,16 @@ fn initial_view_is_edited_and_honoured_on_open() {
     app.set_option("language", "en").unwrap();
     app.open_bytes("again.pdf", None, bytes.to_vec()).unwrap();
     let view = &app.views[0];
-    assert_eq!((view.current, view.cover, app.right), (1, true, Some(pdfcraft_ui_egui::RightPanel::Bookmarks)));
+    assert_eq!((view.current, view.cover, app.right), (1, true, Some(visionpdf_ui_egui::RightPanel::Bookmarks)));
 }
 
 #[test]
 fn initial_view_magnification_offers_25_and_100_percent() {
     use egui::accesskit::Role;
-    use pdfcraft_engine::Magnification;
-    use pdfcraft_ui_egui::canvas::Fit;
+    use visionpdf_engine::Magnification;
+    use visionpdf_ui_egui::canvas::Fit;
     fn open_initial_view(h: &mut Harness<'static, VisionPDFApp>) {
-        h.state_mut().dialog = Some(Dialog::Properties(pdfcraft_ui_egui::PropsTab::InitialView));
+        h.state_mut().dialog = Some(Dialog::Properties(visionpdf_ui_egui::PropsTab::InitialView));
         // The dialog's height settles a frame after it opens; egui centers from the previous size.
         h.run_steps(6);
     }
@@ -1080,7 +1080,7 @@ fn marquee_zoom_and_snapshot() {
 /// Print area… opens Print on just that area (Fit to paper), and Save as image… writes a PNG.
 #[test]
 fn a_snapshot_area_prints_alone_or_saves_as_an_image() {
-    use pdfcraft_ui_egui::PrintWhich;
+    use visionpdf_ui_egui::PrintWhich;
     let mut h = harness();
     let i = h.state().active.unwrap();
     let r = h.state().views[i].page_screen_rect(0).expect("on screen");
@@ -1093,7 +1093,7 @@ fn a_snapshot_area_prints_alone_or_saves_as_an_image() {
     assert_eq!(page, 0);
     assert!(area[2] - area[0] > 90.0 && area[3] - area[1] > 40.0, "{area:?}");
     // Save as image… writes the copied picture as a PNG.
-    let dir = std::env::temp_dir().join(format!("pdfcraft-area-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-area-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     h.state_mut().save_override = Some(dir.join("area.png").to_string_lossy().into_owned());
     h.get_by_label("Save as image…").click();
@@ -1102,7 +1102,7 @@ fn a_snapshot_area_prints_alone_or_saves_as_an_image() {
     // Print area… opens Print on that area alone.
     h.get_by_label("Print area…").click();
     h.run_steps(4);
-    assert_eq!(h.state().dialog, Some(pdfcraft_ui_egui::Dialog::Print));
+    assert_eq!(h.state().dialog, Some(visionpdf_ui_egui::Dialog::Print));
     assert_eq!(h.state().print_draft.which, PrintWhich::Area);
     h.get_by_label_contains("Selected area (page 1,");
     h.state_mut().print_draft.printer = None;
@@ -1111,8 +1111,8 @@ fn a_snapshot_area_prints_alone_or_saves_as_an_image() {
     h.get_by_label("Save as PDF").click();
     h.run_steps(4);
     assert_eq!(h.state().dialog, None);
-    let out = pdfcraft_cos::Document::open(std::sync::Arc::new(std::fs::read(dir.join("area.pdf")).expect("saved"))).unwrap();
-    assert_eq!(pdfcraft_model::pages(&out).len(), 1, "one sheet for the area");
+    let out = visionpdf_cos::Document::open(std::sync::Arc::new(std::fs::read(dir.join("area.pdf")).expect("saved"))).unwrap();
+    assert_eq!(visionpdf_model::pages(&out).len(), 1, "one sheet for the area");
     // The next Print is for pages again.
     assert!(h.state_mut().execute("print.dialog"));
     h.run_steps(3);
@@ -1153,7 +1153,7 @@ fn a_snapshot_keeps_its_resolution_when_zoomed_out() {
         h.state_mut().set_option("zoom", &zoom.to_string()).unwrap();
         h.run_steps(2);
         let (w, _) = h.state_mut().snapshot(i, 0, [15.0, 125.0, 180.0, 160.0]).expect("a snapshot");
-        let on_screen = (165.0 * zoom / 100.0 * pdfcraft_ui_egui::canvas::PT * ppp).ceil() as u32;
+        let on_screen = (165.0 * zoom / 100.0 * visionpdf_ui_egui::canvas::PT * ppp).ceil() as u32;
         assert!(w.abs_diff(on_screen) <= 1, "{w} pixels at {zoom}%, {on_screen} on screen");
     }
 }
@@ -1212,7 +1212,7 @@ fn fit_visible_zooms_to_the_content_width() {
 
 #[test]
 fn tab_and_window_show_the_document_title_when_asked() {
-    use pdfcraft_engine::Edit;
+    use visionpdf_engine::Edit;
     let mut h = harness();
     h.run_steps(2);
     assert_eq!(h.state().window_title, "b.pdf — VisionPDF");
@@ -1232,7 +1232,7 @@ fn tab_and_window_show_the_document_title_when_asked() {
 
 #[test]
 fn the_window_title_marks_unsaved_changes_until_saved() {
-    use pdfcraft_engine::Edit;
+    use visionpdf_engine::Edit;
     let mut h = harness();
     h.run_steps(2);
     assert_eq!(h.state().window_title, "b.pdf — VisionPDF");
@@ -1250,7 +1250,7 @@ fn the_window_title_marks_unsaved_changes_until_saved() {
             let _ = std::fs::remove_dir_all(&self.0);
         }
     }
-    let dir = Dir(std::env::temp_dir().join(format!("pdfcraft-title-dirty-{}", std::process::id())));
+    let dir = Dir(std::env::temp_dir().join(format!("visionpdf-title-dirty-{}", std::process::id())));
     std::fs::create_dir_all(&dir.0).unwrap();
     // Saved under its own name, so the title changes only by the mark.
     h.state_mut().save_override = Some(dir.0.join("b.pdf").to_string_lossy().into_owned());
@@ -1265,7 +1265,7 @@ fn the_window_title_marks_unsaved_changes_until_saved() {
 /// title marks it.
 #[test]
 fn the_window_title_marks_a_draft_that_is_not_applied_yet() {
-    use pdfcraft_ui_egui::fill_sign::TypeBox;
+    use visionpdf_ui_egui::fill_sign::TypeBox;
     let mut h = harness();
     h.run_steps(2);
     assert_eq!(h.state().window_title, "b.pdf — VisionPDF");
@@ -1276,7 +1276,7 @@ fn the_window_title_marks_a_draft_that_is_not_applied_yet() {
         text: "Typed".into(),
         size: 10.0,
         color: [0.0; 3],
-        border: pdfcraft_ui_egui::fill_sign::TextBorder::NONE,
+        border: visionpdf_ui_egui::fill_sign::TextBorder::NONE,
         focus: false,
     });
     h.run_steps(2);
@@ -1293,7 +1293,7 @@ fn a_document_opened_while_hidden_names_the_titles() {
     let mut h = harness();
     h.run_steps(2);
     let before = h.state().views.len();
-    let bytes = pdfcraft_engine::Session::new().create_from_text("Arrived", "Arrived while hidden").unwrap();
+    let bytes = visionpdf_engine::Session::new().create_from_text("Arrived", "Arrived while hidden").unwrap();
     h.state().inbox.lock().unwrap().push(("arrived.pdf".into(), bytes.to_vec()));
     let ctx = h.ctx.clone();
     let mut frame = eframe::Frame::_new_kittest();
@@ -1315,7 +1315,7 @@ fn a_document_opened_while_hidden_names_the_titles() {
 /// title, which an embedding host reads to tell which file opened, keeps the file's name.
 #[test]
 fn the_web_page_title_names_the_file_when_the_document_shows_its_title() {
-    use pdfcraft_engine::Edit;
+    use visionpdf_engine::Edit;
     let mut h = harness();
     {
         let s = h.state_mut();
@@ -1334,7 +1334,7 @@ fn the_web_page_title_names_the_file_when_the_document_shows_its_title() {
 fn a_placeholder_title_leaves_the_file_name_on_the_tab_and_window() {
     // A browser's "Save as PDF" of a blank page or pop-up titles the document "about:blank"
     // and asks viewers to show the title: the file name says more.
-    use pdfcraft_engine::Edit;
+    use visionpdf_engine::Edit;
     let mut h = harness();
     {
         let s = h.state_mut();
@@ -1351,7 +1351,7 @@ fn a_placeholder_title_leaves_the_file_name_on_the_tab_and_window() {
 
 #[test]
 fn an_earlier_revision_opens_from_document_properties() {
-    use pdfcraft_engine::Edit;
+    use visionpdf_engine::Edit;
     let mut h = harness();
     {
         let s = h.state_mut();
@@ -1361,7 +1361,7 @@ fn an_earlier_revision_opens_from_document_properties() {
         s.open_bytes("updated.pdf", None, bytes.to_vec()).unwrap();
     }
     h.run_steps(2);
-    h.state_mut().dialog = Some(Dialog::Properties(pdfcraft_ui_egui::PropsTab::Advanced));
+    h.state_mut().dialog = Some(Dialog::Properties(visionpdf_ui_egui::PropsTab::Advanced));
     h.run_steps(2);
     h.run_steps(2);
     // Let the dialog finish centering before the revision button is clicked.
@@ -1389,7 +1389,7 @@ fn an_earlier_revision_opens_from_document_properties() {
         s.views[s.active.unwrap()]
             .snapshot
             .as_ref()
-            .is_some_and(|snap| snap.kind == pdfcraft_ui_egui::canvas::SnapshotKind::Revision && snap.revision == 1)
+            .is_some_and(|snap| snap.kind == visionpdf_ui_egui::canvas::SnapshotKind::Revision && snap.revision == 1)
     );
     // An unknown revision errors without opening a tab.
     h.state_mut().active = Some(original);
@@ -1414,13 +1414,13 @@ fn an_earlier_revision_opens_from_document_properties() {
         s.views[s.active.unwrap()]
             .snapshot
             .as_ref()
-            .is_some_and(|snap| snap.kind == pdfcraft_ui_egui::canvas::SnapshotKind::Revision && snap.revision == 1)
+            .is_some_and(|snap| snap.kind == visionpdf_ui_egui::canvas::SnapshotKind::Revision && snap.revision == 1)
     );
 }
 
 #[test]
 fn wrapped_revision_buttons_stay_above_binding_and_open_the_saved_revision() {
-    use pdfcraft_engine::{Edit, Session};
+    use visionpdf_engine::{Edit, Session};
     let mut bytes = std::sync::Arc::new(fixture(1));
     // Reopen each save so the next edit appends to the preceding saved revision.
     for revision in 2..=13 {
@@ -1440,7 +1440,7 @@ fn wrapped_revision_buttons_stay_above_binding_and_open_the_saved_revision() {
         let s = h.state();
         let doc = s.session.get(s.views[s.active.unwrap()].id).unwrap();
         assert_eq!(doc.revision_ends().len(), 13, "the fixture contains thirteen saved revisions");
-        h.state_mut().dialog = Some(Dialog::Properties(pdfcraft_ui_egui::PropsTab::Advanced));
+        h.state_mut().dialog = Some(Dialog::Properties(visionpdf_ui_egui::PropsTab::Advanced));
         // Let the grid and the centered dialog settle before measuring or clicking.
         h.run_steps(6);
         let buttons: Vec<_> = (1..13).map(|n| (n, h.get_by_label(&format!("View revision {n}")).rect())).collect();
@@ -1477,7 +1477,7 @@ fn wrapped_revision_buttons_stay_above_binding_and_open_the_saved_revision() {
         assert_eq!(doc.name, format!("revisions (revision {lower_revision}).pdf"));
         assert_eq!(doc.info_value("Title"), Some(format!("Revision {lower_revision}")));
         let snapshot = view.snapshot.as_ref().expect("the saved revision opens as a snapshot");
-        assert_eq!(snapshot.kind, pdfcraft_ui_egui::canvas::SnapshotKind::Revision);
+        assert_eq!(snapshot.kind, visionpdf_ui_egui::canvas::SnapshotKind::Revision);
         assert_eq!(snapshot.revision, lower_revision);
     }
 }
@@ -1547,7 +1547,7 @@ fn space_audit_numbers_line_up_under_their_headers() {
 fn each_document_keeps_its_own_scroll_position() {
     // #189: every document's page view shared one scroll position, so switching tabs showed a
     // document at wherever the other one had been scrolled to (usually back at the top).
-    use pdfcraft_ui_egui::canvas::Fit;
+    use visionpdf_ui_egui::canvas::Fit;
     let mut h = harness();
     for v in &mut h.state_mut().views {
         v.fit = Fit::Width;
@@ -1576,7 +1576,7 @@ fn a_new_document_opens_at_the_top_after_a_relaunch() {
     // eframe saves egui's memory, scroll offsets included, with the settings and restores it at
     // the next launch, where document ids start again at 1: the first document opened then
     // started at the offset the previous session's first document was left at.
-    use pdfcraft_ui_egui::canvas::Fit;
+    use visionpdf_ui_egui::canvas::Fit;
     let mut h = harness();
     for v in &mut h.state_mut().views {
         v.fit = Fit::Width;
@@ -1614,7 +1614,7 @@ fn a_new_document_opens_at_the_top_after_a_relaunch() {
         app
     });
     h.run_steps(4);
-    assert_eq!(h.state().views[0].id, pdfcraft_engine::DocId(1));
+    assert_eq!(h.state().views[0].id, visionpdf_engine::DocId(1));
     assert_eq!(h.state().views[0].current, 0, "c.pdf opens on page 1");
     // It is still a scroll position of its own from then on.
     h.state_mut().views[0].goto = Some((2, 0.0));
@@ -1629,7 +1629,7 @@ fn arrow_and_page_keys_move_through_a_scrolling_document() {
     // #185: in the continuous (default) and two-page views the arrow keys and Page Down / Up did
     // nothing without ⌘.
     use egui::Key;
-    use pdfcraft_ui_egui::canvas::{Fit, PageLayout};
+    use visionpdf_ui_egui::canvas::{Fit, PageLayout};
     let mut h = harness();
     h.state_mut().active = Some(0);
     h.state_mut().views[0].fit = Fit::Width;
@@ -1679,7 +1679,7 @@ fn up_and_down_turn_pages_in_single_page_view() {
     // #273: in single-page view ↓ / ↑ only scrolled, so on a page that fits (or once scrolled to
     // the end) they did nothing, while the wheel turned the page there.
     use egui::Key;
-    use pdfcraft_ui_egui::canvas::{Fit, PageLayout};
+    use visionpdf_ui_egui::canvas::{Fit, PageLayout};
     let mut h = harness();
     h.state_mut().active = Some(0);
     h.state_mut().views[0].layout = PageLayout::Single;
@@ -1766,7 +1766,7 @@ fn left_and_right_scroll_a_page_wider_than_the_window_before_turning_it() {
     assert_eq!(press(&mut h, Modifiers::COMMAND, Key::ArrowRight).0, 1, "⌘→ turns the page at once");
     assert_eq!(press(&mut h, Modifiers::COMMAND, Key::ArrowRight).0, 2);
     // A page that fits across: → turns pages as before.
-    h.state_mut().views[0].fit = pdfcraft_ui_egui::canvas::Fit::Width;
+    h.state_mut().views[0].fit = visionpdf_ui_egui::canvas::Fit::Width;
     h.run_steps(6);
     assert_eq!(press(&mut h, Modifiers::NONE, Key::ArrowRight).0, 3);
 }
@@ -1840,7 +1840,7 @@ fn right_scrolls_to_a_spreads_second_page_off_screen_before_turning() {
     let (inner, first) = shown(&h);
     assert!(first.right() <= inner.right() && first.right() + GAP > inner.right(), "the spread's gap at the window's edge: {first:?} in {inner:?}");
     assert!(h.state().views[0].page_screen_rect(1).is_none(), "its second page off screen");
-    assert!(h.state().views[0].layout == pdfcraft_ui_egui::canvas::PageLayout::TwoUp && !h.state().views[0].continuous);
+    assert!(h.state().views[0].layout == visionpdf_ui_egui::canvas::PageLayout::TwoUp && !h.state().views[0].continuous);
     h.key_press(Key::ArrowRight);
     h.run_steps(4);
     let v = &h.state().views[0];
@@ -1852,7 +1852,7 @@ fn right_scrolls_to_a_spreads_second_page_off_screen_before_turning() {
 fn v_h_and_space_pick_the_quick_tools() {
     // The toolbar's tooltips promise "Select (V)" and "Hand (H)", but the keys did nothing.
     use egui::{Key, Modifiers};
-    use pdfcraft_ui_egui::QuickTool;
+    use visionpdf_ui_egui::QuickTool;
     let mut h = harness();
     h.state_mut().active = Some(0);
     h.run_steps(2);
@@ -1926,7 +1926,7 @@ fn page_down_steps_every_spread_when_several_fit_on_screen() {
     // than one spread fit on screen: the current page was whichever wholly visible page rounding
     // made "most visible", so the next step started from the wrong spread.
     use egui::{Key, Modifiers};
-    use pdfcraft_ui_egui::canvas::{Fit, PageLayout};
+    use visionpdf_ui_egui::canvas::{Fit, PageLayout};
     // a printed book: portrait cover and back, landscape two-page spreads between
     let mut sizes = vec![(200, 300)];
     sizes.extend([(400, 300); 10]);
@@ -1963,12 +1963,12 @@ fn pages_panel_harness(sizes: &[(u32, u32)]) -> Harness<'static, VisionPDFApp> {
         let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("cheques.pdf", None, bytes).unwrap();
-        app.right = Some(pdfcraft_ui_egui::RightPanel::Pages);
+        app.right = Some(visionpdf_ui_egui::RightPanel::Pages);
         app
     });
     h.run_steps(6);
     h.state_mut().active = Some(0);
-    h.state_mut().views[0].fit = pdfcraft_ui_egui::canvas::Fit::Width;
+    h.state_mut().views[0].fit = visionpdf_ui_egui::canvas::Fit::Width;
     h.run_steps(6);
     h
 }
@@ -2043,7 +2043,7 @@ fn pages_panel_thumbnail_size_controls_show_more_pages_and_keep_the_selection() 
     assert_eq!(h.state().views[0].current, 0);
     assert_eq!(h.state().views[0].zoom, zoom, "only the thumbnails are resized");
     assert!(!h.state().session.get(h.state().views[0].id).unwrap().dirty);
-    if let Ok(dir) = std::env::var("PDFCRAFT_THUMBNAIL_SHOTS") {
+    if let Ok(dir) = std::env::var("VISIONPDF_THUMBNAIL_SHOTS") {
         let _gpu = crate::gpu();
         h.render().unwrap().save(format!("{dir}/small.png")).unwrap();
     }
@@ -2054,7 +2054,7 @@ fn pages_panel_thumbnail_size_controls_show_more_pages_and_keep_the_selection() 
     h.run_steps(4);
     assert!(thumbnail_rect(&h, 1).width() > usual);
     assert_eq!(h.state().views[0].target_pages(), vec![0, 1]);
-    if let Ok(dir) = std::env::var("PDFCRAFT_THUMBNAIL_SHOTS") {
+    if let Ok(dir) = std::env::var("VISIONPDF_THUMBNAIL_SHOTS") {
         let _gpu = crate::gpu();
         h.render().unwrap().save(format!("{dir}/large.png")).unwrap();
         h.state_mut().set_option("theme", "dark").unwrap();
@@ -2166,7 +2166,7 @@ fn a_page_change_while_thumbnails_are_dragged_does_not_scroll_the_pages_panel() 
 /// trackpad (point) scrolling keeps its own speed. The choice is saved.
 #[test]
 fn the_scroll_speed_preference_scales_mouse_wheel_notches() {
-    use pdfcraft_ui_egui::scroll_speed::ScrollSpeed;
+    use visionpdf_ui_egui::scroll_speed::ScrollSpeed;
     let scrolled = |speed: ScrollSpeed, unit: egui::MouseWheelUnit, dy: f32| -> f32 {
         let mut h = harness();
         h.state_mut().scroll_speed = speed;
@@ -2229,7 +2229,7 @@ fn picture_harness_sized(size: egui::Vec2) -> (image::RgbaImage, Harness<'static
     px.put_pixel(0, 0, image::Rgba([255, 0, 0, 255]));
     let mut png = std::io::Cursor::new(Vec::new());
     image::DynamicImage::ImageRgba8(px.clone()).write_to(&mut png, image::ImageFormat::Png).unwrap();
-    let pdf = pdfcraft_engine::Session::new().create_from_images(&[("p.png".into(), png.into_inner())]).unwrap();
+    let pdf = visionpdf_engine::Session::new().create_from_images(&[("p.png".into(), png.into_inner())]).unwrap();
     let mut h = Harness::builder().with_size(size).build_eframe(move |_cc| {
         let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
@@ -2307,7 +2307,7 @@ fn an_edit_clears_the_picked_picture_at_once() {
     h.event(egui::Event::PointerButton { pos: at, button: egui::PointerButton::Primary, pressed: false, modifiers: Default::default() });
     h.run_steps(2);
     assert!(h.state().views[i].picked_image.is_some(), "picked with the Select tool");
-    let delete = pdfcraft_engine::Edit::EditPageImage { page: 0, index: 0, change: pdfcraft_engine::ImageEdit::Delete };
+    let delete = visionpdf_engine::Edit::EditPageImage { page: 0, index: 0, change: visionpdf_engine::ImageEdit::Delete };
     assert!(h.state_mut().apply_edit(delete));
     // No frame has run since the edit.
     assert_eq!(h.state().views[i].picked_image, None);
@@ -2444,7 +2444,7 @@ fn the_picture_menu_opens_link_properties_and_recognize_text_for_the_picture() {
     let (_, mut h) = picture_menu();
     h.get_by_label("Create Link…").click();
     h.run_steps(3);
-    assert!(matches!(h.state().dialog, Some(pdfcraft_ui_egui::Dialog::LinkProps)));
+    assert!(matches!(h.state().dialog, Some(visionpdf_ui_egui::Dialog::LinkProps)));
     let draft = h.state().link_draft.clone().expect("the link draft");
     assert_eq!(draft.page, 0);
     assert!(draft.rect[2] > draft.rect[0] && draft.rect[3] > draft.rect[1], "over the picture: {:?}", draft.rect);
@@ -2452,7 +2452,7 @@ fn the_picture_menu_opens_link_properties_and_recognize_text_for_the_picture() {
     let (_, mut h) = picture_menu();
     h.get_by_label("Recognize Text…").click();
     h.run_steps(3);
-    assert!(matches!(h.state().dialog, Some(pdfcraft_ui_egui::Dialog::RecognizeText)));
+    assert!(matches!(h.state().dialog, Some(visionpdf_ui_egui::Dialog::RecognizeText)));
     let d = &h.state().ocr_draft;
     assert_eq!((format!("{:?}", d.pages), d.from, d.to), ("Range".to_string(), 1, 1));
 }
@@ -2532,7 +2532,7 @@ fn selection_wheel_harness() -> (Harness<'static, VisionPDFApp>, usize, egui::Po
 fn selection_wheel_delta(unit: egui::MouseWheelUnit, amount: f32, held: bool, animated: bool) -> f32 {
     let (mut h, view, end) = selection_wheel_harness();
     h.state_mut().animation_effects =
-        if animated { pdfcraft_ui_egui::motion::AnimationEffects::On } else { pdfcraft_ui_egui::motion::AnimationEffects::Off };
+        if animated { visionpdf_ui_egui::motion::AnimationEffects::On } else { visionpdf_ui_egui::motion::AnimationEffects::Off };
     if !held {
         h.event(egui::Event::PointerButton { pos: end, button: egui::PointerButton::Primary, pressed: false, modifiers: egui::Modifiers::NONE });
     }
@@ -2727,7 +2727,7 @@ fn arrow_keys_follow_the_scroll_speed_preference() {
 /// sight; as in Acrobat, it is brought into view.
 #[test]
 fn go_to_page_brings_the_page_into_view_horizontally() {
-    use pdfcraft_ui_egui::canvas::Fit;
+    use visionpdf_ui_egui::canvas::Fit;
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
         let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
@@ -2756,7 +2756,7 @@ fn the_accessible_window_has_the_window_title_as_its_name() {
     let name = |h: &Harness<'static, VisionPDFApp>| h.root().accesskit_node().label().map(|l| l.to_string());
     assert_eq!(name(&h).as_deref(), Some("b.pdf — VisionPDF"));
     {
-        use pdfcraft_engine::Edit;
+        use visionpdf_engine::Edit;
         let s = h.state_mut();
         let id = s.views[s.active.unwrap()].id;
         s.session.apply(id, Edit::SetInfo { key: "Title".into(), value: "Quarterly report".into() }).unwrap();

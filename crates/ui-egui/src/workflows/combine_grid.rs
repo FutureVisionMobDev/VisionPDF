@@ -18,7 +18,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use egui::{Align2, Color32, CornerRadius, Rect, Sense, Stroke, TextureHandle, Vec2, pos2, vec2};
-use pdfcraft_render::{RenderConfig, RenderPool, RenderRequest, Retiring};
+use visionpdf_render::{RenderConfig, RenderPool, RenderRequest, Retiring};
 
 use crate::VisionPDFApp;
 use crate::combine_ui::{CombineFile, ERROR, Lock, RowAction, WARNING};
@@ -443,7 +443,7 @@ pub(crate) fn grid(
 
 /// The scroll position a zoom asked the next frame's grid to start at.
 fn pending_offset_id() -> egui::Id {
-    egui::Id::unique("pdfcraft-combine-grid-offset")
+    egui::Id::unique("visionpdf-combine-grid-offset")
 }
 
 impl VisionPDFApp {

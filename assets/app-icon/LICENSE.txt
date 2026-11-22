@@ -1,7 +1,5 @@
-VisionPDF app icon artwork
+VisionPDF logo and app icon artwork
 
-The master vector, compact vector, and derived app icons in this directory are original artwork created for VisionPDF by its contributors in 2026. No third-party artwork is included.
+The VisionPDF wordmark (`visionpdf-logo.png`) and square mark (`visionpdf-icon.png`) were provided by the project owner for use in this repository. The app icon derivatives are based on the provided square mark.
 
-Licensed under either the Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0) or the MIT license (https://opensource.org/licenses/MIT), at your option, consistent with this repository.
-
-Raster outputs can be regenerated with packaging/icons.sh.
+These assets are licensed under either the Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0) or the MIT license (https://opensource.org/licenses/MIT), at your option, consistent with this repository.

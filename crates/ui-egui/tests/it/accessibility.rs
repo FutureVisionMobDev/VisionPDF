@@ -4,8 +4,8 @@
 use egui::accesskit::Role;
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_engine::a11y::{Rule, Status};
-use pdfcraft_ui_egui::{Dialog, VisionPDFApp, RightPanel};
+use visionpdf_engine::a11y::{Rule, Status};
+use visionpdf_ui_egui::{Dialog, VisionPDFApp, RightPanel};
 
 const FIXTURE: &[u8] = b"%PDF-1.7
 1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj
@@ -60,7 +60,7 @@ fn automatic_text_tagging_opens_reviewable_tags() {
 
 #[test]
 fn checking_fixing_skipping_and_reporting() {
-    let dir = std::env::temp_dir().join(format!("pdfcraft-a11y-ui-{}", std::process::id()));
+    let dir = std::env::temp_dir().join(format!("visionpdf-a11y-ui-{}", std::process::id()));
     let _ = std::fs::remove_dir_all(&dir);
     std::fs::create_dir_all(&dir).unwrap();
     let d = dir.clone();
@@ -236,7 +236,7 @@ fn tagging_form_fields_opens_the_tags_panel() {
         .session
         .get(id)
         .unwrap()
-        .accessibility_check(&pdfcraft_engine::a11y::Options { rules: [Rule::TaggedFormFields].into(), pages: None });
+        .accessibility_check(&visionpdf_engine::a11y::Options { rules: [Rule::TaggedFormFields].into(), pages: None });
     assert_eq!(report.unwrap().result(Rule::TaggedFormFields).unwrap().status, Status::Passed);
 }
 
