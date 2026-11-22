@@ -15,7 +15,10 @@
 pub const UPDATE_APP: craft_update::app::App = craft_update::app::App {
     icon_png: Some(include_bytes!("../../../assets/app-icon/hicolor/128x128/apps/com.futurevision.visionpdf.png")),
     accent: Some([0xb7, 0x02, 0x28]),
-    ..craft_update::suite::VISIONPDF
+    former_ids: &["pdfcraft", "printcraft"],
+    former_names: &["PdfCraft", "PrintCraft"],
+    developer: "Future Vision",
+    ..craft_update::app::App::new("visionpdf", "VisionPDF", "PDF workbench", "FutureVisionMobDev/VisionPDF")
 };
 
 use crate::control::Host as _;
