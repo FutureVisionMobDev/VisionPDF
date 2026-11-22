@@ -1,6 +1,13 @@
 [workspace]
 resolver = "3"
-members = ["crates/*", "apps/*", "xtask"]
+members = [
+    "crates/*",
+    "apps/visionpdf",
+    "apps/visionpdf-cli",
+    "apps/visionpdf-ocr-worker",
+    "apps/visionpdf-web",
+    "xtask",
+]
 exclude = ["vendor"]
 default-members = ["crates/*", "apps/visionpdf", "apps/visionpdf-cli", "xtask"]
 
