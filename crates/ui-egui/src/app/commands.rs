@@ -1,6 +1,6 @@
 use super::*;
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     /// Run a catalogue command. Commands that aren't implemented yet say which milestone ships them.
     pub fn run_command(&mut self, command: &str) {
         if let Some(spec) = pdfcraft_engine::commands::command(command) {

@@ -401,10 +401,10 @@ mod tests {
     #[cfg(windows)]
     #[test]
     fn the_tools_start_without_a_console_window() {
-        const PROBE: &str = r#"Add-Type -Namespace PdfCraftProbe -Name Console -MemberDefinition '[DllImport("kernel32.dll")] public static extern System.IntPtr GetConsoleWindow(); [DllImport("kernel32.dll")] public static extern uint GetConsoleProcessList(uint[] ids, uint count);'
+        const PROBE: &str = r#"Add-Type -Namespace VisionPDFProbe -Name Console -MemberDefinition '[DllImport("kernel32.dll")] public static extern System.IntPtr GetConsoleWindow(); [DllImport("kernel32.dll")] public static extern uint GetConsoleProcessList(uint[] ids, uint count);'
 $ids = New-Object uint32[] 256
-$n = [PdfCraftProbe.Console]::GetConsoleProcessList($ids, 256)
-"$([PdfCraftProbe.Console]::GetConsoleWindow()) $($ids[0..($n-1)] -join ',')""#;
+$n = [VisionPDFProbe.Console]::GetConsoleProcessList($ids, 256)
+"$([VisionPDFProbe.Console]::GetConsoleWindow()) $($ids[0..($n-1)] -join ',')""#;
         let out = system_tool(POWERSHELL).args(["-NoProfile", "-NonInteractive", "-Command", PROBE]).output().unwrap();
         // The answer still comes back through the pipe.
         let text = String::from_utf8_lossy(&out.stdout);

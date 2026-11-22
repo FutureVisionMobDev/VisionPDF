@@ -3,7 +3,7 @@
 //! portfolio's tab shows its file list even with the right panel closed.
 
 use egui_kittest::Harness;
-use pdfcraft_ui_egui::{PdfCraftApp, RightPanel};
+use pdfcraft_ui_egui::{VisionPDFApp, RightPanel};
 
 /// A one-page PDF.
 const PAGE: &[u8] = b"%PDF-1.7
@@ -68,9 +68,9 @@ fn portfolio(catalog: &str, files: &[(&str, &[u8])]) -> Vec<u8> {
 }
 
 /// The app with `pdf` opened as `portfolio.pdf`, the reader keeping the right panel closed or not.
-fn opened(pdf: Vec<u8>, panel_closed: bool) -> Harness<'static, PdfCraftApp> {
+fn opened(pdf: Vec<u8>, panel_closed: bool) -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.right_panel_closed = panel_closed;
         app.open_bytes("portfolio.pdf", None, pdf.clone()).unwrap();
@@ -81,14 +81,14 @@ fn opened(pdf: Vec<u8>, panel_closed: bool) -> Harness<'static, PdfCraftApp> {
 }
 
 /// The open tabs' names, and the active one's.
-fn tabs(h: &Harness<'static, PdfCraftApp>) -> (Vec<String>, Option<String>) {
+fn tabs(h: &Harness<'static, VisionPDFApp>) -> (Vec<String>, Option<String>) {
     let s = h.state();
     let name = |i: usize| s.views.get(i).and_then(|v| s.session.get(v.id)).map(|d| d.name.clone());
     ((0..s.views.len()).filter_map(name).collect(), s.active.and_then(name))
 }
 
 /// Make tab `index` the active one.
-fn select(h: &mut Harness<'static, PdfCraftApp>, index: usize) {
+fn select(h: &mut Harness<'static, VisionPDFApp>, index: usize) {
     h.state_mut().active = Some(index);
     h.run_steps(2);
 }
@@ -143,7 +143,7 @@ fn a_file_opened_after_the_portfolio_keeps_the_front() {
     // portfolio's initial document waits for the reader, whose list shows on the portfolio's tab.
     let pdf = portfolio("/Collection << /D (form.pdf) >>", &[("form.pdf", PAGE)]);
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.right_panel_closed = true;
         app.open_bytes("portfolio.pdf", None, pdf.clone()).unwrap();
@@ -165,7 +165,7 @@ fn a_password_asked_for_a_file_opened_with_the_portfolio_stays_asked() {
     for answer in [Some("pw".to_string()), None] {
         let pdf = portfolio("/Collection << /D (form.pdf) >>", &[("form.pdf", PAGE)]);
         let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
-            let mut app = PdfCraftApp::new();
+            let mut app = VisionPDFApp::new();
             app.set_option("language", "en").unwrap();
             app.open_bytes("portfolio.pdf", None, pdf.clone()).unwrap();
             app.open_bytes("locked.pdf", None, locked()).unwrap();
@@ -189,7 +189,7 @@ fn a_password_asked_for_a_file_opened_with_the_portfolio_stays_asked() {
 fn a_deleted_attachment_doesnt_change_which_document_opens() {
     let pdf = portfolio("/Collection << /D (form.pdf) >>", &[("intro.pdf", PAGE), ("form.pdf", PAGE)]);
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("portfolio.pdf", None, pdf.clone()).unwrap();
         app.open_bytes("locked.pdf", None, locked()).unwrap();

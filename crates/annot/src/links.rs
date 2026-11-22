@@ -14,7 +14,7 @@ pub enum LinkAction {
         zoom: LinkZoom,
     },
     Uri(String),
-    /// Something PdfCraft doesn't edit yet (named destination, JavaScript…): kept as is.
+    /// Something VisionPDF doesn't edit yet (named destination, JavaScript…): kept as is.
     Other(String),
 }
 

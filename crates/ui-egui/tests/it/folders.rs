@@ -6,7 +6,7 @@ use std::time::{Duration, SystemTime};
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::PdfCraftApp;
+use pdfcraft_ui_egui::VisionPDFApp;
 use pdfcraft_ui_egui::folders_ui::{MAX_PINNED, SHOWN};
 
 /// A one-page PDF.
@@ -48,9 +48,9 @@ impl Drop for TempFolder {
     }
 }
 
-fn harness(setup: impl FnOnce(&mut PdfCraftApp) + 'static) -> Harness<'static, PdfCraftApp> {
+fn harness(setup: impl FnOnce(&mut VisionPDFApp) + 'static) -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 1400.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         // List folders on the frame that asks, not on a worker thread.
         app.run_inline = true;
@@ -62,7 +62,7 @@ fn harness(setup: impl FnOnce(&mut PdfCraftApp) + 'static) -> Harness<'static, P
     h
 }
 
-fn listed(h: &Harness<'static, PdfCraftApp>, folder: &str) -> Vec<String> {
+fn listed(h: &Harness<'static, VisionPDFApp>, folder: &str) -> Vec<String> {
     h.state().pinned.listing(folder).map(|l| l.files.iter().map(|f| f.name.clone()).collect()).unwrap_or_default()
 }
 
@@ -162,7 +162,7 @@ fn a_pinned_folder_collapses_to_its_heading_and_stays_collapsed_after_a_restart(
     h.get_by_label(&format!("Unpin {name}"));
     assert_eq!(h.state().pinned.collapsed, std::slice::from_ref(&a));
 
-    let mut restarted = PdfCraftApp::new();
+    let mut restarted = VisionPDFApp::new();
     restarted.restore(&h.state().persist());
     assert_eq!(restarted.pinned.collapsed, std::slice::from_ref(&a));
 
@@ -209,10 +209,10 @@ fn folders_of_the_same_name_have_buttons_that_tell_them_apart() {
 fn pinned_folders_survive_a_restart() {
     let dir = TempFolder::new("restart");
     let folder = dir.path();
-    let mut a = PdfCraftApp::new();
+    let mut a = VisionPDFApp::new();
     a.set_option("language", "en").unwrap();
     assert!(a.pin_folder(&folder));
-    let mut b = PdfCraftApp::new();
+    let mut b = VisionPDFApp::new();
     b.set_option("language", "en").unwrap();
     b.restore(&a.persist());
     assert_eq!(b.pinned.folders, [folder]);
@@ -290,7 +290,7 @@ fn a_long_pdf_name_is_cut_before_its_date_and_size() {
 
 #[test]
 fn pinning_is_limited_and_never_duplicates() {
-    let mut app = PdfCraftApp::new();
+    let mut app = VisionPDFApp::new();
     app.set_option("language", "en").unwrap();
     assert!(!app.pin_folder("relative/scans"), "a relative path is refused");
     let root = if cfg!(windows) { "C:\\" } else { "/" };

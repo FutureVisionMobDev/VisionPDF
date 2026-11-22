@@ -1697,8 +1697,8 @@ C", &picked
     }
 
     /// An app with one text document open, and an editor on its first paragraph.
-    fn preview_app() -> (crate::PdfCraftApp, LineEditor) {
-        let mut app = crate::PdfCraftApp::new();
+    fn preview_app() -> (crate::VisionPDFApp, LineEditor) {
+        let mut app = crate::VisionPDFApp::new();
         let bytes = app.session.create_from_text("Preview", "Preview text").unwrap();
         app.open_bytes("preview.pdf", None, bytes.as_ref().clone()).unwrap();
         let doc = app.session.get(app.views[0].id).unwrap();
@@ -1844,7 +1844,7 @@ C", &picked
             confidence: None,
             source: "ocrs".into(),
         };
-        let mut app = crate::PdfCraftApp::new();
+        let mut app = crate::VisionPDFApp::new();
         let png = pdfcraft_engine::export::encode_png(200, 100, &[235u8; 200 * 100 * 4]).unwrap();
         let bytes = app.session.create_from_images(&[("scan.png".into(), png)]).unwrap();
         app.open_bytes("scan.pdf", None, bytes.as_ref().clone()).unwrap();

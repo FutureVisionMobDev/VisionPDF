@@ -8,7 +8,7 @@ use std::sync::Arc;
 
 use pdfcraft_engine::{DocId, Edit, SplitBy};
 
-use crate::PdfCraftApp;
+use crate::VisionPDFApp;
 
 /// Why files were picked.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -135,7 +135,7 @@ impl FilePurpose {
 /// The document a pick edits, as it was when the picker opened. Page positions captured then
 /// are only valid while it is unchanged, and the pick acts on the active document; so a pick
 /// that arrives after the document was edited, or stopped being the active one, is refused
-/// (see [`PdfCraftApp::still_pick_target`]).
+/// (see [`VisionPDFApp::still_pick_target`]).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct PickTarget {
     doc: DocId,
@@ -143,7 +143,7 @@ pub struct PickTarget {
 }
 
 /// Files picked asynchronously in a browser, waiting for the next frame (see
-/// [`PdfCraftApp::file_request`]).
+/// [`VisionPDFApp::file_request`]).
 #[derive(Debug)]
 pub struct FileRequest {
     purpose: FilePurpose,
@@ -172,7 +172,7 @@ impl Default for SplitDraft {
     }
 }
 
-/// Acrobat's Split by: number of pages, file size, top-level bookmarks (and PdfCraft's
+/// Acrobat's Split by: number of pages, file size, top-level bookmarks (and VisionPDF's
 /// before-selected-pages).
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum SplitMode {
@@ -317,7 +317,7 @@ pub(crate) fn dropped_name(f: &egui::DroppedFileHandle) -> String {
     f.path().file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_else(|| "dropped.pdf".into())
 }
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     /// Ask for files to add to the Combine files list (its Add files… button).
     pub fn combine_dialog(&mut self) {
         self.pick_files(FilePurpose::Combine, true);
@@ -928,7 +928,7 @@ pub(crate) fn strip_pdf(name: &str) -> &str {
     name.strip_suffix(".pdf").or_else(|| name.strip_suffix(".PDF")).unwrap_or(name)
 }
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     /// Prepare a form ▸ Import data: XFDF, FDF, XML, CSV or text.
     pub fn import_data_dialog(&mut self) {
         self.import_dialog(false);
@@ -1213,7 +1213,7 @@ mod stem_tests {
         let out = dir.join("a").join("out");
         std::fs::create_dir_all(&out).unwrap();
         let absolute = dir.join("abs.pdf").to_string_lossy().into_owned();
-        let mut app = crate::PdfCraftApp::new();
+        let mut app = crate::VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.export_dir_override = Some(out.to_string_lossy().into_owned());
         for bad in ["../x.pdf", "..", ".", "", "sub/x.pdf", "sub\\x.pdf", "C:x.pdf", "x.pdf.", absolute.as_str()] {

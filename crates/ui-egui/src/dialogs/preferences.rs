@@ -3,7 +3,7 @@
 
 use egui::{Color32, CornerRadius, Margin, Rect, RichText, Sense, Stroke, pos2, vec2};
 
-use crate::PdfCraftApp;
+use crate::VisionPDFApp;
 use crate::canvas::{Fit, PageLayout, ViewDefaults};
 use crate::motion::AnimationEffects;
 use crate::scroll_speed::ScrollSpeed;
@@ -491,7 +491,7 @@ pub(crate) fn preferences_header(ui: &mut egui::Ui, t: &Tokens) {
 }
 
 /// The body of the Preferences dialog with card layout and browser-style in-situ text scanning.
-pub(crate) fn preferences_body(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens) {
+pub(crate) fn preferences_body(ui: &mut egui::Ui, app: &mut VisionPDFApp, t: &Tokens) {
     let search_id = egui::Id::unique("pdfcraft_preferences_search_query");
     let query: String = ui.data(|d| d.get_temp(search_id)).unwrap_or_default();
     let matches_id = egui::Id::unique("pdfcraft_preferences_search_matches");
@@ -557,7 +557,7 @@ pub(crate) fn preferences_body(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tok
 }
 
 /// Content for Card 1: General & Interface
-fn card_general(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens, ctx: &mut PrefSearchContext) {
+fn card_general(ui: &mut egui::Ui, app: &mut VisionPDFApp, t: &Tokens, ctx: &mut PrefSearchContext) {
     ui.horizontal(|ui| {
         let label = ctx.label_primary(ui, tl!("Interface language"), t);
         let (selected, picker) = {
@@ -654,13 +654,13 @@ fn card_general(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens, ctx: &mut 
     ui.add_space(6.0);
 
     #[cfg(not(target_arch = "wasm32"))]
-    ctx.checkbox(ui, &mut app.reopen_last_session, tl!("Reopen the files that were open when PdfCraft last closed"), t);
+    ctx.checkbox(ui, &mut app.reopen_last_session, tl!("Reopen the files that were open when VisionPDF last closed"), t);
     #[cfg(not(target_arch = "wasm32"))]
     ctx.checkbox(ui, &mut app.restore_last_view, tl!("Restore the last view (page, zoom and page display) when a document is opened again"), t);
     #[cfg(not(target_arch = "wasm32"))]
     ctx.checkbox(ui, &mut app.reload_changed_files, tl!("Reload documents when their files change on disk"), t);
     #[cfg(not(target_arch = "wasm32"))]
-    ctx.checkbox(ui, &mut app.update_check_at_start, tl!("Check for updates when PdfCraft starts"), t);
+    ctx.checkbox(ui, &mut app.update_check_at_start, tl!("Check for updates when VisionPDF starts"), t);
     ctx.checkbox(ui, &mut app.show_secured_notice, tl!("Show a notice when a document is secured"), t);
 
     #[cfg(not(target_arch = "wasm32"))]
@@ -680,7 +680,7 @@ fn card_general(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens, ctx: &mut 
 }
 
 /// Content for Card 2: Appearance & Theme
-fn card_appearance(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens, ctx: &mut PrefSearchContext) {
+fn card_appearance(ui: &mut egui::Ui, app: &mut VisionPDFApp, t: &Tokens, ctx: &mut PrefSearchContext) {
     if ctx.checkbox(ui, &mut app.show_page_edge_shadows, tl!("Show Page Edge Shadows"), t).changed() {
         ui.ctx().request_repaint();
     }
@@ -746,7 +746,7 @@ fn apply_view_pref_changes(view: &mut crate::DocView, defaults: &ViewDefaults, c
 }
 
 /// Content for Card 3: Documents and View
-fn card_documents_and_view(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens, ctx: &mut PrefSearchContext) {
+fn card_documents_and_view(ui: &mut egui::Ui, app: &mut VisionPDFApp, t: &Tokens, ctx: &mut PrefSearchContext) {
     ui.horizontal(|ui| {
         ctx.label_primary(ui, tl!("Default workspace mode"), t);
         ctx.pill_choice(
@@ -829,7 +829,7 @@ fn card_documents_and_view(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens,
         apply_view_pref_changes(&mut app.views[i], &defaults, ViewPrefChanges { always_reset: false, ..changes });
     }
     ctx.checkbox(ui, &mut app.text_links, tl!("Open web and email addresses written in the page text"), t);
-    ctx.label_secondary(ui, tl!("Only web (http, https) and email addresses open, and PdfCraft asks first, as for other links."), t);
+    ctx.label_secondary(ui, tl!("Only web (http, https) and email addresses open, and VisionPDF asks first, as for other links."), t);
     ui.add_space(6.0);
 
     ui.horizontal(|ui| {
@@ -852,7 +852,7 @@ fn card_documents_and_view(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens,
 }
 
 /// The scroll speed and the middle button's direction, in Card 3.
-fn scrolling(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens, ctx: &mut PrefSearchContext) {
+fn scrolling(ui: &mut egui::Ui, app: &mut VisionPDFApp, t: &Tokens, ctx: &mut PrefSearchContext) {
     ui.horizontal(|ui| {
         ctx.label_primary(ui, tl!("Scroll speed (mouse wheel and arrow keys)"), t);
         ctx.pill_choice(
@@ -872,7 +872,7 @@ fn scrolling(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens, ctx: &mut Pre
 }
 
 /// Content for Card 4: Identity
-fn card_identity(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens, ctx: &mut PrefSearchContext) {
+fn card_identity(ui: &mut egui::Ui, app: &mut VisionPDFApp, t: &Tokens, ctx: &mut PrefSearchContext) {
     ui.horizontal(|ui| {
         let label = ctx.label_primary(ui, tl!("Name on new comments"), t);
         ui.add(crate::widgets::line(&mut app.comment_prefs.author).desired_width(240.0).char_limit(crate::MAX_AUTHOR_CHARS)).labelled_by(label.id);
@@ -881,7 +881,7 @@ fn card_identity(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens, ctx: &mut
 }
 
 /// Content for Card 5: Fill & Sign
-fn card_fill_and_sign(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens, ctx: &mut PrefSearchContext) {
+fn card_fill_and_sign(ui: &mut egui::Ui, app: &mut VisionPDFApp, t: &Tokens, ctx: &mut PrefSearchContext) {
     ctx.checkbox(ui, &mut app.flatten_fill_sign_on_save, tl!("Flatten Fill & Sign when saving"), t);
     ui.add_enabled_ui(!app.flatten_fill_sign_on_save, |ui| {
         ctx.checkbox(ui, &mut app.ask_to_lock_signatures, tl!("Otherwise, ask on the first save after a signature is placed"), t);
@@ -892,7 +892,7 @@ fn card_fill_and_sign(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens, ctx:
 }
 
 /// Content for Card 6: JavaScript
-fn card_javascript(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens, ctx: &mut PrefSearchContext) {
+fn card_javascript(ui: &mut egui::Ui, app: &mut VisionPDFApp, t: &Tokens, ctx: &mut PrefSearchContext) {
     let mut on = app.session.javascript();
     if ctx.checkbox(ui, &mut on, tl!("Enable Acrobat JavaScript"), t).changed() {
         app.session.set_javascript(on);
@@ -921,10 +921,10 @@ pub(crate) fn preferences_buttons(ui: &mut egui::Ui) -> bool {
 }
 
 /// Fill & Sign date pattern and date language picker.
-fn date_format(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens, ctx: &mut PrefSearchContext) {
+fn date_format(ui: &mut egui::Ui, app: &mut VisionPDFApp, t: &Tokens, ctx: &mut PrefSearchContext) {
     use pdfcraft_engine::dates::{DATE_FORMATS, DATE_LANGUAGES, MAX_DATE_FORMAT_CHARS};
     ctx.label(ui, tl!("Date format"), theme::semibold(12.5), t.text);
-    let sample = |app: &PdfCraftApp, f: &str| format!("{}   {f}", app.date_text(Some(f)).unwrap_or_default());
+    let sample = |app: &VisionPDFApp, f: &str| format!("{}   {f}", app.date_text(Some(f)).unwrap_or_default());
     ui.horizontal(|ui| {
         let label = ctx.label_primary(ui, tl!("Fill & Sign dates"), t);
         let current = app.session.date_format().to_string();
@@ -1013,7 +1013,7 @@ fn date_format(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens, ctx: &mut P
 }
 
 /// Reading colours settings: presets, preview and custom replacement options.
-fn reading_colours_section(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens, ctx: &mut PrefSearchContext) {
+fn reading_colours_section(ui: &mut egui::Ui, app: &mut VisionPDFApp, t: &Tokens, ctx: &mut PrefSearchContext) {
     ctx.label(ui, tl!("Reading colours"), theme::semibold(13.0), t.text);
     let mode = app.reading_colors.mode_name();
     ui.horizontal_wrapped(|ui| {

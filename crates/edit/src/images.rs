@@ -56,7 +56,7 @@ pub struct PageImage {
 }
 
 impl PageImage {
-    /// Whether an active clip was written by PdfCraft's image crop tool.
+    /// Whether an active clip was written by VisionPDF's image crop tool.
     pub fn has_editor_crop(&self) -> bool {
         self.clips.iter().any(|clip| clip.app_crop)
     }
@@ -262,7 +262,7 @@ impl ImageState {
                     self.path.close_path();
                 }
             }
-            b"MP" if op.name(0) == Some(b"PdfCraftImageCrop") => self.app_crop = true,
+            b"MP" if op.name(0) == Some(b"VisionPDFImageCrop") => self.app_crop = true,
             b"W" => self.pending_clip = Some(false),
             b"W*" => self.pending_clip = Some(true),
             b"n" | b"S" | b"s" | b"f" | b"F" | b"f*" | b"B" | b"B*" | b"b" | b"b*" => {
@@ -1355,7 +1355,7 @@ fn arrange_image(doc: &mut Document, p: &pdfcraft_model::Page, all: &[ContentStr
         return Err(EditError::Invalid("unsupported graphics state: non-invertible CTM".into()));
     }
 
-    let owned_crop = ops.get(scope_start..target).unwrap_or_default().iter().any(|op| op.is("MP") && op.name(0) == Some(b"PdfCraftImageCrop"));
+    let owned_crop = ops.get(scope_start..target).unwrap_or_default().iter().any(|op| op.is("MP") && op.name(0) == Some(b"VisionPDFImageCrop"));
     let extracted_scope = if owned_crop { None } else { extract_scope_state(&ops, scope_start, target, scope_start_ctm)? };
     let mut extracted = match extracted_scope {
         Some(ext) => ext,
@@ -1600,13 +1600,13 @@ fn image_scopes(ops: &[Op], target: usize, done: &str, hidden: usize) -> Result<
 /// A marked-content point identifies only the clipping path written by this editor.
 /// It does not open a marked-content sequence or change the document's structure tags.
 fn crop_marker() -> Op {
-    Op::new("MP", vec![Object::Name(b"PdfCraftImageCrop".to_vec())])
+    Op::new("MP", vec![Object::Name(b"VisionPDFImageCrop".to_vec())])
 }
 
 fn app_crop_ranges(ops: &[Op], start: usize, target: usize) -> Vec<std::ops::Range<usize>> {
     let mut ranges = Vec::new();
     for (index, op) in ops.iter().enumerate().take(target).skip(start) {
-        if !op.is("MP") || op.name(0) != Some(b"PdfCraftImageCrop") {
+        if !op.is("MP") || op.name(0) != Some(b"VisionPDFImageCrop") {
             continue;
         }
         let path_start = index.saturating_add(1);
@@ -1621,7 +1621,7 @@ fn app_crop_ranges(ops: &[Op], start: usize, target: usize) -> Vec<std::ops::Ran
     ranges
 }
 
-/// Remove only crops written by PdfCraft, preserving the document author's clipping paths.
+/// Remove only crops written by VisionPDF, preserving the document author's clipping paths.
 fn remove_image_crop(doc: &mut Document, p: &pdfcraft_model::Page, all: &[ContentStream], img: &PageImage) -> Result<(), EditError> {
     let pieces = joined(all);
     let ops = pieces.parse().ops;
@@ -1634,7 +1634,7 @@ fn remove_image_crop(doc: &mut Document, p: &pdfcraft_model::Page, all: &[Conten
     if crops_there.is_empty() {
         // A crop in a scope that closes past a stream not read whole may clip what that stream draws.
         return Err(EditError::Invalid(if crops(ops.len())?.is_empty() {
-            "the image has no PdfCraft crop to remove".into()
+            "the image has no VisionPDF crop to remove".into()
         } else {
             "the image's crop may also clip what a content stream that is damaged or can't be decoded draws, so it isn't removed".into()
         }));

@@ -8,7 +8,7 @@ use egui::{Pos2, Rect, pos2};
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
 use pdfcraft_engine::SignatureStatus;
-use pdfcraft_ui_egui::PdfCraftApp;
+use pdfcraft_ui_egui::VisionPDFApp;
 
 use crate::gpu;
 
@@ -114,7 +114,7 @@ fn sign(id: &pdfcraft_engine::sign::pkcs12::DigitalId, file: Vec<u8>, more: impl
 }
 
 /// Let the page render finish.
-fn settle(h: &mut Harness<'static, PdfCraftApp>) {
+fn settle(h: &mut Harness<'static, VisionPDFApp>) {
     for _ in 0..400 {
         h.run_steps(1);
         if !h.state().render_pending() {
@@ -127,13 +127,13 @@ fn settle(h: &mut Harness<'static, PdfCraftApp>) {
 }
 
 /// The screen point of page point (x, y) on the 400×300 page.
-fn at(h: &Harness<'static, PdfCraftApp>, x: f32, y: f32) -> Pos2 {
+fn at(h: &Harness<'static, VisionPDFApp>, x: f32, y: f32) -> Pos2 {
     let r = h.state().views[0].page_screen_rect(0).expect("page 1 on screen");
     pos2(r.left() + x / 400.0 * r.width(), r.top() + (300.0 - y) / 300.0 * r.height())
 }
 
 /// How many rendered pixels in n1's square are within 40 of `rgb` on every channel.
-fn in_n1_square(h: &mut Harness<'static, PdfCraftApp>, rgb: [u8; 3]) -> usize {
+fn in_n1_square(h: &mut Harness<'static, VisionPDFApp>, rgb: [u8; 3]) -> usize {
     let ppp = h.ctx.pixels_per_point();
     let square = Rect::from_two_pos(at(h, 146.0, 106.0), at(h, 254.0, 214.0));
     let image = h.render().unwrap();
@@ -145,7 +145,7 @@ fn in_n1_square(h: &mut Harness<'static, PdfCraftApp>, rgb: [u8; 3]) -> usize {
 }
 
 /// The rendered pixels of n4's caption strip, (100, 184)–(300, 220) of the page.
-fn caption_strip(h: &mut Harness<'static, PdfCraftApp>) -> Vec<u8> {
+fn caption_strip(h: &mut Harness<'static, VisionPDFApp>) -> Vec<u8> {
     let ppp = h.ctx.pixels_per_point();
     let strip = Rect::from_two_pos(at(h, 100.0, 184.0), at(h, 300.0, 220.0));
     let image = h.render().unwrap();
@@ -155,7 +155,7 @@ fn caption_strip(h: &mut Harness<'static, PdfCraftApp>) -> Vec<u8> {
 
 /// Redraw the open document with `captions`, invalidate every view's page cache, and return the
 /// caption's rendered pixels.
-fn redraw_captions(h: &mut Harness<'static, PdfCraftApp>, captions: pdfcraft_engine::sign::StatusCaptions) -> Vec<u8> {
+fn redraw_captions(h: &mut Harness<'static, VisionPDFApp>, captions: pdfcraft_engine::sign::StatusCaptions) -> Vec<u8> {
     let app = h.state_mut();
     app.session.set_signature_captions(captions);
     for view in &mut app.views {
@@ -167,7 +167,7 @@ fn redraw_captions(h: &mut Harness<'static, PdfCraftApp>, captions: pdfcraft_eng
 
 /// How many nodes read `label` while the pointer rests on the signature: the badge's tooltip adds
 /// one, a widget without a badge none.
-fn hovered(h: &mut Harness<'static, PdfCraftApp>, label: &str) -> usize {
+fn hovered(h: &mut Harness<'static, VisionPDFApp>, label: &str) -> usize {
     h.hover_at(at(h, 120.0, 130.0));
     h.run_steps(3);
     let n = h.query_all_by_label(label).count();
@@ -177,9 +177,9 @@ fn hovered(h: &mut Harness<'static, PdfCraftApp>, label: &str) -> usize {
 }
 
 /// The app with `bytes` open in `lang`, the left panel closed, settled.
-fn harness(bytes: Vec<u8>, lang: &'static str) -> Harness<'static, PdfCraftApp> {
+fn harness(bytes: Vec<u8>, lang: &'static str) -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", lang).unwrap();
         app.open_bytes("signed.pdf", None, bytes).expect("opens");
         app.set_option("left", "closed").unwrap();
@@ -408,7 +408,7 @@ fn values_still_waiting_on_their_page_stay_pending_when_a_later_edit_redraws_eve
         h.state_mut().apply_trusted_certificates(vec![anchor.clone()]);
         settle(&mut h);
         let doc_id = h.state().views[0].id;
-        let states = |h: &Harness<'static, PdfCraftApp>| {
+        let states = |h: &Harness<'static, VisionPDFApp>| {
             h.state().session.get(doc_id).unwrap().signatures.iter().map(|s| (s.field.clone(), s.status, s.verdict_shown)).collect::<Vec<_>>()
         };
         let before = states(&h);
@@ -433,7 +433,7 @@ fn a_file_opened_before_the_first_frame_is_drawn_in_the_interface_language() {
     }
     let p12 = std::fs::read(concat!(env!("CARGO_MANIFEST_DIR"), "/../sign/tests/data/ec-p256.p12")).unwrap();
     let id = pdfcraft_engine::sign::pkcs12::open(&p12, "test").unwrap();
-    let mut app = PdfCraftApp::new();
+    let mut app = VisionPDFApp::new();
     app.set_option("language", "de").unwrap();
     app.open_bytes("named.pdf", None, signed(&id)).expect("opens");
     let doc = app.session.get(app.views[0].id).unwrap();

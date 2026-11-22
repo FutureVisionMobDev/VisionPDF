@@ -481,7 +481,7 @@ pub struct NumberDraft {
     pub start: u32,
 }
 
-/// What [`PdfCraftApp::open_path`] did: opened the file in a new tab, focused the tab already
+/// What [`VisionPDFApp::open_path`] did: opened the file in a new tab, focused the tab already
 /// showing it, handed it to the background open worker, or failed. Failures tell the user
 /// through a toast; this is the programmatic contract for callers that must know (the control
 /// channel, tools that wait for a file) (#1620).

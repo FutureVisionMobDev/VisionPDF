@@ -1,6 +1,6 @@
 use super::*;
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     /// Draw the running job's progress card and pass a Cancel click on to the job.
     pub(super) fn show_progress(&mut self, ctx: &egui::Context) {
         if widgets::progress_notice(self, ctx) {
@@ -70,7 +70,7 @@ pub(crate) fn migrate_panel_state_from(ui: &egui::Ui, salt: &str) {
     }
 }
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     /// The parts of [`eframe::App::raw_input_hook`] that must run before egui's input hooks:
     /// publish this pass's input-target generation to the control plugin, and hand the wheel
     /// input to the reduced-motion reader.
@@ -92,7 +92,7 @@ impl PdfCraftApp {
     }
 }
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     pub(crate) fn finish_render_frame(&mut self, ctx: &egui::Context) {
         self.finish_document_copy(ctx);
         // The Combine grid's thumbnails, whichever tab shows (renders under way still finish).

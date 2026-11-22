@@ -8,7 +8,7 @@ use egui::{Key, Modifiers};
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
 use pdfcraft_engine::commands::COMMANDS;
-use pdfcraft_ui_egui::{Dialog, PdfCraftApp};
+use pdfcraft_ui_egui::{Dialog, VisionPDFApp};
 
 fn fixture(n: usize) -> Vec<u8> {
     let mut objs: Vec<String> = vec!["<< /Type /Catalog /Pages 2 0 R >>".into()];
@@ -35,9 +35,9 @@ fn fixture(n: usize) -> Vec<u8> {
     out
 }
 
-fn harness() -> Harness<'static, PdfCraftApp> {
+fn harness() -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("doc.pdf", None, fixture(3)).unwrap();
         app
@@ -75,7 +75,7 @@ fn every_registered_command_is_implemented() {
         if PICKERS.contains(&spec.id) || spec.id == "edit.copy" {
             continue;
         }
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         if spec.id.starts_with("form.") || spec.id == "comment.flatten" {
             app.open_bytes("form.pdf", None, include_bytes!("../data/form.pdf").to_vec()).unwrap();
@@ -188,7 +188,7 @@ fn every_registered_command_is_implemented() {
 
 #[test]
 fn disabled_commands_explain_themselves() {
-    let mut app = PdfCraftApp::new();
+    let mut app = VisionPDFApp::new();
     app.set_option("language", "en").unwrap();
     assert!(!app.execute("file.save"));
     assert_eq!(app.toast.as_ref().map(|t| t.0.as_str()), Some("Open a document first"));
@@ -209,7 +209,7 @@ fn a_tool_chosen_with_no_document_asks_for_one_and_runs_on_it() {
     std::fs::write(&path, fixture(2)).unwrap();
     let pick = path.to_string_lossy().into_owned();
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.pick_override = Some(vec![pick]);
         app
@@ -226,7 +226,7 @@ fn a_tool_chosen_with_no_document_asks_for_one_and_runs_on_it() {
     assert_eq!(doc.bytes.as_slice(), fixture(2).as_slice());
     // Cancelled: nothing opens and nothing runs.
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.pick_override = Some(Vec::new());
         app
@@ -247,7 +247,7 @@ fn a_tool_chosen_with_an_already_open_file_focuses_its_tab_and_still_runs() {
     let pick = path.to_string_lossy().into_owned();
     let picked = pick.clone();
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         // The file is already open, but the Home tab is showing (no active document).
         app.open_path(&picked);
@@ -315,7 +315,7 @@ fn mac_command_m_stays_available_for_minimize() {
 
     let bar = h.state().menu_bar(&h.ctx);
     assert!(bar.find(&craft_menu::CommandRef::new("comment.list")).unwrap().shortcut.is_none());
-    let layout = craft_menu::mac_layout(&bar, &craft_menu::LayoutOptions::new("PdfCraft"));
+    let layout = craft_menu::mac_layout(&bar, &craft_menu::LayoutOptions::new("VisionPDF"));
     assert!(!layout.clashes.iter().any(|clash| clash.system == "Minimize"));
     assert!(
         layout
@@ -390,7 +390,7 @@ fn the_open_recent_menu_lists_files_and_opens_one() {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe({
         let path = path.clone();
         move |_cc| {
-            let mut app = PdfCraftApp::new();
+            let mut app = VisionPDFApp::new();
             app.set_option("language", "en").unwrap();
             app.open_bytes("doc.pdf", None, fixture(3)).unwrap();
             app.recent.push(pdfcraft_ui_egui::RecentFile { name: "recent.pdf".into(), path, pages: 2, size: 0 });
@@ -431,7 +431,7 @@ fn recent_file(name: &str) -> pdfcraft_ui_egui::RecentFile {
 #[test]
 fn clear_recent_files_at_the_foot_of_open_recent_empties_the_list() {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("doc.pdf", None, fixture(3)).unwrap();
         app.recent.extend([recent_file("first.pdf"), recent_file("second.pdf")]);
@@ -450,11 +450,11 @@ fn clear_recent_files_at_the_foot_of_open_recent_empties_the_list() {
 
 #[test]
 fn clear_recent_files_runs_from_the_palette_and_is_saved() {
-    let mut app = PdfCraftApp::new();
+    let mut app = VisionPDFApp::new();
     app.recent.extend([recent_file("first.pdf"), recent_file("second.pdf")]);
     assert!(app.execute("file.clear_recent"));
     assert!(app.recent.is_empty());
-    let mut restarted = PdfCraftApp::new();
+    let mut restarted = VisionPDFApp::new();
     restarted.recent.push(recent_file("stale.pdf"));
     restarted.restore(&app.persist());
     assert!(restarted.recent.is_empty(), "the empty list is what's saved");
@@ -521,7 +521,7 @@ fn localized_shortcuts_update_immediately_and_keep_command_ids_and_key_bindings(
 }
 
 /// View ▸ Zoom open in the menu bar, with egui told the app runs on `os`.
-fn view_menu(os: OperatingSystem) -> Harness<'static, PdfCraftApp> {
+fn view_menu(os: OperatingSystem) -> Harness<'static, VisionPDFApp> {
     let mut h = harness();
     h.ctx.set_os(os);
     h.run_steps(2);
@@ -628,7 +628,7 @@ fn quit_shortcut_requires_exact_modifiers_and_preserves_unsaved_work() {
 #[test]
 fn command_w_closes_empty_macos_window_but_not_an_empty_windows_window() {
     for (os, should_close) in [(OperatingSystem::Mac, true), (OperatingSystem::Windows, false)] {
-        let mut h = Harness::builder().with_size(egui::vec2(1000.0, 700.0)).build_eframe(|_cc| PdfCraftApp::new());
+        let mut h = Harness::builder().with_size(egui::vec2(1000.0, 700.0)).build_eframe(|_cc| VisionPDFApp::new());
         h.ctx.set_os(os);
         h.run_steps(4);
         assert!(h.state().views.is_empty());
@@ -649,14 +649,14 @@ fn command_w_still_closes_the_document_tab_on_macos() {
     assert!(h.state().views.is_empty(), "⌘W closes the clean document tab");
 }
 
-fn palette_ime_output_requests_interrupt(h: &Harness<'_, PdfCraftApp>, phase: &str) -> bool {
+fn palette_ime_output_requests_interrupt(h: &Harness<'_, VisionPDFApp>, phase: &str) -> bool {
     assert!(h.state().palette_open, "palette closed during {phase}");
     let ime = h.output().platform_output.ime.as_ref().expect("focused palette advertises IME");
     eprintln!("{phase}: query={:?}; should_interrupt_composition={}", h.state().palette_query, ime.should_interrupt_composition);
     ime.should_interrupt_composition
 }
 
-fn palette_ime_output_is_uninterrupted(h: &Harness<'_, PdfCraftApp>, phase: &str) {
+fn palette_ime_output_is_uninterrupted(h: &Harness<'_, VisionPDFApp>, phase: &str) {
     assert!(!palette_ime_output_requests_interrupt(h, phase), "palette interrupted composition during {phase}");
 }
 
@@ -736,7 +736,7 @@ fn ctrl_tab_steps_through_the_tabs_in_order_and_wraps_around() {
     h.state_mut().open_bytes("third.pdf", None, fixture(1)).unwrap();
     h.run_steps(3);
     let ctrl = Modifiers::CTRL | Modifiers::COMMAND;
-    let press = |h: &mut Harness<'static, PdfCraftApp>, modifiers: Modifiers| {
+    let press = |h: &mut Harness<'static, VisionPDFApp>, modifiers: Modifiers| {
         h.key_press_modifiers(modifiers, Key::Tab);
         h.run_steps(2);
         h.state().active

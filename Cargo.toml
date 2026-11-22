@@ -9,7 +9,7 @@ version = "0.21.1"
 edition = "2024"
 license = "MIT OR Apache-2.0"
 rust-version = "1.95"
-repository = "https://github.com/storytold/pdfcraft"
+repository = "https://github.com/FutureVisionMobDev/VisionPDF"
 
 [workspace.dependencies]
 craft-markdown = { version = "0.1.0", git = "https://github.com/storytold/craft-libs", rev = "fbb3f47f7ae712192586984af11ca8f6c0f64d33" }

@@ -5,7 +5,7 @@
 
 use egui::{Color32, CornerRadius, Stroke};
 
-use crate::PdfCraftApp;
+use crate::VisionPDFApp;
 use crate::canvas::{DocView, PageXform};
 use pdfcraft_render::DocInfo;
 
@@ -193,7 +193,7 @@ mod picture_tests {
     /// Escape takes back a click whose picture isn't known yet: it isn't selected when it is.
     #[test]
     fn escape_cancels_a_click_on_a_page_still_being_read() {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.open_bytes("notes.txt", None, b"hello".to_vec()).unwrap();
         let (i, _) = app.active_ids().unwrap();
         app.views[i].pending_pick = Some((0, [1.0, 1.0], 0));
@@ -230,9 +230,9 @@ mod picture_tests {
     }
 
     /// The page open with the Select tool, once it is on screen, and where a point on it is.
-    fn open_page() -> (egui_kittest::Harness<'static, PdfCraftApp>, impl Fn(f32, f32) -> egui::Pos2) {
+    fn open_page() -> (egui_kittest::Harness<'static, VisionPDFApp>, impl Fn(f32, f32) -> egui::Pos2) {
         let mut h = egui_kittest::Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-            let mut app = PdfCraftApp::new();
+            let mut app = VisionPDFApp::new();
             app.open_bytes("marks.pdf", None, page_with_a_comment_and_a_link()).unwrap();
             app
         });
@@ -253,7 +253,7 @@ mod picture_tests {
     /// An earlier click on the page whose pictures are still being found, as on a dense drawing:
     /// they don't come while the returned sender lives.
     fn click_still_being_looked_into(
-        h: &mut egui_kittest::Harness<'static, PdfCraftApp>,
+        h: &mut egui_kittest::Harness<'static, VisionPDFApp>,
     ) -> std::sync::mpsc::Sender<Vec<pdfcraft_engine::PagePicture>> {
         let id = h.state().views[0].id;
         let generation = h.state().session.get(id).expect("the document").edit_generation();
@@ -264,7 +264,7 @@ mod picture_tests {
         send
     }
 
-    fn click(h: &mut egui_kittest::Harness<'static, PdfCraftApp>, p: egui::Pos2) {
+    fn click(h: &mut egui_kittest::Harness<'static, VisionPDFApp>, p: egui::Pos2) {
         h.hover_at(p);
         h.run_steps(1);
         h.drag_at(p);
@@ -334,13 +334,13 @@ pub(crate) fn paint(painter: &egui::Painter, xf: &PageXform, page: usize, info: 
 pub(crate) fn safe_name(s: &str) -> String {
     let cleaned: String = s.chars().map(|c| if c.is_control() || r#"/\:*?"<>|"#.contains(c) { '_' } else { c }).take(80).collect();
     let cleaned = cleaned.trim().trim_matches('.').to_string();
-    if cleaned.is_empty() { "PdfCraft".into() } else { cleaned }
+    if cleaned.is_empty() { "VisionPDF".into() } else { cleaned }
 }
 
 /// The per-user folder that holds the file of the last Copy Image in Original Format: `Clipboard`
 /// in the portable data folder in portable mode ([`crate::portable`]), otherwise the platform's
-/// per-user cache folder: `~/Library/Caches/PdfCraft/Clipboard` (macOS),
-/// `%LOCALAPPDATA%\PdfCraft\Clipboard` (Windows), or `$XDG_CACHE_HOME/pdfcraft/clipboard` /
+/// per-user cache folder: `~/Library/Caches/VisionPDF/Clipboard` (macOS),
+/// `%LOCALAPPDATA%\VisionPDF\Clipboard` (Windows), or `$XDG_CACHE_HOME/pdfcraft/clipboard` /
 /// `~/.cache/pdfcraft/clipboard` (others). Never the shared temporary folder, where another user
 /// could plant a link or a folder of their own.
 #[cfg(not(target_arch = "wasm32"))]
@@ -351,9 +351,9 @@ fn clipboard_dir() -> Option<std::path::PathBuf> {
     }
     let env = |k: &str| std::env::var_os(k).filter(|v| !v.is_empty()).map(PathBuf::from).filter(|p| p.is_absolute());
     if cfg!(target_os = "macos") {
-        env("HOME").map(|h| h.join("Library/Caches/PdfCraft/Clipboard"))
+        env("HOME").map(|h| h.join("Library/Caches/VisionPDF/Clipboard"))
     } else if cfg!(windows) {
-        env("LOCALAPPDATA").map(|d| d.join("PdfCraft").join("Clipboard"))
+        env("LOCALAPPDATA").map(|d| d.join("VisionPDF").join("Clipboard"))
     } else {
         env("XDG_CACHE_HOME").or_else(|| env("HOME").map(|h| h.join(".cache"))).map(|d| d.join("pdfcraft/clipboard"))
     }
@@ -374,7 +374,7 @@ fn is_copied_image_name(name: &str) -> bool {
 }
 
 /// Makes `dir` (a real folder, not a link, owned by us and private to us on Unix), removes the
-/// earlier copies PdfCraft wrote there, and writes `bytes` as a new file `name`. Links are never
+/// earlier copies VisionPDF wrote there, and writes `bytes` as a new file `name`. Links are never
 /// followed and nothing else in the folder is touched.
 #[cfg(not(target_arch = "wasm32"))]
 fn write_clipboard_file(dir: &std::path::Path, name: &str, bytes: &[u8]) -> Result<std::path::PathBuf, String> {
@@ -415,7 +415,7 @@ fn write_clipboard_file(dir: &std::path::Path, name: &str, bytes: &[u8]) -> Resu
     Ok(path)
 }
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     /// ⌘C / Ctrl+C copies the selected picture in its original format; Escape deselects it, or
     /// takes back a click whose picture isn't known yet.
     pub(crate) fn image_pick_keys(&mut self, i: usize, ctx: &egui::Context) {
@@ -470,7 +470,7 @@ impl PdfCraftApp {
         }
     }
 
-    /// Writes `bytes` to PdfCraft's private clipboard folder ([`clipboard_dir`]), replacing the
+    /// Writes `bytes` to VisionPDF's private clipboard folder ([`clipboard_dir`]), replacing the
     /// previous copy, and puts that file on the system clipboard.
     #[cfg(not(target_arch = "wasm32"))]
     fn put_file_on_clipboard(&self, name: &str, bytes: &[u8]) -> Result<(), String> {
@@ -500,7 +500,7 @@ mod tests {
     #[test]
     fn file_names_are_safe() {
         assert_eq!(safe_name("a/b:c"), "a_b_c");
-        assert_eq!(safe_name("  ..  "), "PdfCraft");
+        assert_eq!(safe_name("  ..  "), "VisionPDF");
         assert_eq!(safe_name("Relazione 2026"), "Relazione 2026");
     }
 
@@ -525,7 +525,7 @@ mod tests {
         std::fs::write(dir.join("Old p1 img1.png"), b"old").unwrap();
         let path = write_clipboard_file(&dir, "New p2 img1.jpg", b"new").unwrap();
         assert_eq!(std::fs::read(&path).unwrap(), b"new");
-        assert!(dir.join("keep.txt").exists(), "files PdfCraft didn't write are kept");
+        assert!(dir.join("keep.txt").exists(), "files VisionPDF didn't write are kept");
         assert!(!dir.join("Old p1 img1.png").exists(), "the previous copy is removed");
         assert!(write_clipboard_file(&dir, "../escape p1 img1.png", b"x").is_err());
         #[cfg(unix)]

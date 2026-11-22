@@ -4,7 +4,7 @@
 //! step land in the same frame.
 
 use egui_kittest::Harness;
-use pdfcraft_ui_egui::PdfCraftApp;
+use pdfcraft_ui_egui::VisionPDFApp;
 
 /// The word searched for, placed (x, y in PDF user space) on each page.
 const NEEDLE: &str = "needle";
@@ -69,14 +69,14 @@ fn needles() -> usize {
 }
 
 /// The app with the fixture open and a search for the needle that has found every match.
-fn harness() -> Harness<'static, PdfCraftApp> {
+fn harness() -> Harness<'static, VisionPDFApp> {
     harness_dt(1.0 / 4.0)
 }
 
 /// [`harness`] with frames `dt` seconds apart.
-fn harness_dt(dt: f32) -> Harness<'static, PdfCraftApp> {
+fn harness_dt(dt: f32) -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1200.0, 800.0)).with_step_dt(dt).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("search.pdf", None, fixture()).expect("opens");
         app.set_option("left", "closed").unwrap();
@@ -99,7 +99,7 @@ fn harness_dt(dt: f32) -> Harness<'static, PdfCraftApp> {
 }
 
 /// Run frames until rendering has finished and the layout holds still.
-fn settle(h: &mut Harness<'static, PdfCraftApp>) {
+fn settle(h: &mut Harness<'static, VisionPDFApp>) {
     for _ in 0..200 {
         h.run_steps(2);
         if !h.state().render_pending() {
@@ -111,7 +111,7 @@ fn settle(h: &mut Harness<'static, PdfCraftApp>) {
 
 /// Fail unless the current match is drawn inside the window, and, where the page lets the view
 /// scroll that far, near its middle (#3530 asks for the middle, as Acrobat does).
-fn assert_match_shown(h: &Harness<'static, PdfCraftApp>, what: &str) {
+fn assert_match_shown(h: &Harness<'static, VisionPDFApp>, what: &str) {
     let v = &h.state().views[0];
     let f = v.find.as_ref().unwrap();
     let i = f.current.unwrap_or_else(|| panic!("{what}: no current match"));

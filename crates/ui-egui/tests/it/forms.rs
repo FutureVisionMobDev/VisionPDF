@@ -2,11 +2,11 @@
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::PdfCraftApp;
+use pdfcraft_ui_egui::VisionPDFApp;
 
-fn harness() -> Harness<'static, PdfCraftApp> {
+fn harness() -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("form.pdf", None, include_bytes!("../data/form.pdf").to_vec()).unwrap();
         app.set_option("left", "closed").unwrap();
@@ -18,9 +18,9 @@ fn harness() -> Harness<'static, PdfCraftApp> {
     h
 }
 
-fn harness_with_bytes(name: &'static str, bytes: Vec<u8>) -> Harness<'static, PdfCraftApp> {
+fn harness_with_bytes(name: &'static str, bytes: Vec<u8>) -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes(name, None, bytes).unwrap();
         app.set_option("zoom", "150").unwrap();
@@ -30,13 +30,13 @@ fn harness_with_bytes(name: &'static str, bytes: Vec<u8>) -> Harness<'static, Pd
     h
 }
 
-fn value(h: &Harness<'static, PdfCraftApp>, name: &str) -> Vec<String> {
+fn value(h: &Harness<'static, VisionPDFApp>, name: &str) -> Vec<String> {
     let s = h.state();
     s.session.get(s.views[0].id).unwrap().form.iter().find(|f| f.name == name).unwrap().value.clone()
 }
 
 /// Click the centre of a field's widget.
-fn click_field(h: &mut Harness<'static, PdfCraftApp>, name: &str, widget: usize) {
+fn click_field(h: &mut Harness<'static, VisionPDFApp>, name: &str, widget: usize) {
     let p = {
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
@@ -46,7 +46,7 @@ fn click_field(h: &mut Harness<'static, PdfCraftApp>, name: &str, widget: usize)
     click_at(h, p);
 }
 
-fn click_at(h: &mut Harness<'static, PdfCraftApp>, p: egui::Pos2) {
+fn click_at(h: &mut Harness<'static, VisionPDFApp>, p: egui::Pos2) {
     h.hover_at(p);
     h.run_steps(1);
     h.drag_at(p);
@@ -56,7 +56,7 @@ fn click_at(h: &mut Harness<'static, PdfCraftApp>, p: egui::Pos2) {
 }
 
 /// Rest the pointer on the centre of a field's widget long enough for a tooltip.
-fn rest_on_field(h: &mut Harness<'static, PdfCraftApp>, name: &str) {
+fn rest_on_field(h: &mut Harness<'static, VisionPDFApp>, name: &str) {
     let p = {
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
@@ -85,7 +85,7 @@ fn hovering_a_field_shows_its_tooltip() {
 }
 
 /// Give the `city` field these properties, as the Properties dialog would.
-fn set_city(h: &mut Harness<'static, PdfCraftApp>, props: pdfcraft_engine::FieldProps) {
+fn set_city(h: &mut Harness<'static, VisionPDFApp>, props: pdfcraft_engine::FieldProps) {
     h.state_mut().apply_edit(pdfcraft_engine::Edit::SetFieldProps { name: "city".into(), props: Box::new(props) });
     h.run_steps(3);
 }
@@ -156,11 +156,11 @@ fn a_field_that_doesnt_scroll_stops_taking_text_when_full() {
         &mut h,
         pdfcraft_engine::FieldProps { flags: vec![(pdfcraft_engine::field_flags::DO_NOT_SCROLL, true)], font_size: Some(12.0), ..Default::default() },
     );
-    let text_box = |h: &Harness<'static, PdfCraftApp>| {
+    let text_box = |h: &Harness<'static, VisionPDFApp>| {
         let s = h.state();
         s.session.get(s.views[0].id).unwrap().field_text_box("city", 0).expect("the city field's text box")
     };
-    let typing = |h: &Harness<'static, PdfCraftApp>| h.state().views[0].forms.focus.as_ref().map(|f| f.text.clone()).unwrap_or_default();
+    let typing = |h: &Harness<'static, VisionPDFApp>| h.state().views[0].forms.focus.as_ref().map(|f| f.text.clone()).unwrap_or_default();
     click_field(&mut h, "city", 0);
     h.event(egui::Event::Text("W".repeat(80)));
     h.run_steps(2);
@@ -291,13 +291,13 @@ fn check_boxes_radios_and_choices() {
     assert_eq!(value(&h, "country"), ["fr"]);
 }
 
-fn focused(h: &Harness<'static, PdfCraftApp>) -> Option<(String, usize)> {
+fn focused(h: &Harness<'static, VisionPDFApp>) -> Option<(String, usize)> {
     h.state().views[0].forms.focus.as_ref().map(|f| (f.name.clone(), f.widget))
 }
 
 /// A text field, a check box, another text field and a pair of radio buttons, one under the
 /// other, then two empty pages.
-fn check_box_harness() -> Harness<'static, PdfCraftApp> {
+fn check_box_harness() -> Harness<'static, VisionPDFApp> {
     let bytes = pdf_from_objects(&[
         "<< /Type /Catalog /Pages 2 0 R /AcroForm << /Fields [4 0 R 5 0 R 6 0 R 10 0 R] /DA (/Helv 0 Tf 0 g) /DR << /Font << /Helv 7 0 R >> >> >> >>",
         "<< /Type /Pages /Kids [3 0 R 9 0 R 13 0 R] /Count 3 /MediaBox [0 0 300 400] >>",
@@ -314,7 +314,7 @@ fn check_box_harness() -> Harness<'static, PdfCraftApp> {
         "<< /Type /Page /Parent 2 0 R >>",
     ]);
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("agree.pdf", None, bytes).unwrap();
         app.set_option("left", "closed").unwrap();
@@ -747,7 +747,7 @@ fn lithuanian_calendar_localizes_months_and_weekdays_without_changing_field_valu
 
 /// The value of `name` in a saved PDF, read back by opening it in a fresh app.
 fn saved_value(path: &std::path::Path, name: &str) -> Vec<String> {
-    let mut app = PdfCraftApp::new();
+    let mut app = VisionPDFApp::new();
     app.set_option("language", "en").unwrap();
     app.open_bytes("saved.pdf", None, std::fs::read(path).unwrap()).unwrap();
     app.session.get(app.views[0].id).unwrap().form.iter().find(|f| f.name == name).unwrap().value.clone()
@@ -755,7 +755,7 @@ fn saved_value(path: &std::path::Path, name: &str) -> Vec<String> {
 
 /// Step frames until the save has written `path`, instead of assuming it is there after a fixed
 /// number of frames. The write is atomic, so the file appears only when it is complete.
-fn wait_for_file(h: &mut Harness<'static, PdfCraftApp>, path: &std::path::Path) {
+fn wait_for_file(h: &mut Harness<'static, VisionPDFApp>, path: &std::path::Path) {
     let deadline = std::time::Instant::now() + std::time::Duration::from_secs(30);
     while !path.exists() {
         assert!(std::time::Instant::now() < deadline, "the save never wrote {}", path.display());
@@ -825,7 +825,7 @@ fn tabbing_back_to_the_same_field_then_saving_keeps_the_committed_value() {
             validated_form()
         };
         let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-            let mut app = PdfCraftApp::new();
+            let mut app = VisionPDFApp::new();
             app.set_option("language", "en").unwrap();
             app.open_bytes("tab.pdf", None, bytes).unwrap();
             app.set_option("left", "closed").unwrap();
@@ -897,13 +897,13 @@ fn key(key: egui::Key, modifiers: egui::Modifiers) -> egui::Event {
 }
 
 /// Deliver `events` together, in one frame.
-fn one_frame(h: &mut Harness<'static, PdfCraftApp>, events: Vec<egui::Event>) {
+fn one_frame(h: &mut Harness<'static, VisionPDFApp>, events: Vec<egui::Event>) {
     h.input_mut().events.extend(events);
     h.run_steps(1);
 }
 
 /// Type `text` into field `name`, then press ⌘S in the same frame as `last` (more input).
-fn type_then_save_in_one_frame(h: &mut Harness<'static, PdfCraftApp>, name: &str, text: &str, last: egui::Event, out: &std::path::Path) {
+fn type_then_save_in_one_frame(h: &mut Harness<'static, VisionPDFApp>, name: &str, text: &str, last: egui::Event, out: &std::path::Path) {
     click_field(h, name, 0);
     h.event(egui::Event::Text(text.into()));
     h.run_steps(2);
@@ -976,7 +976,7 @@ fn validated_form() -> Vec<u8> {
 fn pressing_another_text_field_validates_the_refused_value_once() {
     // The press commits `qty`; its release must not commit (and alert) a second time.
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("order.pdf", None, validated_form_with_note()).unwrap();
         app.set_option("left", "closed").unwrap();
@@ -1061,7 +1061,7 @@ fn fields_over_text() -> Vec<u8> {
 #[test]
 fn buttons_over_text_show_the_pointing_hand_not_the_i_beam() {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("sheet.pdf", None, fields_over_text()).unwrap();
         app.set_option("left", "closed").unwrap();
@@ -1078,7 +1078,7 @@ fn buttons_over_text_show_the_pointing_hand_not_the_i_beam() {
         };
         (at("agree"), at("strength"), at("background"))
     };
-    let cursor_at = |h: &mut Harness<'static, PdfCraftApp>, p: egui::Pos2| {
+    let cursor_at = |h: &mut Harness<'static, VisionPDFApp>, p: egui::Pos2| {
         h.hover_at(p);
         h.run_steps(2);
         h.output().platform_output.cursor_icon
@@ -1111,7 +1111,7 @@ fn a_rejected_value_keeps_the_typing_and_stops_the_save() {
     let dir = scratch("rejected");
     let out = dir.join("saved.pdf");
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("order.pdf", None, validated_form()).unwrap();
         app.set_option("left", "closed").unwrap();
@@ -1167,7 +1167,7 @@ fn refused_value_stops_save(commit_key: egui::Key, case: &str) {
     let dir = scratch(case);
     let out = dir.join("saved.pdf");
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("order.pdf", None, validated_form()).unwrap();
         app.set_option("left", "closed").unwrap();
@@ -1368,7 +1368,7 @@ fn the_fields_panel_lists_a_field_on_a_missing_page_as_unplaced() {
         "<< /Type /Annot /Subtype /Widget /FT /Tx /T (orphan) /Rect [10 10 100 30] /P 99 /F 4 >>",
     ]);
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("orphan.pdf", None, bytes).unwrap();
         app.set_option("panel", "fields").unwrap();
@@ -1390,7 +1390,7 @@ fn list_box_clicks_select_directly_and_ctrl_click_toggles_multi() {
         "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>",
     ]);
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("lists.pdf", None, bytes).unwrap();
         app.set_option("left", "closed").unwrap();
@@ -1451,7 +1451,7 @@ fn list_box_clicks_select_directly_and_ctrl_click_toggles_multi() {
 }
 
 /// The selected option positions of `name` (`/I`, or `/V` without a usable one).
-fn selected(h: &Harness<'static, PdfCraftApp>, name: &str) -> Vec<usize> {
+fn selected(h: &Harness<'static, VisionPDFApp>, name: &str) -> Vec<usize> {
     let s = h.state();
     s.session.get(s.views[0].id).unwrap().form.iter().find(|f| f.name == name).unwrap().selected.clone()
 }
@@ -1469,7 +1469,7 @@ fn a_list_box_click_picks_one_of_two_options_with_the_same_export_value() {
         "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>",
     ]);
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("dup.pdf", None, bytes).unwrap();
         app.set_option("left", "closed").unwrap();
@@ -1500,7 +1500,7 @@ fn a_list_box_click_picks_one_of_two_options_with_the_same_export_value() {
     h.state_mut().save_override = Some(out.to_string_lossy().into_owned());
     h.key_press_modifiers(egui::Modifiers::COMMAND, egui::Key::S);
     wait_for_file(&mut h, &out);
-    let mut app = PdfCraftApp::new();
+    let mut app = VisionPDFApp::new();
     app.open_bytes("saved.pdf", None, std::fs::read(&out).unwrap()).unwrap();
     let reopened = app.session.get(app.views[0].id).unwrap().form.iter().find(|f| f.name == "dup").unwrap().clone();
     assert_eq!(reopened.value, ["1"], "/V is the one export value");
@@ -1522,7 +1522,7 @@ fn a_click_in_a_twin_list_box_with_options_in_another_order_picks_the_row_clicke
         "<< /Type /Annot /Subtype /Widget /FT /Ch /T (dup) /Opt [[(1) (One-B)] [(1) (One-A)] [(2) (Two)]] /Rect [50 100 200 170] /P 3 0 R /F 4 >>",
     ]);
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("twins.pdf", None, bytes).unwrap();
         app.set_option("left", "closed").unwrap();
@@ -1530,7 +1530,7 @@ fn a_click_in_a_twin_list_box_with_options_in_another_order_picks_the_row_clicke
         app
     });
     h.run_steps(4);
-    let twins = |h: &Harness<'static, PdfCraftApp>| -> Vec<Vec<usize>> {
+    let twins = |h: &Harness<'static, VisionPDFApp>| -> Vec<Vec<usize>> {
         let s = h.state();
         s.session.get(s.views[0].id).unwrap().form.iter().filter(|f| f.name == "dup").map(|f| f.selected.clone()).collect()
     };
@@ -1567,7 +1567,7 @@ fn a_single_select_list_box_given_two_values_shows_and_takes_one() {
         "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>",
     ]);
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("pair.pdf", None, bytes).unwrap();
         app.set_option("left", "closed").unwrap();
@@ -1602,9 +1602,9 @@ fn auto_size_form() -> Vec<u8> {
     ])
 }
 
-fn auto_size_harness() -> Harness<'static, PdfCraftApp> {
+fn auto_size_harness() -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("auto.pdf", None, auto_size_form()).unwrap();
         app.set_option("left", "closed").unwrap();
@@ -1617,7 +1617,7 @@ fn auto_size_harness() -> Harness<'static, PdfCraftApp> {
 
 /// The on-screen size for `text` in the field, and how wide (single-line) or tall (multiline,
 /// wrapped at the box) that text is in the screen font, against the room inside the box (pt).
-fn on_screen_fit(h: &Harness<'static, PdfCraftApp>, name: &str, text: &str) -> (f32, f32, f32) {
+fn on_screen_fit(h: &Harness<'static, VisionPDFApp>, name: &str, text: &str) -> (f32, f32, f32) {
     let s = h.state();
     let f = s.session.get(s.views[0].id).unwrap().form.iter().find(|f| f.name == name).unwrap().clone();
     let w = f.widgets[0].clone();
@@ -1677,7 +1677,7 @@ fn tall_auto_size_form() -> Vec<u8> {
 #[test]
 fn the_field_editor_sizes_auto_size_text_as_the_page_does() {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("tall.pdf", None, tall_auto_size_form()).unwrap();
         app
@@ -1707,7 +1707,7 @@ fn the_field_editor_sizes_auto_size_text_as_the_page_does() {
 }
 
 /// Where a mode bar tab is, by its label.
-fn mode_tab(h: &Harness<'static, PdfCraftApp>, label: &str) -> egui::Rect {
+fn mode_tab(h: &Harness<'static, VisionPDFApp>, label: &str) -> egui::Rect {
     use egui_kittest::kittest::Queryable;
     h.get_all_by_role_and_label(egui::accesskit::Role::Button, label).map(|n| n.rect()).find(|r| r.bottom() < 120.0).expect("a mode tab")
 }
@@ -1716,10 +1716,10 @@ fn mode_tab(h: &Harness<'static, PdfCraftApp>, label: &str) -> egui::Rect {
 /// tab it lies under: with the All tools panel closed, Edit, Convert and E-Sign (the name field
 /// starts right of All tools).
 fn mode_tab_cursors(
-    h: &mut Harness<'static, PdfCraftApp>,
-    what: impl Fn(&Harness<'static, PdfCraftApp>) -> egui::Rect,
+    h: &mut Harness<'static, VisionPDFApp>,
+    what: impl Fn(&Harness<'static, VisionPDFApp>) -> egui::Rect,
 ) -> [(&'static str, egui::CursorIcon); 3] {
-    let page = |h: &Harness<'static, PdfCraftApp>| h.state().views[0].page_screen_rect(0).expect("on screen");
+    let page = |h: &Harness<'static, VisionPDFApp>| h.state().views[0].page_screen_rect(0).expect("on screen");
     let y = what(h).center().y - page(h).top();
     let tabs = mode_tab(h, "Convert").center().y;
     h.state_mut().views[0].goto = Some((0, 0.0));
@@ -1748,7 +1748,7 @@ fn mode_tabs_keep_the_hand_over_a_text_field_scrolled_under_them() {
     // The page across the window, so the name field reaches under the tabs.
     h.state_mut().views[0].fit = pdfcraft_ui_egui::canvas::Fit::Width;
     h.run_steps(4);
-    let name = |h: &Harness<'static, PdfCraftApp>| {
+    let name = |h: &Harness<'static, VisionPDFApp>| {
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
         let f = doc.form.iter().find(|f| f.name == "name").unwrap();
@@ -1807,7 +1807,7 @@ fn guide_fixture() -> Vec<u8> {
 #[test]
 fn a_form_button_opens_only_a_real_pdf_and_returns_to_the_tab_it_opened() {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("form.pdf", None, guide_fixture()).unwrap();
         // Another document named like the attachment, its bytes the attachment's and an update.
@@ -1816,7 +1816,7 @@ fn a_form_button_opens_only_a_real_pdf_and_returns_to_the_tab_it_opened() {
         app
     });
     h.run_steps(4);
-    let tabs = |h: &Harness<'static, PdfCraftApp>| h.state().views.len();
+    let tabs = |h: &Harness<'static, VisionPDFApp>| h.state().views.len();
     let id = h.state().views[0].id;
     // A text file named .pdf is offered to save, not opened.
     let saved = std::env::temp_dir().join(format!("pdfcraft-fake-{}.pdf", std::process::id()));
@@ -1845,13 +1845,13 @@ fn a_form_button_opens_only_a_real_pdf_and_returns_to_the_tab_it_opened() {
 #[test]
 fn a_form_button_opens_its_attached_instructions_in_a_new_tab() {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("form.pdf", None, guide_fixture()).unwrap();
         app
     });
     h.run_steps(4);
-    let tabs = |h: &Harness<'static, PdfCraftApp>| {
+    let tabs = |h: &Harness<'static, VisionPDFApp>| {
         let s = h.state();
         s.views.iter().filter_map(|v| s.session.get(v.id)).map(|d| d.name.clone()).collect::<Vec<_>>()
     };
@@ -1894,9 +1894,9 @@ fn combo_form() -> Vec<u8> {
     ])
 }
 
-fn combo_harness() -> Harness<'static, PdfCraftApp> {
+fn combo_harness() -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("combo.pdf", None, combo_form()).unwrap();
         app.set_option("left", "closed").unwrap();
@@ -1960,7 +1960,7 @@ fn a_turned_editable_combo_box_places_the_caret_along_its_turned_text() {
         "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>",
     ]);
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("turned-combo.pdf", None, pdf.clone()).unwrap();
         app.set_option("left", "closed").unwrap();
@@ -2025,7 +2025,7 @@ fn a_form_button_shows_and_hides_the_attachments_panel() {
 }
 
 /// Which widgets of field `name` are on (their `/AS` is their on state).
-fn on_widgets(h: &Harness<'static, PdfCraftApp>, name: &str) -> Vec<bool> {
+fn on_widgets(h: &Harness<'static, VisionPDFApp>, name: &str) -> Vec<bool> {
     let s = h.state();
     let f = s.session.get(s.views[0].id).unwrap().form.iter().find(|f| f.name == name).unwrap().clone();
     (0..f.widgets.len()).map(|i| f.widget_on(i)).collect()
@@ -2033,7 +2033,7 @@ fn on_widgets(h: &Harness<'static, PdfCraftApp>, name: &str) -> Vec<bool> {
 
 /// Radio groups whose buttons share an on state: `plain` (Radio | NoToggleToOff, on states Yes,
 /// Yes, No), `unison` (the same with RadiosInUnison) and `free` (Radio alone, S and M).
-fn shared_state_radios() -> Harness<'static, PdfCraftApp> {
+fn shared_state_radios() -> Harness<'static, VisionPDFApp> {
     let kid = |n: u32, parent: u32, x: u32, state: &str| {
         format!(
             "<< /Type /Annot /Subtype /Widget /Parent {parent} 0 R /AS /Off /Rect [{x} {} {} {}] /P 3 0 R /F 4 /AP << /N << /{state} 5 0 R /Off 5 0 R >> >> >>",
@@ -2063,7 +2063,7 @@ fn shared_state_radios() -> Harness<'static, PdfCraftApp> {
     let objs: Vec<&str> = objs.iter().map(String::as_str).collect();
     let bytes = pdf_from_objects(&objs);
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("radios.pdf", None, bytes).unwrap();
         app.set_option("left", "closed").unwrap();
@@ -2125,7 +2125,7 @@ fn a_read_only_radio_button_is_focused_but_not_selected() {
     let objs: Vec<&str> = objs.iter().map(String::as_str).collect();
     let bytes = pdf_from_objects(&objs);
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("radios.pdf", None, bytes).unwrap();
         app.set_option("left", "closed").unwrap();
@@ -2135,7 +2135,7 @@ fn a_read_only_radio_button_is_focused_but_not_selected() {
     h.run_steps(6);
     click_field(&mut h, "size", 0);
     assert_eq!(value(&h, "size"), ["S"]);
-    let toast = |h: &Harness<'static, PdfCraftApp>| h.state().toast.as_ref().map(|(m, _)| m.clone());
+    let toast = |h: &Harness<'static, VisionPDFApp>| h.state().toast.as_ref().map(|(m, _)| m.clone());
     assert_eq!(toast(&h), None);
     h.key_press(egui::Key::ArrowRight);
     h.run_steps(3);
@@ -2150,7 +2150,7 @@ fn a_read_only_radio_button_is_focused_but_not_selected() {
 }
 
 /// Check box fields of two kids each: `pair` with the on states A and B, `same` with Yes twice.
-fn check_box_kids() -> Harness<'static, PdfCraftApp> {
+fn check_box_kids() -> Harness<'static, VisionPDFApp> {
     let kid = |parent: u32, y: u32, x: u32, state: &str| {
         format!(
             "<< /Type /Annot /Subtype /Widget /Parent {parent} 0 R /AS /Off /Rect [{x} {y} {} {}] /P 3 0 R /F 4 /AP << /N << /{state} 5 0 R /Off 5 0 R >> >> >>",
@@ -2174,7 +2174,7 @@ fn check_box_kids() -> Harness<'static, PdfCraftApp> {
     let objs: Vec<&str> = objs.iter().map(String::as_str).collect();
     let bytes = pdf_from_objects(&objs);
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("kids.pdf", None, bytes).unwrap();
         app.set_option("left", "closed").unwrap();
@@ -2213,7 +2213,7 @@ fn clicking_check_box_kids_with_different_on_states() {
 }
 
 /// Click at `p` with `modifiers` held.
-fn click_with(h: &mut Harness<'static, PdfCraftApp>, p: egui::Pos2, modifiers: egui::Modifiers) {
+fn click_with(h: &mut Harness<'static, VisionPDFApp>, p: egui::Pos2, modifiers: egui::Modifiers) {
     h.event(egui::Event::ModifiersChanged(modifiers));
     h.hover_at(p);
     h.run_steps(1);
@@ -2226,10 +2226,10 @@ fn click_with(h: &mut Harness<'static, PdfCraftApp>, p: egui::Pos2, modifiers: e
 }
 
 /// A list box opened at 100% zoom on its own page, and its rectangle on screen.
-fn list_box(objects: &[&str], name: &str) -> (Harness<'static, PdfCraftApp>, egui::Rect) {
+fn list_box(objects: &[&str], name: &str) -> (Harness<'static, VisionPDFApp>, egui::Rect) {
     let bytes = pdf_from_objects(objects);
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("list.pdf", None, bytes).unwrap();
         app.set_option("left", "closed").unwrap();
@@ -2284,7 +2284,7 @@ fn clicking_the_shown_row_of_a_single_select_list_holding_an_array_writes_one_va
         ],
         "pair",
     );
-    let field = |h: &Harness<'static, PdfCraftApp>| {
+    let field = |h: &Harness<'static, VisionPDFApp>| {
         let s = h.state();
         s.session.get(s.views[0].id).unwrap().form.iter().find(|f| f.name == "pair").unwrap().clone()
     };
@@ -2296,7 +2296,7 @@ fn clicking_the_shown_row_of_a_single_select_list_holding_an_array_writes_one_va
 }
 
 /// Where the first widget of field `name` is on screen in the first view.
-fn field_rect(h: &Harness<'static, PdfCraftApp>, name: &str) -> egui::Rect {
+fn field_rect(h: &Harness<'static, VisionPDFApp>, name: &str) -> egui::Rect {
     let s = h.state();
     let doc = s.session.get(s.views[0].id).unwrap();
     let f = doc.form.iter().find(|f| f.name == name).unwrap();
@@ -2304,7 +2304,7 @@ fn field_rect(h: &Harness<'static, PdfCraftApp>, name: &str) -> egui::Rect {
 }
 
 /// Filled triangles painted inside `within`, at any depth of the frame's shapes.
-fn triangles_in(h: &Harness<'static, PdfCraftApp>, within: egui::Rect) -> Vec<Vec<egui::Pos2>> {
+fn triangles_in(h: &Harness<'static, VisionPDFApp>, within: egui::Rect) -> Vec<Vec<egui::Pos2>> {
     /// Collects the filled three-point paths of `shape` that lie inside `within`, descending into
     /// nested shape lists.
     fn walk(shape: &egui::Shape, within: egui::Rect, out: &mut Vec<Vec<egui::Pos2>>) {
@@ -2370,7 +2370,7 @@ fn a_long_drop_down_list_keeps_its_scroll_bar_beside_the_items() {
 }
 
 /// Where `text` is drawn in the last frame, if anywhere.
-fn text_rect(h: &Harness<'static, PdfCraftApp>, text: &str) -> Option<egui::Rect> {
+fn text_rect(h: &Harness<'static, VisionPDFApp>, text: &str) -> Option<egui::Rect> {
     /// The rectangle of the text shape in `shape` that reads exactly `text`, searching nested
     /// shape lists.
     fn walk(shape: &egui::Shape, text: &str) -> Option<egui::Rect> {
@@ -2384,7 +2384,7 @@ fn text_rect(h: &Harness<'static, PdfCraftApp>, text: &str) -> Option<egui::Rect
 }
 
 /// Gives the "country" drop-down 30 options, "0000" to "2900", more than its list shows at once.
-fn long_country(h: &mut Harness<'static, PdfCraftApp>) {
+fn long_country(h: &mut Harness<'static, VisionPDFApp>) {
     let options: Vec<String> = (0..30).map(|i| format!("{i:02}00")).collect();
     assert!(h.state_mut().apply_edit(pdfcraft_engine::Edit::SetFieldProps {
         name: "country".into(),
@@ -2542,7 +2542,7 @@ fn in_single_page_view_the_wheel_over_an_open_list_scrolls_the_list_not_the_page
             break;
         }
     }
-    let wheel = |h: &mut Harness<'static, PdfCraftApp>, at: egui::Pos2| {
+    let wheel = |h: &mut Harness<'static, VisionPDFApp>, at: egui::Pos2| {
         h.hover_at(at);
         h.run_steps(1);
         for _ in 0..3 {

@@ -174,7 +174,7 @@ fn usable(v: Vec2) -> bool {
     v.x.is_finite() && v.y.is_finite() && v.x >= 1.0 && v.y >= 1.0
 }
 
-impl crate::PdfCraftApp {
+impl crate::VisionPDFApp {
     /// The window and interface preferences of the document opening in tab `index`
     /// ([`Self::apply_initial_view`] has applied its navigation, layout, zoom and page).
     ///

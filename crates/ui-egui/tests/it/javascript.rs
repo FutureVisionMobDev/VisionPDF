@@ -3,7 +3,7 @@
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::{Dialog, PdfCraftApp};
+use pdfcraft_ui_egui::{Dialog, VisionPDFApp};
 
 /// A form with a text field and a push button whose Mouse Up script fills it in.
 fn form() -> Vec<u8> {
@@ -35,9 +35,9 @@ fn form_with_text_action(action: &str) -> Vec<u8> {
     out
 }
 
-fn harness() -> Harness<'static, PdfCraftApp> {
+fn harness() -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("form.pdf", None, form()).unwrap();
         app
@@ -46,7 +46,7 @@ fn harness() -> Harness<'static, PdfCraftApp> {
     h
 }
 
-fn value(h: &Harness<'static, PdfCraftApp>, name: &str) -> Vec<String> {
+fn value(h: &Harness<'static, VisionPDFApp>, name: &str) -> Vec<String> {
     let app = h.state();
     let id = app.active_ids().unwrap().1;
     app.session.get(id).unwrap().form.iter().find(|f| f.name == name).unwrap().value.clone()
@@ -89,7 +89,7 @@ fn button_scripts_run_and_alert() {
 #[test]
 fn text_widget_mouse_up_runs_its_menu_and_keeps_the_result() {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.set_option("left", "closed").unwrap();
         let bytes = form_with_text_action(
@@ -136,7 +136,7 @@ fn every_message_a_script_shows_takes_the_toast_in_turn() {
         .unwrap();
     h.state_mut().handle_js(id, pdfcraft_engine::js::JsOutput { alerts: out.alerts, ..Default::default() });
     h.run_steps(2);
-    let shown = |h: &Harness<'static, PdfCraftApp>| h.state().toast.clone().map(|t| t.0);
+    let shown = |h: &Harness<'static, VisionPDFApp>| h.state().toast.clone().map(|t| t.0);
     assert_eq!(shown(&h).as_deref(), Some("First"));
     let m = h.state().toast_script.clone().expect("the toast shows the script's message");
     assert_eq!((m.title.as_deref(), m.icon, m.buttons), (Some("Order form"), MessageIcon::Warning, MessageButtons::Ok));
@@ -221,7 +221,7 @@ fn document_scripts_and_preferences() {
     h.run_steps(2);
     assert!(!h.state().session.javascript());
     let saved = h.state().persist();
-    let mut fresh = PdfCraftApp::new();
+    let mut fresh = VisionPDFApp::new();
     fresh.set_option("language", "en").unwrap();
     fresh.restore(&saved);
     assert!(!fresh.session.javascript(), "the preference is remembered");
@@ -232,7 +232,7 @@ fn merge_data_files_into_a_spreadsheet() {
     let dir = std::env::temp_dir().join(format!("pdfcraft-merge-ui-{}", std::process::id()));
     std::fs::create_dir_all(&dir).unwrap();
     let out = dir.join("report.csv");
-    let mut app = PdfCraftApp::new();
+    let mut app = VisionPDFApp::new();
     app.set_option("language", "en").unwrap();
     app.save_override = Some(out.to_string_lossy().into_owned());
     app.merge_data_files(vec![("form.pdf".into(), form())]);
@@ -246,7 +246,7 @@ fn merge_data_files_into_a_spreadsheet() {
 fn prepare_a_form_detects_fields_on_a_paper_form() {
     let paper = pdfcraft_engine::Session::new().create_from_text("t", "Name: ____________________\n\nPhone: ____________________").unwrap().to_vec();
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("paper.pdf", None, paper.clone()).unwrap();
         app
@@ -262,7 +262,7 @@ fn prepare_a_form_detects_fields_on_a_paper_form() {
 }
 
 /// Advance bounded UI frames until the synthetic prompt label becomes available.
-fn wait_for(h: &mut Harness<'static, PdfCraftApp>, label: &str) {
+fn wait_for(h: &mut Harness<'static, VisionPDFApp>, label: &str) {
     let deadline = std::time::Instant::now() + std::time::Duration::from_secs(12);
     while std::time::Instant::now() < deadline {
         h.run_steps(1);
@@ -274,7 +274,7 @@ fn wait_for(h: &mut Harness<'static, PdfCraftApp>, label: &str) {
     panic!("script dialog did not show {label}");
 }
 /// Advance bounded UI frames until the worker completion updates the expected synthetic field value.
-fn wait_value(h: &mut Harness<'static, PdfCraftApp>, name: &str, expected: &str) {
+fn wait_value(h: &mut Harness<'static, VisionPDFApp>, name: &str, expected: &str) {
     let deadline = std::time::Instant::now() + std::time::Duration::from_secs(12);
     while std::time::Instant::now() < deadline {
         h.run_steps(1);
@@ -289,9 +289,9 @@ fn wait_value(h: &mut Harness<'static, PdfCraftApp>, name: &str, expected: &str)
 /// Every native script prompt identifies its document, even with misleading or empty titles.
 fn native_script_prompts_show_an_app_owned_caption() {
     for (script, body, title) in [
-        ("app.response({cQuestion:'Type a value',cTitle:'PdfCraft security',bPassword:true});", "Type a value", Some("PdfCraft security")),
+        ("app.response({cQuestion:'Type a value',cTitle:'VisionPDF security',bPassword:true});", "Type a value", Some("VisionPDF security")),
         ("app.response({cQuestion:'Empty title prompt',cTitle:''});", "Empty title prompt", None),
-        ("app.alert({cMsg:'Script message',cTitle:'PdfCraft security'});", "Script message", Some("PdfCraft security")),
+        ("app.alert({cMsg:'Script message',cTitle:'VisionPDF security'});", "Script message", Some("VisionPDF security")),
         ("app.alert({cMsg:'Untitled alert',cTitle:''});", "Untitled alert", None),
         ("app.popUpMenuEx({cName:'Pick a value',cReturn:'yes'});", "Pick a value", None),
     ] {
@@ -301,7 +301,7 @@ fn native_script_prompts_show_an_app_owned_caption() {
         wait_for(&mut h, body);
         assert!(h.query_by_label("This document's script is asking").is_some(), "{script}");
         assert_eq!(
-            h.query_by_label("This request comes from the document, not PdfCraft. Only enter a password if you trust this document.").is_some(),
+            h.query_by_label("This request comes from the document, not VisionPDF. Only enter a password if you trust this document.").is_some(),
             script.contains("bPassword:true"),
             "{script}"
         );
@@ -333,7 +333,7 @@ fn native_script_prompt_uses_the_german_catalog_when_available() {
     wait_for(&mut h, heading);
     assert!(h.query_by_label("Dokument: form.pdf").is_some());
     // The warning in the catalog's words, which translators may reword, and never the English.
-    let warning = "This request comes from the document, not PdfCraft. Only enter a password if you trust this document.";
+    let warning = "This request comes from the document, not VisionPDF. Only enter a password if you trust this document.";
     assert_ne!(tr(german, warning), warning, "the German catalog translates the password warning");
     assert!(h.query_by_label(tr(german, warning)).is_some());
 }
@@ -535,13 +535,13 @@ fn clicking_duplicate_named_buttons_targets_the_clicked_object() {
     .unwrap();
     let bytes = pdfcraft_cos::write_full(&cos, &Default::default()).unwrap();
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("duplicate-buttons.pdf", None, bytes).unwrap();
         app
     });
     h.run_steps(6);
-    let captions = |h: &Harness<'_, PdfCraftApp>| {
+    let captions = |h: &Harness<'_, VisionPDFApp>| {
         let id = h.state().active_ids().unwrap().1;
         h.state()
             .session
@@ -649,7 +649,7 @@ fn clicking_duplicate_image_buttons_imports_only_into_the_clicked_field() {
     let png = craft_image_codecs::encode(&img, craft_image_codecs::Format::Png, &craft_image_codecs::EncodeOptions::default()).unwrap();
     std::fs::write(&path, png).unwrap();
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("images.pdf", None, bytes).unwrap();
         app.save_override = Some(path.to_string_lossy().into_owned());
@@ -664,7 +664,7 @@ fn clicking_duplicate_image_buttons_imports_only_into_the_clicked_field() {
     h.run_steps(1);
     h.drop_at(at);
     h.run_steps(3);
-    let icons = |h: &mut Harness<'_, PdfCraftApp>| {
+    let icons = |h: &mut Harness<'_, VisionPDFApp>| {
         let id = h.state().active_ids().unwrap().1;
         let cos = pdfcraft_cos::Document::open(h.state_mut().session.save_bytes(id).unwrap()).unwrap();
         let root = cos.root().unwrap();

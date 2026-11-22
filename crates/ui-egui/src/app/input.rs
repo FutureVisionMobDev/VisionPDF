@@ -1,4 +1,4 @@
-use super::{GridDrop, GridFile, PdfCraftApp};
+use super::{GridDrop, GridFile, VisionPDFApp};
 #[cfg(not(target_arch = "wasm32"))]
 use super::{OpenRequest, open_worker};
 
@@ -11,7 +11,7 @@ fn read_grid_file((name, source): GridFile) -> Result<(String, Vec<u8>), (String
     Ok((name, bytes))
 }
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     #[cfg(not(target_arch = "wasm32"))]
     pub(super) fn open_dropped(&mut self, f: egui::DroppedFileHandle, _ctx: &egui::Context) {
         let p = f.path().to_string_lossy().into_owned();
@@ -143,7 +143,7 @@ impl PdfCraftApp {
     }
 }
 
-/// One browser file read counted in `PdfCraftApp::web_reads` for as long as it lives, so the
+/// One browser file read counted in `VisionPDFApp::web_reads` for as long as it lives, so the
 /// count falls however the read ends.
 #[cfg(target_arch = "wasm32")]
 pub(super) struct WebRead(std::sync::Arc<std::sync::atomic::AtomicUsize>);

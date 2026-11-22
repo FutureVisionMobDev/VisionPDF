@@ -3,17 +3,17 @@
 use egui::accesskit::Role;
 use egui_kittest::Harness;
 use egui_kittest::kittest::{NodeT, Queryable};
-use pdfcraft_ui_egui::{Dialog, PdfCraftApp};
+use pdfcraft_ui_egui::{Dialog, VisionPDFApp};
 
 /// Open a bundled synthetic form with the default print settings.
-fn harness() -> Harness<'static, PdfCraftApp> {
+fn harness() -> Harness<'static, VisionPDFApp> {
     harness_with_settings(None)
 }
 
 /// Restore optional settings before opening the form and settling the shell frames.
-fn harness_with_settings(settings: Option<String>) -> Harness<'static, PdfCraftApp> {
+fn harness_with_settings(settings: Option<String>) -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         if let Some(json) = &settings {
             app.restore(json);
@@ -26,7 +26,7 @@ fn harness_with_settings(settings: Option<String>) -> Harness<'static, PdfCraftA
 }
 
 /// A large synthetic fleet, independent of the host's installed printers.
-fn harness_with_printers() -> (Harness<'static, PdfCraftApp>, String) {
+fn harness_with_printers() -> (Harness<'static, VisionPDFApp>, String) {
     use pdfcraft_engine::print::spool::Printer;
     let mut h = harness();
     let last = "München Satellite 119 - Engineering floor 4 (network queue) - colour duplex device, Building North".to_string();
@@ -175,7 +175,7 @@ fn current_print_page_saves_the_viewed_page_when_labels_restart() {
     }
     bytes.extend_from_slice(format!("trailer << /Size {} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n", objects.len() + 1).as_bytes());
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("labelled.pdf", None, bytes).unwrap();
         app
@@ -393,7 +393,7 @@ fn printing_landscape_sheets_tells_cups_to_turn_them() {
     let s = pdfcraft_engine::Session::new();
     let bytes = s.create_blank(842.0, 595.0, 2).unwrap();
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("landscape.pdf", None, bytes.to_vec()).unwrap();
         app
@@ -406,7 +406,7 @@ fn printing_landscape_sheets_tells_cups_to_turn_them() {
         Ok(String::new())
     }));
     // Print to the queue; `choose` sets the driver's choices once the dialog has its printer.
-    let print = |h: &mut Harness<'static, PdfCraftApp>, choose: &dyn Fn(&mut pdfcraft_ui_egui::PrintDraft)| -> spool::Job {
+    let print = |h: &mut Harness<'static, VisionPDFApp>, choose: &dyn Fn(&mut pdfcraft_ui_egui::PrintDraft)| -> spool::Job {
         let before = jobs.lock().unwrap().len();
         assert!(h.state_mut().execute("print.dialog"));
         h.run_steps(3);
@@ -560,7 +560,7 @@ fn the_picked_printer_is_kept_for_the_next_print_while_it_is_listed() {
             .map(|name| Printer { name: name.into(), default: name == "Front Desk", two_sided: None, description: String::new() })
             .collect()
     }));
-    let open = |h: &mut Harness<'static, PdfCraftApp>| {
+    let open = |h: &mut Harness<'static, VisionPDFApp>| {
         h.state_mut().dialog = None;
         assert!(h.state_mut().execute("print.dialog"));
         let deadline = std::time::Instant::now() + std::time::Duration::from_secs(10);
@@ -601,7 +601,7 @@ fn the_picked_printer_is_kept_for_the_next_print_while_it_is_listed() {
 #[test]
 fn architectural_page_can_be_matched_at_100_percent() {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 1000.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         let bytes = app.session.create_blank(2592.0, 1728.0, 1).unwrap();
         app.open_bytes("architectural.pdf", None, bytes.as_ref().clone()).unwrap();
@@ -659,7 +659,7 @@ fn two_sided_support_is_read_only_for_the_printer_picked() {
         Some(name != "Office PS")
     }));
     assert!(h.state_mut().execute("print.dialog"));
-    let settle = |h: &mut Harness<'static, PdfCraftApp>, done: &dyn Fn(&PdfCraftApp) -> bool| {
+    let settle = |h: &mut Harness<'static, VisionPDFApp>, done: &dyn Fn(&VisionPDFApp) -> bool| {
         let deadline = std::time::Instant::now() + std::time::Duration::from_secs(10);
         while !done(h.state()) && std::time::Instant::now() < deadline {
             h.run_steps(1);
@@ -985,14 +985,14 @@ fn printer_options_are_read_off_the_gui_thread_and_a_dead_read_offers_nothing() 
     }));
     assert!(h.state_mut().execute("print.dialog"));
     h.run_steps(2);
-    let ask = |h: &mut Harness<'static, PdfCraftApp>, printer: &str| {
+    let ask = |h: &mut Harness<'static, VisionPDFApp>, printer: &str| {
         let d = &mut h.state_mut().print_draft;
         d.driver_options = None;
         d.driver_options_loading = Some(printer.into());
         d.read_options_for = Some(printer.into());
         d.show_driver_options = true;
     };
-    let settle = |h: &mut Harness<'static, PdfCraftApp>| {
+    let settle = |h: &mut Harness<'static, VisionPDFApp>| {
         let deadline = std::time::Instant::now() + std::time::Duration::from_secs(10);
         while h.state().print_draft.driver_options_loading.is_some() && std::time::Instant::now() < deadline {
             h.run_steps(1);
@@ -1084,7 +1084,7 @@ fn print_restricted_documents_say_so_before_the_dialog() {
     .unwrap();
     let bytes = pdfcraft_cos::write_full(&doc, &Default::default()).unwrap();
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("restricted.pdf", None, bytes).unwrap();
         app
@@ -1106,7 +1106,7 @@ fn print_restricted_documents_say_so_before_the_dialog() {
 #[test]
 fn print_without_a_document_does_not_blame_security() {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app
     });
@@ -1147,7 +1147,7 @@ fn paper_choice_survives_cancel_and_settings_restore() {
     let json: serde_json::Value = serde_json::from_str(&saved).unwrap();
     assert_eq!(json["print_paper"], "A4", "store the canonical name, not its position");
     assert_eq!(json["print_paper_overridden"], true, "explicitly chosen paper records override flag");
-    let mut app = PdfCraftApp::new();
+    let mut app = VisionPDFApp::new();
     app.restore(&saved);
     // Grayscale is one of the preferences remembered across restarts (#2001); copies, pages and
     // orientation are this job's and are not saved.
@@ -1155,11 +1155,11 @@ fn paper_choice_survives_cancel_and_settings_restore() {
     assert_eq!(app.print_draft, expected, "only the paper and the remembered preferences persist");
 
     // Default draft without override round-trips with paper_overridden remaining false.
-    let default_app = PdfCraftApp::new();
+    let default_app = VisionPDFApp::new();
     let default_saved = default_app.persist();
     let default_json: serde_json::Value = serde_json::from_str(&default_saved).unwrap();
     assert_eq!(default_json["print_paper_overridden"], false);
-    let mut restored_default = PdfCraftApp::new();
+    let mut restored_default = VisionPDFApp::new();
     restored_default.restore(&default_saved);
     assert!(!restored_default.print_draft.paper_overridden);
 
@@ -1206,7 +1206,7 @@ fn paper_choice_survives_cancel_and_settings_restore() {
 fn paper_restore_accepts_canonical_names_and_ignores_invalid_settings() {
     use pdfcraft_engine::print::PAPERS;
     for (index, (name, _)) in PAPERS.iter().enumerate() {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.restore(&serde_json::json!({"print_paper": name}).to_string());
         assert_eq!(app.print_draft.paper, index);
         assert!(!app.print_draft.paper_overridden);
@@ -1227,7 +1227,7 @@ fn paper_restore_accepts_canonical_names_and_ignores_invalid_settings() {
         r#"{"print_paper":18446744073709551615}"#,
         r#"{"print_paper":1e100}"#,
     ] {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         let factory = app.print_draft.paper;
         app.restore(invalid);
         assert_eq!(app.print_draft.paper, factory, "{invalid}");
@@ -1236,7 +1236,7 @@ fn paper_restore_accepts_canonical_names_and_ignores_invalid_settings() {
         app.restore(invalid);
         assert_eq!(app.print_draft.paper, selected, "invalid input must not replace a valid choice: {invalid}");
     }
-    let mut app = PdfCraftApp::new();
+    let mut app = VisionPDFApp::new();
     app.print_draft.paper = usize::MAX;
     assert_eq!(serde_json::from_str::<serde_json::Value>(&app.persist()).unwrap()["print_paper"], serde_json::Value::Null);
 }
@@ -1677,7 +1677,7 @@ fn restored_paper_keeps_preview_and_saved_sheet_dimensions() {
 /// the dialog's rows, even an empty list, which adds the "no printers" line), then a few more so
 /// the dialog has settled where it stays. A click before then can land where a control was
 /// (windows-latest CI).
-fn settle(h: &mut Harness<'static, PdfCraftApp>) {
+fn settle(h: &mut Harness<'static, VisionPDFApp>) {
     for _ in 0..500 {
         h.run_steps(1);
         if !h.state().print_draft.printers_loading && !h.state().print_draft.papers_loading() {
@@ -1768,7 +1768,7 @@ fn a_custom_paper_prints_at_its_size_and_its_printer_keeps_it() {
     use pdfcraft_engine::print::spool::{Job, Printer};
     use std::sync::{Arc, Mutex};
     let sent: Arc<Mutex<Vec<Vec<u8>>>> = Arc::default();
-    let attach = |h: &mut Harness<'static, PdfCraftApp>| {
+    let attach = |h: &mut Harness<'static, VisionPDFApp>| {
         h.state_mut().printer_source =
             Some(Arc::new(|| vec![Printer { name: "Labeller".into(), default: true, two_sided: None, description: String::new() }]));
         h.state_mut().printer_papers_source = Some(Arc::new(|_| Vec::new()));
@@ -1943,7 +1943,7 @@ fn printer_papers_and_properties_selection() {
 #[test]
 fn too_much_creep_for_a_thick_booklet_is_explained_in_the_preview() {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("thick.pdf", None, crate::support::fixtures::pdf_pages(400)).unwrap();
         app
@@ -1962,8 +1962,8 @@ fn too_much_creep_for_a_thick_booklet_is_explained_in_the_preview() {
 }
 
 /// An app restored from `saved` settings (if any), with a form open and its Print dialog shown.
-fn print_opened_with(saved: Option<&str>) -> PdfCraftApp {
-    let mut app = PdfCraftApp::new();
+fn print_opened_with(saved: Option<&str>) -> VisionPDFApp {
+    let mut app = VisionPDFApp::new();
     app.set_option("language", "en").unwrap();
     if let Some(saved) = saved {
         app.restore(saved);
@@ -2079,7 +2079,7 @@ fn each_printer_keeps_what_it_last_printed_with_across_a_restart() {
     let a4 = PAPERS.iter().position(|(name, _)| *name == "A4").unwrap();
     let listed = Arc::new(Mutex::new(vec!["Office", "D520BT_Z"]));
     let jobs: Arc<Mutex<Vec<Job>>> = Arc::default();
-    let attach = |h: &mut Harness<'static, PdfCraftApp>| {
+    let attach = |h: &mut Harness<'static, VisionPDFApp>| {
         let source = listed.clone();
         h.state_mut().printer_source = Some(Arc::new(move || {
             let names = source.lock().map(|n| n.clone()).unwrap_or_default();
@@ -2096,7 +2096,7 @@ fn each_printer_keeps_what_it_last_printed_with_across_a_restart() {
             Ok(String::new())
         }));
     };
-    let open = |h: &mut Harness<'static, PdfCraftApp>| {
+    let open = |h: &mut Harness<'static, VisionPDFApp>| {
         h.state_mut().dialog = None;
         assert!(h.state_mut().execute("print.dialog"));
         let deadline = std::time::Instant::now() + std::time::Duration::from_secs(10);
@@ -2108,7 +2108,7 @@ fn each_printer_keeps_what_it_last_printed_with_across_a_restart() {
         assert!(!h.state().print_draft.papers_loading());
         h.run_steps(2);
     };
-    let print = |h: &mut Harness<'static, PdfCraftApp>| -> Job {
+    let print = |h: &mut Harness<'static, VisionPDFApp>| -> Job {
         let before = jobs.lock().unwrap().len();
         let deadline = std::time::Instant::now() + std::time::Duration::from_secs(10);
         while h.state().print_draft.papers_loading() && std::time::Instant::now() < deadline {
@@ -2126,7 +2126,7 @@ fn each_printer_keeps_what_it_last_printed_with_across_a_restart() {
         }
         jobs.lock().unwrap().last().cloned().expect("the job reached the spooler")
     };
-    let setup = |h: &Harness<'static, PdfCraftApp>| {
+    let setup = |h: &Harness<'static, VisionPDFApp>| {
         let d = &h.state().print_draft;
         (d.printer.clone(), d.paper, d.size, d.duplex)
     };

@@ -4,11 +4,11 @@
 use egui::accesskit::Role;
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::{MIN_WINDOW_SIZE, PdfCraftApp};
+use pdfcraft_ui_egui::{MIN_WINDOW_SIZE, VisionPDFApp};
 
-fn harness(size: egui::Vec2) -> Harness<'static, PdfCraftApp> {
+fn harness(size: egui::Vec2) -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(size).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app
     });
@@ -89,7 +89,7 @@ fn protected_with(algorithm: pdfcraft_cos::Algorithm, user: &str, owner: &str, p
 #[test]
 fn the_stacked_notice_keeps_its_buttons_in_view() {
     let mut h = Harness::builder().with_size(egui::vec2(MIN_WINDOW_SIZE[0], MIN_WINDOW_SIZE[1])).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("locked.pdf", None, protected("", "owner", 0b0100)).unwrap();
         app

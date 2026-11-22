@@ -18,7 +18,7 @@ pub(crate) fn same_file(a: &str, b: &str) -> bool {
     a == b || matches!((std::path::absolute(a), std::path::absolute(b)), (Ok(x), Ok(y)) if x == y)
 }
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     /// Open a document the way it asks to be opened: navigation panel, layout, magnification,
     /// page and the place on it (Document Properties ▸ Initial View, `/OpenAction`). With Always
     /// use my default zoom and page layout on, the layout and magnification stay at the defaults

@@ -1,4 +1,4 @@
-# Hosting PdfCraft for the web
+# Hosting VisionPDF for the web
 
 `pdfcraft-web-<version>.zip` (from the GitHub release, or `packaging/web/package.sh`) holds a
 static site in `pdfcraft-web-<version>/`:
@@ -40,12 +40,12 @@ workspace and Save target stay selected. Click the downloaded file's tab to swit
   or `http://localhost`. Over plain HTTP elsewhere, the app falls back to WebGL2.
 - **Opener isolation:** send `Cross-Origin-Opener-Policy: same-origin` (the sample `_headers`
   and `.htaccess` do; Apache needs `mod_headers` for it). Pages opened from a document's links
-  then can't reach or navigate the PdfCraft tab. The app opens links with `noopener` already;
+  then can't reach or navigate the VisionPDF tab. The app opens links with `noopener` already;
   the header also cuts the opener for pages on another origin opened by any other means. A page
   on the same origin that sends the same policy keeps its opener. The header has no effect
   inside an iframe, so the embedding bridge below is unaffected, but a page on another origin
-  that opens PdfCraft with `window.open` loses its handle to that window.
-- **No cross-origin isolation:** PdfCraft doesn't use `SharedArrayBuffer`, so it doesn't need
+  that opens VisionPDF with `window.open` loses its handle to that window.
+- **No cross-origin isolation:** VisionPDF doesn't use `SharedArrayBuffer`, so it doesn't need
   `Cross-Origin-Embedder-Policy`. If your site already sends COEP `require-corp`, also send
   `Cross-Origin-Resource-Policy: same-origin` (or `cross-origin` when the files live on a CDN) on
   the app's files.
@@ -91,7 +91,7 @@ From a source build, `trunk build --release` doesn't fetch the models. Add them 
 ```html
 <iframe
   src="https://example.com/pdfcraft/"
-  title="PdfCraft PDF workbench"
+  title="VisionPDF PDF workbench"
   style="width: 100%; height: 720px; border: 0;"
   allow="fullscreen; clipboard-read; clipboard-write"
   allowfullscreen>
@@ -111,8 +111,8 @@ From a source build, `trunk build --release` doesn't fetch the models. Add them 
 
 ## Same-document host mode (no iframe)
 
-A host application can also run PdfCraft from its own document: it loads the wasm-bindgen module
-itself and gives PdfCraft one of its own canvases, so there is no iframe and no `?host=parent`.
+A host application can also run VisionPDF from its own document: it loads the wasm-bindgen module
+itself and gives VisionPDF one of its own canvases, so there is no iframe and no `?host=parent`.
 It opts in with `data-host="page"` on that canvas — the exact value `page` — and the canvas
 keeps the id the app looks up (`id="pdfcraft"`).
 
@@ -159,17 +159,17 @@ await init({ module_or_path: "./pdfcraft-web-<hash>_bg.wasm" });
   present it takes precedence, so a same-origin framed page uses the parent bridge, while an
   unframed or cross-origin page gets no bridge and keeps normal downloads.
 
-The messages and both transports are the shared contract of [`craft-web-host`](https://github.com/storytold/craft-libs/tree/main/crates/web-host) (storytold/craft-libs#420), the same for every Craft app: its README lists every message, including `saved`, with the compatibility notes. In `pdfcraft:ready`, `version` is the contract's (`"1"`) and `appVersion` is this app's release. PdfCraft reads bytes, so a host sends `bytes`, not a `File`.
+The messages and both transports are the shared contract of [`craft-web-host`](https://github.com/storytold/craft-libs/tree/main/crates/web-host) (storytold/craft-libs#420), the same for every Craft app: its README lists every message, including `saved`, with the compatibility notes. In `pdfcraft:ready`, `version` is the contract's (`"1"`) and `appVersion` is this app's release. VisionPDF reads bytes, so a host sends `bytes`, not a `File`.
 
 ### Trust and limits
 
-- **Who is trusted.** In page host mode the page and PdfCraft share one document, so any script on the page can drive the app: open files in it and receive what it saves. Use this mode only for a page you control. The iframe mode (`?host=parent`) answers only the parent window, on the page's own origin.
+- **Who is trusted.** In page host mode the page and VisionPDF share one document, so any script on the page can drive the app: open files in it and receive what it saves. Use this mode only for a page you control. The iframe mode (`?host=parent`) answers only the parent window, on the page's own origin.
 - **Files from the host are untrusted input.** An opened file goes through the same reading as one picked with File ▸ Open or dropped on the window, with the same format limits; before it is copied into the app's memory, its size is checked against the host open limit (512 MiB) and a larger file is refused, and a name is cut to 255 characters.
 - **The event and message names are the interface.** `pdfcraft:ready`, `pdfcraft:open`, `pdfcraft:save`, `pdfcraft:dirty` and `pdfcraft:failed`, and the fields they carry (the same as the `?host=parent` messages), stay stable; changing one is a breaking change.
 
 ### Driving it from the page (`window.pdfcraft`)
 
-`?control` on the page's URL puts `window.pdfcraft` on the page, from [`craft-web-api`](https://github.com/storytold/craft-libs/tree/main/crates/web-api) (storytold/craft-libs#413), the same shape in every Craft app (`index.html?control`, which can be combined with other flags). It is opt-in because the control channel keeps the accessibility tree of every frame. The browser already exposes PdfCraft's canvas (`id="pdfcraft"`) as `window.pdfcraft`, so the functions are added to that element. `pdfcraft.request(method, params)` calls any method of the UI control channel the desktop app serves with `--control` (`ui.state`, `ui.inspect`, `ui.click`, `ui.key`, `ui.set`…; `ui.open` needs a file system, so on the web it answers with an error and a file is dropped on the page instead), and `execute(command, params)` (`ui.command`: a registry command id), `commands()` (`ui.commands`), `docInspect(params)` (`ui.state`), `uiInspect(params)` (`ui.inspect`) and `screenshot(params)` are shortcuts for the common ones. Each returns a Promise that resolves with the method's result and rejects with an `Error`; a call the app does not answer within 30 seconds rejects, and the app may still reach it later and run it (or reject it), as it does for a desktop client that timed out, so a timed-out call is not guaranteed to have been skipped. The API is installed after `pdfcraft:ready` is posted, and `window.pdfcraft` is the canvas element before that, so wait for a function rather than for the name: `await new Promise(r => { const t = setInterval(() => typeof pdfcraft.request === "function" && (clearInterval(t), r()), 50); })`.
+`?control` on the page's URL puts `window.pdfcraft` on the page, from [`craft-web-api`](https://github.com/storytold/craft-libs/tree/main/crates/web-api) (storytold/craft-libs#413), the same shape in every Craft app (`index.html?control`, which can be combined with other flags). It is opt-in because the control channel keeps the accessibility tree of every frame. The browser already exposes VisionPDF's canvas (`id="pdfcraft"`) as `window.pdfcraft`, so the functions are added to that element. `pdfcraft.request(method, params)` calls any method of the UI control channel the desktop app serves with `--control` (`ui.state`, `ui.inspect`, `ui.click`, `ui.key`, `ui.set`…; `ui.open` needs a file system, so on the web it answers with an error and a file is dropped on the page instead), and `execute(command, params)` (`ui.command`: a registry command id), `commands()` (`ui.commands`), `docInspect(params)` (`ui.state`), `uiInspect(params)` (`ui.inspect`) and `screenshot(params)` are shortcuts for the common ones. Each returns a Promise that resolves with the method's result and rejects with an `Error`; a call the app does not answer within 30 seconds rejects, and the app may still reach it later and run it (or reject it), as it does for a desktop client that timed out, so a timed-out call is not guaranteed to have been skipped. The API is installed after `pdfcraft:ready` is posted, and `window.pdfcraft` is the canvas element before that, so wait for a function rather than for the name: `await new Promise(r => { const t = setInterval(() => typeof pdfcraft.request === "function" && (clearInterval(t), r()), 50); })`.
 
 ```js
 const state = await pdfcraft.docInspect();               // open documents, page, zoom, panels, dialog
@@ -181,7 +181,7 @@ Opening a PDF, handing a saved or exported file to the page, the file name and t
 
 ## Renderer selection and fallback flags
 
-PdfCraft renders with wgpu. It uses **WebGPU** when the browser has it and falls back to
+VisionPDF renders with wgpu. It uses **WebGPU** when the browser has it and falls back to
 **WebGL2** on its own. URL query flags override this, and they work on the iframe `src` too:
 
 | Flag | Effect |

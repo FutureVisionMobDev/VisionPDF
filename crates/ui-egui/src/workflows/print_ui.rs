@@ -9,7 +9,7 @@ use egui::{Color32, Pos2, Rect, Stroke, pos2, vec2};
 use pdfcraft_engine::print::{self, Binding, BookletSubset, Content, Layout, Orientation, PageOrder, SizeMode, Subset, spool};
 
 use crate::theme::{self, Tokens};
-use crate::{PdfCraftApp, widgets};
+use crate::{VisionPDFApp, widgets};
 
 mod body;
 mod draft;
@@ -34,7 +34,7 @@ pub(crate) const LABEL_CROP_PAGES: usize = 50;
 #[cfg(not(target_arch = "wasm32"))]
 const TWO_SIDED_READS: usize = 4;
 
-/// Lists the printers off the UI thread (the desktop app sets [`PdfCraftApp::printer_source`]):
+/// Lists the printers off the UI thread (the desktop app sets [`VisionPDFApp::printer_source`]):
 /// CUPS' driverless discovery can wait on the network. Without a source the dialog reads them as
 /// it opens, so tests stay deterministic.
 pub type PrinterSource = std::sync::Arc<dyn Fn() -> Vec<spool::Printer> + Send + Sync>;
@@ -62,7 +62,7 @@ pub fn system_printers() -> PrinterSource {
 }
 
 /// Reads whether one printer's driver takes two-sided settings, off the UI thread, for the
-/// printer picked (the desktop app sets [`PdfCraftApp::two_sided_source`]). The printer list
+/// printer picked (the desktop app sets [`VisionPDFApp::two_sided_source`]). The printer list
 /// leaves it unknown: reading a driver Windows can't reach takes it about 48 s, so the list
 /// doesn't wait for every printer's (#2192).
 pub type TwoSidedSource = std::sync::Arc<dyn Fn(&str) -> Option<bool> + Send + Sync>;
@@ -164,7 +164,7 @@ fn offered(printer: Option<&str>, printers: &[spool::Printer]) -> bool {
     printer.is_none_or(|name| printers.iter().any(|p| p.name == name))
 }
 
-/// Asks for a frame when a worker thread ends, also when it panics: [`PdfCraftApp::poll_print`]
+/// Asks for a frame when a worker thread ends, also when it panics: [`VisionPDFApp::poll_print`]
 /// then sees the answer, or the disconnected channel of a worker that died, without waiting
 /// for some other event to draw (#2108 review). Declared before the worker's sender, so the
 /// sender is dropped first and the frame finds the channel closed.
@@ -180,7 +180,7 @@ impl Drop for WakeOnExit {
     }
 }
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     /// Open the Print dialog, preselecting the default printer and reading papers in the background.
     pub fn open_print(&mut self) {
         let Some((i, _)) = self.active_ids() else { return };
@@ -740,7 +740,7 @@ impl PdfCraftApp {
     }
 
     /// Print through the browser's print dialog: start drawing `sheets` (the pages of the
-    /// print-ready `bytes`), a sheet a frame in [`PdfCraftApp::poll_print`]. A print still being
+    /// print-ready `bytes`), a sheet a frame in [`VisionPDFApp::poll_print`]. A print still being
     /// prepared is replaced. The dialog closes at once.
     #[cfg(target_arch = "wasm32")]
     fn print_in_browser(&mut self, name: String, bytes: Vec<u8>, sheets: Vec<(f64, f64)>) -> bool {
@@ -1040,7 +1040,7 @@ mod tests {
     #[cfg(not(target_arch = "wasm32"))]
     #[test]
     fn the_progress_card_counts_the_sheets_of_a_print_job() {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         let (tx, rx) = std::sync::mpsc::channel();
         app.print_tasks.jobs.push(PrintJob { printer: "Office".into(), sheets: None, news: rx });

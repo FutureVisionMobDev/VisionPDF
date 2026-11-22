@@ -1,4 +1,4 @@
-use super::PdfCraftApp;
+use super::VisionPDFApp;
 use super::save::SaveTarget;
 
 /// What the user was doing when we asked whether to save.
@@ -13,7 +13,7 @@ pub enum CloseRequest {
     All,
 }
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     /// Close a tab, asking first if it has unsaved changes. A document under OCR review stays
     /// open until the review is accepted or rejected.
     pub fn request_close_tab(&mut self, index: usize) {
@@ -272,13 +272,13 @@ impl PdfCraftApp {
         }
     }
 
-    /// Ask for the user's attention when the "save changes?" question opens while PdfCraft is in
+    /// Ask for the user's attention when the "save changes?" question opens while VisionPDF is in
     /// the background (Quit in the Dock menu, logging out, or an agent quitting), and withdraw the
     /// request once the user comes back or the question is answered.
     ///
     /// The question holds up the quit the user asked for, so the request is critical, as AppKit
     /// makes it for a modal panel that an inactive app presents: the Dock icon bounces until
-    /// PdfCraft is active, Windows flashes the taskbar button until the window is in front, and
+    /// VisionPDF is active, Windows flashes the taskbar button until the window is in front, and
     /// X11 sets the urgency hint, which stays until it is reset. A question that opens in front
     /// asks nothing, and neither does leaving it open: the user has seen it. Each document asked
     /// about when quitting is a new question, so one that opens in the background asks even after

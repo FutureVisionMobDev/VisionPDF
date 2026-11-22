@@ -4,12 +4,12 @@ use egui::accesskit::Role;
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
 use pdfcraft_engine::Edit;
-use pdfcraft_ui_egui::PdfCraftApp;
+use pdfcraft_ui_egui::VisionPDFApp;
 
 /// Open the real Properties dialog and type a title that has not entered document history.
-fn harness() -> Harness<'static, PdfCraftApp> {
+fn harness() -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1200.0, 900.0)).build_eframe(|_| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         let bytes = app.session.create_blank(200.0, 300.0, 1).unwrap();
         app.open_bytes("properties.pdf", None, bytes.as_ref().clone()).unwrap();
@@ -24,7 +24,7 @@ fn harness() -> Harness<'static, PdfCraftApp> {
 }
 
 /// Reproduce the baseline stale commit; a guarded dialog has already dismissed itself.
-fn confirm_if_still_open(h: &mut Harness<'static, PdfCraftApp>) {
+fn confirm_if_still_open(h: &mut Harness<'static, VisionPDFApp>) {
     // On the baseline this commits the stale text. A guarded dialog has already closed.
     if h.state().dialog.is_some() {
         h.get_by_label("OK").click();

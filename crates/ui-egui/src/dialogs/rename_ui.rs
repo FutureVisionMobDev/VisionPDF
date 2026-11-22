@@ -7,7 +7,7 @@
 use egui::{Align, Layout};
 use pdfcraft_engine::DocId;
 
-use crate::{Dialog, PdfCraftApp, theme, widgets};
+use crate::{Dialog, VisionPDFApp, theme, widgets};
 
 /// The Rename dialog's state: the document and the name being typed.
 pub(crate) struct RenameDraft {
@@ -44,7 +44,7 @@ impl Drop for Pending {
     }
 }
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     /// Opens Rename again with the name that was typed, once a save that was to precede the
     /// rename has come to nothing. Called every frame.
     pub(crate) fn reopen_returned_rename(&mut self) {
@@ -111,7 +111,7 @@ impl PdfCraftApp {
 }
 
 /// The Rename dialog. Returns `(close, rename)`.
-pub(crate) fn body(app: &mut PdfCraftApp, ui: &mut egui::Ui) -> (bool, bool) {
+pub(crate) fn body(app: &mut VisionPDFApp, ui: &mut egui::Ui) -> (bool, bool) {
     let (mut close, mut go) = (false, false);
     let Some(doc_id) = app.rename_draft.as_ref().map(|d| d.id) else { return (true, false) };
     let Some((path, current)) = app.session.get(doc_id).and_then(|d| d.path.clone().map(|p| (p, d.name.clone()))) else { return (true, false) };
@@ -172,18 +172,18 @@ pub(crate) fn body(app: &mut PdfCraftApp, ui: &mut egui::Ui) -> (bool, bool) {
 #[cfg(all(test, not(target_arch = "wasm32")))]
 #[allow(clippy::unwrap_used, clippy::expect_used)]
 mod tests {
-    use crate::PdfCraftApp;
+    use crate::VisionPDFApp;
     use egui_kittest::{
         Harness,
         kittest::{NodeT, Queryable},
     };
 
-    fn harness(dir: &std::path::Path) -> Harness<'static, PdfCraftApp> {
+    fn harness(dir: &std::path::Path) -> Harness<'static, VisionPDFApp> {
         let file = dir.join("first.pdf");
         std::fs::write(&file, include_bytes!("../../tests/data/form.pdf")).unwrap();
         let path = file.to_string_lossy().into_owned();
         let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_| {
-            let mut app = PdfCraftApp::new();
+            let mut app = VisionPDFApp::new();
             app.set_option("language", "en").unwrap();
             app.open_bytes("first.pdf", Some(path), include_bytes!("../../tests/data/form.pdf").to_vec()).unwrap();
             app
@@ -192,14 +192,14 @@ mod tests {
         h
     }
 
-    fn open_rename(h: &mut Harness<'static, PdfCraftApp>, tab: &str) {
+    fn open_rename(h: &mut Harness<'static, VisionPDFApp>, tab: &str) {
         h.get_by_role_and_label(egui::accesskit::Role::Tab, tab).click_secondary();
         h.run_steps(2);
         h.get_by_label("Rename…").click();
         h.run_steps(6);
     }
 
-    fn type_name(h: &mut Harness<'static, PdfCraftApp>, name: &str) {
+    fn type_name(h: &mut Harness<'static, VisionPDFApp>, name: &str) {
         h.state_mut().rename_draft.as_mut().unwrap().name = name.to_string();
         h.run_steps(3);
     }
@@ -285,7 +285,7 @@ mod tests {
     #[test]
     fn a_document_without_a_file_offers_no_rename() {
         let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_| {
-            let mut app = PdfCraftApp::new();
+            let mut app = VisionPDFApp::new();
             app.set_option("language", "en").unwrap();
             app.open_bytes("unsaved.pdf", None, include_bytes!("../../tests/data/form.pdf").to_vec()).unwrap();
             app

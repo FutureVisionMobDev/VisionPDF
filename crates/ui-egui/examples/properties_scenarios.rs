@@ -12,7 +12,7 @@ use egui::accesskit::Role;
 use egui_kittest::Harness;
 use egui_kittest::kittest::{NodeT, Queryable};
 use pdfcraft_engine::{DocId, Edit, Session};
-use pdfcraft_ui_egui::{Dialog, PdfCraftApp};
+use pdfcraft_ui_egui::{Dialog, VisionPDFApp};
 use serde::Deserialize;
 use serde_json::{Value, json};
 
@@ -79,7 +79,7 @@ fn document_state(doc: &pdfcraft_engine::Document) -> Value {
 }
 
 struct Adapter {
-    h: Harness<'static, PdfCraftApp>,
+    h: Harness<'static, VisionPDFApp>,
     originals: Vec<(DocId, Arc<Vec<u8>>)>,
     reopened: Option<Value>,
     artifacts: Option<PathBuf>,
@@ -88,7 +88,7 @@ struct Adapter {
 impl Adapter {
     /// Open two independent fixtures and create a deterministic 60 Hz headless UI harness.
     fn new(artifacts: Option<PathBuf>) -> Result<Self, String> {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en")?;
         let mut originals = Vec::new();
         for (name, title) in [("A.pdf", "Original"), ("B.pdf", "Second document")] {
@@ -195,7 +195,7 @@ impl Adapter {
                 self.h.state_mut().session.undo(id).map_err(|e| e.to_string())?;
             }
             Event::Switch { document } => {
-                // Scenario document numbers are 1-based, like PdfCraft's automation pages.
+                // Scenario document numbers are 1-based, like VisionPDF's automation pages.
                 let index = document.checked_sub(1).ok_or("document numbers start at 1")?;
                 if self.h.state().views.get(index).is_none() {
                     return Err("document is not open".into());

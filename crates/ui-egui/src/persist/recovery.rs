@@ -25,7 +25,7 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, OnceLock};
 
-use crate::PdfCraftApp;
+use crate::VisionPDFApp;
 
 /// How often unsaved changes are written to the recovery folder.
 pub const AUTOSAVE_SECS: f64 = 60.0;
@@ -168,8 +168,8 @@ impl RecoveryStore {
     }
 
     /// `Recovery` in the portable data folder in portable mode ([`crate::portable`]), otherwise
-    /// the platform's per-user data folder: `~/Library/Application Support/PdfCraft/Recovery`
-    /// (macOS), `%LOCALAPPDATA%\PdfCraft\Recovery` (Windows), or
+    /// the platform's per-user data folder: `~/Library/Application Support/VisionPDF/Recovery`
+    /// (macOS), `%LOCALAPPDATA%\VisionPDF\Recovery` (Windows), or
     /// `$XDG_DATA_HOME/pdfcraft/recovery` / `~/.local/share/pdfcraft/recovery` (others).
     pub fn default_dir() -> Option<PathBuf> {
         if let Some(dir) = crate::portable::data_dir() {
@@ -177,9 +177,9 @@ impl RecoveryStore {
         }
         let env = |k: &str| std::env::var_os(k).filter(|v| !v.is_empty()).map(PathBuf::from);
         if cfg!(target_os = "macos") {
-            env("HOME").map(|h| h.join("Library/Application Support/PdfCraft/Recovery"))
+            env("HOME").map(|h| h.join("Library/Application Support/VisionPDF/Recovery"))
         } else if cfg!(windows) {
-            env("LOCALAPPDATA").map(|d| d.join("PdfCraft").join("Recovery"))
+            env("LOCALAPPDATA").map(|d| d.join("VisionPDF").join("Recovery"))
         } else {
             env("XDG_DATA_HOME").or_else(|| env("HOME").map(|h| h.join(".local/share"))).map(|d| d.join("pdfcraft/recovery"))
         }
@@ -192,7 +192,7 @@ impl RecoveryStore {
 
 /// The OCR Verify screen's per-language user dictionary folder, next to the recovery store:
 /// the portable data folder's `Dictionary` in portable mode ([`crate::portable`]), otherwise
-/// `…/PdfCraft/Dictionary` in the platform's per-user data folder. `None` where files are not
+/// `…/VisionPDF/Dictionary` in the platform's per-user data folder. `None` where files are not
 /// kept (the web build).
 pub fn default_dictionary_dir() -> Option<PathBuf> {
     if let Some(dir) = crate::portable::data_dir() {
@@ -200,9 +200,9 @@ pub fn default_dictionary_dir() -> Option<PathBuf> {
     }
     let env = |k: &str| std::env::var_os(k).filter(|v| !v.is_empty()).map(PathBuf::from);
     if cfg!(target_os = "macos") {
-        env("HOME").map(|h| h.join("Library/Application Support/PdfCraft/Dictionary"))
+        env("HOME").map(|h| h.join("Library/Application Support/VisionPDF/Dictionary"))
     } else if cfg!(windows) {
-        env("LOCALAPPDATA").map(|d| d.join("PdfCraft").join("Dictionary"))
+        env("LOCALAPPDATA").map(|d| d.join("VisionPDF").join("Dictionary"))
     } else {
         env("XDG_DATA_HOME").or_else(|| env("HOME").map(|h| h.join(".local/share"))).map(|d| d.join("pdfcraft/dictionary"))
     }
@@ -316,7 +316,7 @@ impl RecoveryStore {
     }
 }
 
-/// The most a sidecar may hold. One PdfCraft writes is a name, a path and a few fields, well under
+/// The most a sidecar may hold. One VisionPDF writes is a name, a path and a few fields, well under
 /// this; anything longer is not one of ours (#3923).
 const MAX_META_BYTES: u64 = 64 * 1024;
 
@@ -336,7 +336,7 @@ fn now_secs() -> u64 {
     std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0)
 }
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     /// Turn on autosave into `store`, and look for documents a previous session left behind.
     pub fn enable_recovery(&mut self, store: RecoveryStore) {
         store.claim();
@@ -552,7 +552,7 @@ mod idle_tests {
         assert_eq!(distinct.len(), 200);
     }
 
-    fn frame(app: &mut PdfCraftApp, ctx: &egui::Context, now: web_time::Instant) -> Duration {
+    fn frame(app: &mut VisionPDFApp, ctx: &egui::Context, now: web_time::Instant) -> Duration {
         let mut out = ctx.run_ui(egui::RawInput::default(), |ui| {
             app.autosave_tick(ui.ctx(), now);
         });
@@ -592,7 +592,7 @@ mod idle_tests {
     fn idle_dirty_document_requests_its_deadline_and_writes_without_input() {
         let dir = TestDir::new();
         let store = RecoveryStore::new(dir.path());
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.enable_recovery(store.clone());
         let bytes = app.session.create_blank(200.0, 300.0, 1).unwrap();
         let id = app.session.open_new("Untitled.pdf", bytes).unwrap();
@@ -621,7 +621,7 @@ mod idle_tests {
     fn second_edit_after_autosave_schedules_next_deadline_and_updates_snapshot() {
         let dir = TestDir::new();
         let store = RecoveryStore::new(dir.path());
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.enable_recovery(store.clone());
         let bytes = app.session.create_blank(200.0, 300.0, 1).unwrap();
         let id = app.session.open_new("Untitled.pdf", bytes).unwrap();
@@ -671,7 +671,7 @@ mod idle_tests {
     fn clean_documents_and_disabled_recovery_do_not_schedule_autosave() {
         for recovery_enabled in [false, true] {
             let dir = TestDir::new();
-            let mut app = PdfCraftApp::new();
+            let mut app = VisionPDFApp::new();
             if recovery_enabled {
                 app.enable_recovery(RecoveryStore::new(dir.path()));
             }
@@ -708,7 +708,7 @@ mod sidecar_tests {
         let named = dir.path().join("named.pdf");
         std::fs::write(&named, b"someone else's file").unwrap();
         {
-            let mut crashed = PdfCraftApp::new();
+            let mut crashed = VisionPDFApp::new();
             crashed.enable_recovery(store.clone());
             let bytes = crashed.session.create_blank(200.0, 300.0, 1).unwrap();
             crashed.open_bytes("work.pdf", Some(named.to_string_lossy().into_owned()), bytes.to_vec()).unwrap();
@@ -716,7 +716,7 @@ mod sidecar_tests {
             crashed.autosave_now();
         }
 
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.enable_recovery(store.clone());
         let keys: Vec<String> = app.recoverable.iter().map(|m| m.key.clone()).collect();
@@ -737,7 +737,7 @@ mod sidecar_tests {
         assert!(app.save_active(SaveTarget::InPlace));
     }
 
-    /// #3923: a sidecar longer than any PdfCraft writes is not read whole; its snapshot is
+    /// #3923: a sidecar longer than any VisionPDF writes is not read whole; its snapshot is
     /// offered without metadata, so it has no path to save to.
     #[test]
     fn an_oversized_sidecar_is_not_read() {

@@ -4,7 +4,7 @@
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::PdfCraftApp;
+use pdfcraft_ui_egui::VisionPDFApp;
 
 /// A one-page PDF with a proper xref; `acroform` is the catalog's /AcroForm (or empty), `extra`
 /// more catalog entries, `objects` extra objects numbered from 5.
@@ -33,9 +33,9 @@ fn pdf(acroform: &str, extra: &str, objects: &[&str]) -> Vec<u8> {
 
 const XFA_PACKET: &str = "<< /Length 52 >>\nstream\n<xdp:xdp xmlns:xdp=\"http://ns.adobe.com/xdp/\"></xdp:xdp>\nendstream";
 
-fn open(bytes: Vec<u8>) -> Harness<'static, PdfCraftApp> {
+fn open(bytes: Vec<u8>) -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 800.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("form.pdf", None, bytes).expect("opens");
         app
@@ -44,7 +44,7 @@ fn open(bytes: Vec<u8>) -> Harness<'static, PdfCraftApp> {
     h
 }
 
-fn xfa(h: &Harness<'static, PdfCraftApp>) -> Option<pdfcraft_render::Xfa> {
+fn xfa(h: &Harness<'static, VisionPDFApp>) -> Option<pdfcraft_render::Xfa> {
     let s = h.state();
     s.session.get(s.views[0].id).unwrap().info.xfa
 }
@@ -112,7 +112,7 @@ fn ordinary_forms_and_documents_have_no_xfa_notice() {
 }
 
 /// Click the centre of a field's widget.
-fn click_field(h: &mut Harness<'static, PdfCraftApp>, name: &str) {
+fn click_field(h: &mut Harness<'static, VisionPDFApp>, name: &str) {
     let p = {
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
@@ -133,7 +133,7 @@ fn click_field(h: &mut Harness<'static, PdfCraftApp>, name: &str) {
 fn xfa_buttons_run_their_scripts_in_the_app() {
     let mut h = open(pdfcraft_xfa::fixtures::shell(&pdfcraft_xfa::fixtures::scripted_template()));
     crate::support::settle(&mut h);
-    let names = |h: &Harness<'static, PdfCraftApp>| {
+    let names = |h: &Harness<'static, VisionPDFApp>| {
         let s = h.state();
         s.session.get(s.views[0].id).unwrap().form.iter().map(|f| f.name.clone()).collect::<Vec<_>>()
     };
@@ -153,14 +153,14 @@ fn xfa_enter_and_exit_scripts_run_whenever_the_focus_moves() {
     use egui::{Key, Modifiers};
     let mut h = open(pdfcraft_xfa::fixtures::shell(&pdfcraft_xfa::fixtures::focus_template()));
     crate::support::settle(&mut h);
-    let counts = |h: &Harness<'static, PdfCraftApp>| {
+    let counts = |h: &Harness<'static, VisionPDFApp>| {
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
         let v = |n: &str| doc.form.iter().find(|f| f.name == n).and_then(|f| f.value.first().cloned()).unwrap_or_default();
         (v("enters"), v("exits"))
     };
-    let focus = |h: &Harness<'static, PdfCraftApp>| h.state().views[0].forms.focus.as_ref().map(|f| f.name.clone());
-    let press = |h: &mut Harness<'static, PdfCraftApp>, modifiers, key| {
+    let focus = |h: &Harness<'static, VisionPDFApp>| h.state().views[0].forms.focus.as_ref().map(|f| f.name.clone());
+    let press = |h: &mut Harness<'static, VisionPDFApp>, modifiers, key| {
         h.key_press_modifiers(modifiers, key);
         h.run_steps(4);
     };
@@ -196,7 +196,7 @@ fn an_enter_script_that_changes_its_field_shows_in_the_editor() {
     use egui::{Key, Modifiers};
     let mut h = open(pdfcraft_xfa::fixtures::shell(&pdfcraft_xfa::fixtures::focus_template()));
     crate::support::settle(&mut h);
-    let value = |h: &Harness<'static, PdfCraftApp>| {
+    let value = |h: &Harness<'static, VisionPDFApp>| {
         let s = h.state();
         s.session.get(s.views[0].id).unwrap().form.iter().find(|f| f.name == "hint").and_then(|f| f.value.first().cloned()).unwrap_or_default()
     };

@@ -1,4 +1,4 @@
-use super::{Color32, HashSet, LayerOp, PdfCraftApp, Pos2, Rect, Tokens, Vec2, icons, pos2, theme, vec2};
+use super::{Color32, HashSet, LayerOp, VisionPDFApp, Pos2, Rect, Tokens, Vec2, icons, pos2, theme, vec2};
 
 /// A validation badge drawn over a signature widget: the widget rectangle (user space), the verdict it shows, and its hover text.
 pub(crate) struct SignatureBadge {
@@ -161,7 +161,7 @@ pub(super) fn page_scroll<R>(
 }
 
 /// Run a push button's action (the ones that need no JavaScript engine).
-pub(super) fn run_button(app: &mut PdfCraftApp, index: usize, name: &str, identity: u64, action: pdfcraft_engine::form_scripts::ButtonAction) {
+pub(super) fn run_button(app: &mut VisionPDFApp, index: usize, name: &str, identity: u64, action: pdfcraft_engine::form_scripts::ButtonAction) {
     use pdfcraft_engine::form_scripts::ButtonAction as B;
     let pages = app.session.get(app.views[index].id).map_or(0, |d| d.info.pages.len());
     match action {
@@ -178,7 +178,7 @@ pub(super) fn run_button(app: &mut PdfCraftApp, index: usize, name: &str, identi
         }
         B::Named(n) => match n.as_str() {
             "Print" => app.open_print(),
-            // What PdfCraft's XFA buttons use, and what a script's `execMenuItem("Save")`
+            // What VisionPDF's XFA buttons use, and what a script's `execMenuItem("Save")`
             // does too: the Save As dialog, so a click never overwrites the file unasked.
             "SaveAs" => app.run_command("file.save_as"),
             "NextPage" => app.views[index].step_page(true),
@@ -234,7 +234,7 @@ pub(super) fn run_button(app: &mut PdfCraftApp, index: usize, name: &str, identi
         }
         B::Alert(m) => app.notify(m),
         B::Submit(url) => app.notify_fmt(
-            "{name} submits the form to {url}; PdfCraft doesn't send form data. Save the document to keep your entries.",
+            "{name} submits the form to {url}; VisionPDF doesn't send form data. Save the document to keep your entries.",
             &[("name", name), ("url", &url)],
         ),
         B::ImportIcon => app.choose_field_image_target(app.views[index].id, name, Some(identity)),
@@ -247,7 +247,7 @@ pub(super) fn run_button(app: &mut PdfCraftApp, index: usize, name: &str, identi
 
 /// Run a set-layer-visibility action from a button or link. It changes what is shown, as the
 /// Layers panel does (which follows), not the document.
-pub(super) fn set_layers(app: &mut PdfCraftApp, index: usize, changes: &[(LayerOp, (u32, u16))], preserve_rb: bool) {
+pub(super) fn set_layers(app: &mut VisionPDFApp, index: usize, changes: &[(LayerOp, (u32, u16))], preserve_rb: bool) {
     let id = app.views[index].id;
     if app.session.set_layer_state(id, changes, preserve_rb) {
         app.views[index].invalidate_content();

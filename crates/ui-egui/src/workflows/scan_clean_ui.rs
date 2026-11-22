@@ -11,7 +11,7 @@ use pdfcraft_engine::{DocId, EditError};
 
 use crate::ocr_ui::OcrPages;
 use crate::theme::{self, Tokens};
-use crate::{PdfCraftApp, widgets};
+use crate::{VisionPDFApp, widgets};
 
 /// The dialog's choices (kept between runs).
 #[derive(Clone, Debug, PartialEq)]
@@ -42,7 +42,7 @@ pub struct ScanCleanRun {
     pub progress: Arc<Mutex<ScanCleanProgress>>,
 }
 
-pub(crate) fn body(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens) -> (bool, bool) {
+pub(crate) fn body(ui: &mut egui::Ui, app: &mut VisionPDFApp, t: &Tokens) -> (bool, bool) {
     let pages = app.active_ids().and_then(|(_, id)| app.session.get(id)).map_or(1, |d| d.info.pages.len().max(1));
     let d = &mut app.scan_clean_draft;
     d.to = d.to.clamp(1, pages);
@@ -132,7 +132,7 @@ fn summary(r: &ScanCleanReport) -> String {
     out
 }
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     /// Clean up the scans on the pages chosen in the dialog, in the background.
     pub fn start_scan_clean(&mut self) {
         let Some((vi, id)) = self.active_ids() else { return };

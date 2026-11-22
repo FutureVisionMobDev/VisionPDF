@@ -4,9 +4,9 @@ use super::files::{AssessError, Assessed, CombineFile, Incoming, Secret, Snapsho
 #[cfg(not(target_arch = "wasm32"))]
 use super::parts::combinable_in;
 use super::parts::{Part, items_of, moved_order, natural, parts_of, range_of, takes, title_of};
-use super::{Arc, BTreeSet, CombineTab, HISTORY, Modifiers, PdfCraftApp};
+use super::{Arc, BTreeSet, CombineTab, HISTORY, Modifiers, VisionPDFApp};
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     /// Show the Combine files tab (File ▸ Combine files…), opening it if needed.
     pub fn open_combine_tab(&mut self) {
         self.combine_tab.open = true;
@@ -402,8 +402,8 @@ impl PdfCraftApp {
     }
 
     /// Add the files at `paths` to the Combine files list and show it: `pdfcraft --combine` and
-    /// File Explorer's "Combine files in PdfCraft" (#585), where each selected file arrives as a
-    /// launch of its own and the running PdfCraft collects them here. Nothing to add shows the
+    /// File Explorer's "Combine files in VisionPDF" (#585), where each selected file arrives as a
+    /// launch of its own and the running VisionPDF collects them here. Nothing to add shows the
     /// tab all the same.
     #[cfg(not(target_arch = "wasm32"))]
     pub fn combine_paths(&mut self, paths: &[String]) {

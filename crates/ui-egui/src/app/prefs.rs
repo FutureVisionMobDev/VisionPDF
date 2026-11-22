@@ -1,7 +1,7 @@
 use super::*;
 use pdfcraft_engine::print::names as print_names;
 
-/// [`PdfCraftApp::date_text`] for callers that already borrow other parts of the app.
+/// [`VisionPDFApp::date_text`] for callers that already borrow other parts of the app.
 pub(crate) fn date_text(session: &Session, fmt: Option<&str>) -> Result<String, String> {
     let lang = session.date_language().unwrap_or(i18n::current().code());
     session.today_text(fmt, Some(lang))
@@ -36,7 +36,7 @@ fn rgb_triple(v: &serde_json::Value) -> Option<[f64; 3]> {
     Some(out)
 }
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     /// Sets the user's interface theme preference (Light, Dark, or System).
     pub fn set_theme_preference(&mut self, preference: ThemePreference) {
         self.theme_preference = preference;

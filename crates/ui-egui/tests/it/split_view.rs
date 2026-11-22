@@ -7,7 +7,7 @@ use egui::accesskit::Role;
 use egui::{Key, Modifiers};
 use egui_kittest::Harness;
 use egui_kittest::kittest::{NodeT, Queryable};
-use pdfcraft_ui_egui::PdfCraftApp;
+use pdfcraft_ui_egui::VisionPDFApp;
 use pdfcraft_ui_egui::panes::Place;
 
 /// `pages` portrait pages (300 × 400) with a line of text each.
@@ -36,9 +36,9 @@ fn fixture(pages: usize) -> Vec<u8> {
     out
 }
 
-fn harness(names: &'static [&'static str]) -> Harness<'static, PdfCraftApp> {
+fn harness(names: &'static [&'static str]) -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.run_inline = true;
         app.set_option("language", "en").unwrap();
         for name in names {
@@ -50,17 +50,17 @@ fn harness(names: &'static [&'static str]) -> Harness<'static, PdfCraftApp> {
     h
 }
 
-fn index(h: &Harness<'static, PdfCraftApp>, name: &str) -> usize {
+fn index(h: &Harness<'static, VisionPDFApp>, name: &str) -> usize {
     let s = h.state();
     s.views.iter().position(|v| s.session.get(v.id).is_some_and(|d| d.name == name)).expect("tab open")
 }
 
-fn places(h: &Harness<'static, PdfCraftApp>) -> Vec<Place> {
+fn places(h: &Harness<'static, VisionPDFApp>) -> Vec<Place> {
     h.state().views.iter().map(|v| v.place()).collect()
 }
 
 /// Run frames until `ready`, rendering in between (renders arrive between frames).
-fn wait(h: &mut Harness<'static, PdfCraftApp>, what: &str, ready: impl Fn(&PdfCraftApp) -> bool) {
+fn wait(h: &mut Harness<'static, VisionPDFApp>, what: &str, ready: impl Fn(&VisionPDFApp) -> bool) {
     for _ in 0..600 {
         h.run_steps(1);
         if ready(h.state()) {
@@ -72,7 +72,7 @@ fn wait(h: &mut Harness<'static, PdfCraftApp>, what: &str, ready: impl Fn(&PdfCr
 }
 
 /// A press and release at `at` (a click on the page area).
-fn click_at(h: &mut Harness<'static, PdfCraftApp>, at: egui::Pos2) {
+fn click_at(h: &mut Harness<'static, VisionPDFApp>, at: egui::Pos2) {
     h.event(egui::Event::PointerMoved(at));
     h.event(egui::Event::PointerButton { pos: at, button: egui::PointerButton::Primary, pressed: true, modifiers: Modifiers::NONE });
     h.run_steps(1);
@@ -80,7 +80,7 @@ fn click_at(h: &mut Harness<'static, PdfCraftApp>, at: egui::Pos2) {
     h.run_steps(2);
 }
 
-fn drag_tab(h: &mut Harness<'static, PdfCraftApp>, name: &str, to: egui::Pos2) {
+fn drag_tab(h: &mut Harness<'static, VisionPDFApp>, name: &str, to: egui::Pos2) {
     let from = h.get_by_role_and_label(Role::Tab, name).rect().center();
     h.event(egui::Event::PointerMoved(from));
     h.event(egui::Event::PointerButton { pos: from, button: egui::PointerButton::Primary, pressed: true, modifiers: Modifiers::NONE });
@@ -141,8 +141,8 @@ fn the_same_document_in_both_panes_is_one_document_with_one_undo() {
     assert_eq!(h.state().views[first].id, h.state().views[second].id, "one document");
     assert_eq!(h.state().session.docs().len(), 1);
     // Both panes draw the portrait page.
-    let portrait = |s: &PdfCraftApp, i: usize| s.views[i].drawn_page_size(0).is_some_and(|[w, hgt]| hgt > w);
-    let landscape = |s: &PdfCraftApp, i: usize| s.views[i].drawn_page_size(0).is_some_and(|[w, hgt]| w > hgt);
+    let portrait = |s: &VisionPDFApp, i: usize| s.views[i].drawn_page_size(0).is_some_and(|[w, hgt]| hgt > w);
+    let landscape = |s: &VisionPDFApp, i: usize| s.views[i].drawn_page_size(0).is_some_and(|[w, hgt]| w > hgt);
     wait(&mut h, "both panes drawn", |s| portrait(s, first) && portrait(s, second));
     // Each pane scrolls on its own: the second goes to page 3.
     h.state_mut().views[second].go_to_page(2);

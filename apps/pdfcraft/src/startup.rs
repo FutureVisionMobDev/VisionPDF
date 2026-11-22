@@ -1,5 +1,5 @@
 //! Native launch arguments and per-file view overrides (#1354).
-use pdfcraft_ui_egui::PdfCraftApp;
+use pdfcraft_ui_egui::VisionPDFApp;
 
 #[derive(Default)]
 pub(super) struct Arguments {
@@ -35,8 +35,8 @@ impl Arguments {
                 }
                 "--control" => parsed.control_file = args.next(),
                 "--create-images" => parsed.create_images = true,
-                // File Explorer's "Combine files in PdfCraft" (#585): the files go to the Combine
-                // files tab, of the running PdfCraft when there is one.
+                // File Explorer's "Combine files in VisionPDF" (#585): the files go to the Combine
+                // files tab, of the running VisionPDF when there is one.
                 "--combine" => parsed.combine = true,
                 "--new-window" => parsed.new_window = true,
                 "--two-paged" => parsed.two_paged = true,
@@ -55,7 +55,7 @@ impl Arguments {
     }
 }
 
-pub(super) fn open_files(app: &mut PdfCraftApp, files: &[String], two_paged: bool) {
+pub(super) fn open_files(app: &mut VisionPDFApp, files: &[String], two_paged: bool) {
     for path in files {
         if two_paged {
             // The per-file override wins over initial view without changing saved defaults.
@@ -152,7 +152,7 @@ mod tests {
         let text = path.to_str().unwrap();
         let second = second_path.to_str().unwrap();
         for enabled in [false, true] {
-            let mut app = PdfCraftApp::new();
+            let mut app = VisionPDFApp::new();
             app.set_option("default-layout", "single").unwrap();
             app.open_bytes("restored.pdf", None, include_bytes!("../../../crates/ui-egui/tests/data/form.pdf").to_vec()).unwrap();
             let restored = app.views[0].id;
@@ -199,7 +199,7 @@ mod tests {
         for prefix in [["--two-paged", "--layout", "single"], ["--layout", "single", "--two-paged"]] {
             for count in [1, 2] {
                 let args = Arguments::parse(prefix.into_iter().chain(names.iter().take(count).copied()).map(str::to_owned));
-                let mut app = PdfCraftApp::new();
+                let mut app = VisionPDFApp::new();
                 app.set_option("default-layout", "continuous").unwrap();
                 app.open_bytes("restored.pdf", None, include_bytes!("../../../crates/ui-egui/tests/data/form.pdf").to_vec()).unwrap();
                 open_files(&mut app, &args.files, args.two_paged);
@@ -232,7 +232,7 @@ mod repeated_file_tests {
         let path = std::env::temp_dir().join(format!("pdfcraft-repeated-startup-{}.pdf", std::process::id()));
         std::fs::write(&path, include_bytes!("../../../crates/ui-egui/tests/data/form.pdf")).unwrap();
         let name = path.to_str().unwrap().to_string();
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("default-layout", "continuous").unwrap();
         app.open_path(&name);
         let original = app.views[0].id;

@@ -15,11 +15,11 @@ pub(crate) enum Action {
     },
 }
 
-impl crate::PdfCraftApp {
+impl crate::VisionPDFApp {
     /// Reveal a local file without opening it or changing document/Recent state. The existence
     /// check and the file manager call can block (a disconnected network mount, a slow `dbus-send`
     /// or `explorer.exe`), so they run on a worker; a failure is shown by
-    /// [`Self::show_reveal_errors`]. Tests run it inline ([`PdfCraftApp::run_inline`]).
+    /// [`Self::show_reveal_errors`]. Tests run it inline ([`VisionPDFApp::run_inline`]).
     #[cfg(not(target_arch = "wasm32"))]
     pub(crate) fn reveal_path(&mut self, path: &std::path::Path) {
         let path = path.to_path_buf();
@@ -93,7 +93,7 @@ impl crate::PdfCraftApp {
 }
 
 #[cfg(not(target_arch = "wasm32"))]
-/// Blocking: call it from a worker thread ([`crate::PdfCraftApp::reveal_path`]).
+/// Blocking: call it from a worker thread ([`crate::VisionPDFApp::reveal_path`]).
 fn reveal(path: &std::path::Path) -> Result<(), String> {
     // Absolute paths also prevent a filename starting with '-' becoming an option.
     let path = std::path::absolute(path).map_err(|e| e.to_string())?;
@@ -196,7 +196,7 @@ mod tests {
 
     #[test]
     fn confirmed_close_uses_id_and_cancel_keeps_history_empty() {
-        let mut app = crate::PdfCraftApp::new();
+        let mut app = crate::VisionPDFApp::new();
         app.open_bytes("first.pdf", Some("/tmp/first.pdf".into()), PDF.to_vec()).unwrap();
         let (first, first_tab) = (app.views[0].id, app.views[0].view_key());
         app.open_bytes("second.pdf", None, PDF.to_vec()).unwrap();
@@ -223,7 +223,7 @@ mod tests {
         let mut file = std::fs::OpenOptions::new().write(true).create_new(true).open(&path).unwrap();
         file.write_all(PDF).unwrap();
         drop(file);
-        let mut app = crate::PdfCraftApp::new();
+        let mut app = crate::VisionPDFApp::new();
         let path_text = path.to_str().unwrap();
         for _ in 0..12 {
             app.open_path(path_text);
@@ -248,7 +248,7 @@ mod tests {
         let mut file = std::fs::OpenOptions::new().create_new(true).write(true).open(&path).unwrap();
         file.write_all(PDF).unwrap();
         drop(file);
-        let mut app = crate::PdfCraftApp::new();
+        let mut app = crate::VisionPDFApp::new();
         app.open_path(text);
         app.close_tab(0);
         std::fs::remove_file(&path).unwrap();
@@ -268,7 +268,7 @@ mod tests {
 
     #[test]
     fn a_failed_reveal_is_reported_back_to_the_ui_thread() {
-        let mut app = crate::PdfCraftApp::new();
+        let mut app = crate::VisionPDFApp::new();
         app.run_inline = true;
         app.reveal_path(std::path::Path::new("/pdfcraft-no-such-dir/missing.pdf"));
         assert!(app.toast.is_none(), "nothing is shown until the UI thread takes the report");
@@ -331,7 +331,7 @@ mod tests {
 
 #[cfg(all(test, not(target_arch = "wasm32")))]
 mod ui_tests {
-    use crate::PdfCraftApp;
+    use crate::VisionPDFApp;
     use egui_kittest::{
         Harness,
         kittest::{NodeT, Queryable},
@@ -340,7 +340,7 @@ mod ui_tests {
     #[test]
     fn inactive_tab_menu_closes_target_and_disables_unavailable_actions() {
         let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_| {
-            let mut app = PdfCraftApp::new();
+            let mut app = VisionPDFApp::new();
             app.set_option("language", "en").unwrap();
             for name in ["first.pdf", "second.pdf"] {
                 app.open_bytes(name, None, include_bytes!("../../tests/data/form.pdf").to_vec()).unwrap();

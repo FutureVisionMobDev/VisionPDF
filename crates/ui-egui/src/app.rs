@@ -24,13 +24,13 @@ pub(crate) use files::same_file;
 use frame::migrate_panel_state;
 pub(crate) use prefs::{MAX_AUTHOR_CHARS, date_text_for_pdf};
 
-impl Default for PdfCraftApp {
+impl Default for VisionPDFApp {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     /// The window's title and, on the web, the page's, from the active document (#3640). Done in
     /// `logic` too, which also runs while the window or browser tab is hidden: a document opened
     /// then (a `?file=` download finishing) still names the page an embedding host reads.
@@ -44,7 +44,7 @@ impl PdfCraftApp {
         let mark = if dirty { " •" } else { "" };
         let titled = |name: Option<String>| {
             name.or_else(|| self.combine_showing().then(|| tl!("Combine files").to_owned()))
-                .map_or_else(|| "PdfCraft".to_owned(), |name| format!("{name}{mark} — PdfCraft"))
+                .map_or_else(|| "VisionPDF".to_owned(), |name| format!("{name}{mark} — VisionPDF"))
         };
         let title = titled(front.and_then(|i| crate::canvas::tab_label(self, i)));
         // The web page's title is what an embedding host reads to tell which file opened, so it
@@ -535,7 +535,7 @@ impl PdfCraftApp {
     }
 }
 
-impl eframe::App for PdfCraftApp {
+impl eframe::App for VisionPDFApp {
     /// While files are dragged over the window the system sends no pointer moves, so egui
     /// would keep the place the pointer entered at: tell it where the pointer really is, so the
     /// page grid can show (and use) the gap under it.
@@ -591,7 +591,7 @@ impl eframe::App for PdfCraftApp {
     }
 }
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     fn logic_unguarded(&mut self, ctx: &egui::Context) {
         #[cfg(test)]
         self.injected_panic(crate::frame_guard::FramePart::Logic);

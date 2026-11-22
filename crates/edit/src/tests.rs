@@ -129,7 +129,7 @@ fn header_and_footer_are_drawn_in_display_space_and_wrap_the_original_content() 
     // q-wrapper, original, Q-wrapper, header/footer.
     assert_eq!(s0.len(), 4, "{s0:?}");
     // The close starts on a new line, so a comment the original ends in can't swallow it.
-    assert_eq!((s0[0].as_str(), s0[2].as_str()), ("q %PdfCraft\n", "\nQ %PdfCraft\n"));
+    assert_eq!((s0[0].as_str(), s0[2].as_str()), ("q %VisionPDF\n", "\nQ %VisionPDF\n"));
     let mark = &s0[3];
     assert!(mark.contains("/PCMark /HeaderFooter") && mark.contains("(Page 1 of 3) Tj") && mark.contains("(Confidential \\(draft\\)) Tj"), "{mark}");
     assert!(mark.contains("1 0 0 1 0 0 cm"), "upright page: identity");
@@ -332,7 +332,7 @@ fn shrink_scales_the_original_content_into_the_band_between_header_and_footer() 
     let s = streams(&doc, 0);
     // q-wrapper, shrink, original, Q-wrapper, header/footer.
     assert_eq!(s.len(), 5, "{s:?}");
-    assert_eq!((s[0].as_str(), s[3].as_str()), ("q %PdfCraft\n", "\nQ %PdfCraft\n"));
+    assert_eq!((s[0].as_str(), s[3].as_str()), ("q %VisionPDF\n", "\nQ %VisionPDF\n"));
     assert!(s[2].contains("(Hi) Tj"), "the original content follows the shrink: {s:?}");
     let m = first_cm(&s[1]);
     let k = (800.0 - 48.0 - 46.4) / 800.0;
@@ -1028,7 +1028,7 @@ fn flattening_reads_an_unknown_or_malformed_rt_as_a_reply_and_a_widget_with_irt_
 
 /// Flattening never makes a `?` permanent: it refuses, changing nothing, a text box without an
 /// appearance whose text Helvetica can't draw (another program's), and a comment or form field
-/// whose appearance PdfCraft drew with `?` (marked `PCUndrawn`). A comment another program drew
+/// whose appearance VisionPDF drew with `?` (marked `PCUndrawn`). A comment another program drew
 /// with a font that has those characters (an appearance, no mark) flattens as before.
 #[test]
 fn flattening_refuses_what_would_bake_in_question_marks() {
@@ -4388,7 +4388,7 @@ fn paragraphs_are_found_and_rewrapped() {
     assert_eq!(blocks[0].lines, [0, 1, 2]);
     let width = blocks[0].rect[2] - blocks[0].rect[0];
     let next = blocks[1].rect;
-    let long = "PdfCraft rewraps a paragraph to its own width when its text changes, keeping the font, size, colour and line spacing.";
+    let long = "VisionPDF rewraps a paragraph to its own width when its text changes, keeping the font, size, colour and line spacing.";
     assert_eq!(text::replace_block(&mut doc, 0, 0, long).unwrap().substituted, None);
     let doc = reopen(&doc);
     let lines = text::text_lines(&doc, 0).unwrap();
@@ -6591,7 +6591,7 @@ fn text_a_stream_not_read_whole_goes_on_from_is_not_edited() {
 /// the square's operands end the stream before it and only its keyword is hidden. Moving the image
 /// leaves that `cm` as it is and gives the `Do` a `cm` of its own, so the square stays, with a clip
 /// on the image too, which then stays where it is as one the square may share. A crop goes around
-/// the `Do` alone, and a crop PdfCraft put in that scope isn't removed. A scope that closes in a
+/// the `Do` alone, and a crop VisionPDF put in that scope isn't removed. A scope that closes in a
 /// damaged stream before its damage holds none of it: its `cm` takes the move.
 #[test]
 fn an_image_whose_scope_closes_past_a_stream_not_read_whole_moves_alone() {
@@ -6629,7 +6629,7 @@ fn an_image_whose_scope_closes_past_a_stream_not_read_whole_moves_alone() {
     let shift = images::ImageChange::Transform([1.0, 0.0, 0.0, 1.0, 10.0, 0.0]);
     for damaged in [false, true] {
         for split in [false, true] {
-            for clip in ["", "0 0 1 1 re W n ", "/PdfCraftImageCrop MP 0 0 1 1 re W n "] {
+            for clip in ["", "0 0 1 1 re W n ", "/VisionPDFImageCrop MP 0 0 1 1 re W n "] {
                 let what = format!("damaged: {damaged}, split: {split}, clip: {clip:?}");
                 let mut doc = page(clip, damaged, split);
                 let later = later_streams(&doc);
@@ -6645,7 +6645,7 @@ fn an_image_whose_scope_closes_past_a_stream_not_read_whole_moves_alone() {
                 let first = first_stream(&doc);
                 assert!(first.starts_with("q 100 0 0 100 50 50 cm"), "{what}: nothing put at the scope's start: {first}");
 
-                if clip.contains("PdfCraftImageCrop") {
+                if clip.contains("VisionPDFImageCrop") {
                     let mut doc = page(clip, damaged, split);
                     let listed = contents(&doc);
                     let refused = images::change_image(&mut doc, 0, 0, &images::ImageChange::RemoveCrop).unwrap_err();
@@ -9728,9 +9728,9 @@ fn new_marks_isolate_state_appended_after_old_wrappers() {
     for dirt in ["0.5 0 0 0.5 0 0 cm", "0 0 200 200 re W n", "50 Tz", "5 Tc 20 Tw", "3 Tr", "/Pattern cs"] {
         for tag in ["", "OCR", "Wrap"] {
             let mut doc = isolation_fixture(&[
-                ("Wrap", "q %PdfCraft\n"),
+                ("Wrap", "q %VisionPDF\n"),
                 ("", "2 0 0 2 0 0 cm"),
-                ("Wrap", "Q %PdfCraft\n"),
+                ("Wrap", "Q %VisionPDF\n"),
                 ("Added", "q /PCProbe Do Q"),
                 (tag, dirt),
             ]);
@@ -9782,7 +9782,7 @@ fn new_marks_wrap_unbalanced_graphics_state_whole_without_changing_it() {
         place_tagged(&mut doc, &page, "Probe", b"q /PCProbe Do Q".to_vec(), false).unwrap();
         let after = streams(&doc, 0);
         assert_eq!(after.len(), 4, "{data}: {after:?}");
-        assert_eq!((after[0].as_str(), after[1].as_str()), ("q %PdfCraft\n", data), "{data}");
+        assert_eq!((after[0].as_str(), after[1].as_str()), ("q %VisionPDF\n", data), "{data}");
         // A `q` the content leaves open is closed after it, so the mark starts clean. A stray
         // `Q` pops the wrapper itself: nothing placed after it can undo that.
         let probe = probe_states_lenient(&doc);
@@ -9821,9 +9821,9 @@ fn new_marks_preserve_cross_stream_operands_and_q_pairs() {
 #[test]
 fn removing_marks_keeps_wrappers_needed_by_later_external_content() {
     let mut doc = isolation_fixture(&[
-        ("Wrap", "q %PdfCraft\n"),
+        ("Wrap", "q %VisionPDF\n"),
         ("", "2 0 0 2 0 0 cm"),
-        ("Wrap", "Q %PdfCraft\n"),
+        ("Wrap", "Q %VisionPDF\n"),
         ("HeaderFooter", "q /PCProbe Do Q"),
         ("", "/PCProbe Do"),
     ]);
@@ -9839,7 +9839,7 @@ fn new_marks_wrap_unfinished_text_paths_and_operands_whole() {
         let page = page_list(&doc).remove(0);
         place_tagged(&mut doc, &page, "Probe", b"q /PCProbe Do Q".to_vec(), false).unwrap();
         // The behind-mark stays outside the wrapper and the content itself is untouched.
-        assert_eq!(streams(&doc, 0), ["q Q", "q %PdfCraft\n", data, "\nQ %PdfCraft\n", "q /PCProbe Do Q"], "{data}");
+        assert_eq!(streams(&doc, 0), ["q Q", "q %VisionPDF\n", data, "\nQ %VisionPDF\n", "q /PCProbe Do Q"], "{data}");
     }
 }
 
@@ -9870,11 +9870,11 @@ fn removing_marks_does_not_strip_arbitrary_wrap_tagged_content() {
 #[test]
 fn removing_marks_strips_nested_trailing_wrapper_pairs() {
     let mut doc = isolation_fixture(&[
-        ("Wrap", "q %PdfCraft\n"),
-        ("Wrap", "q %PdfCraft\n"),
+        ("Wrap", "q %VisionPDF\n"),
+        ("Wrap", "q %VisionPDF\n"),
         ("", "2 0 0 2 0 0 cm"),
-        ("Wrap", "Q %PdfCraft\n"),
-        ("Wrap", "Q %PdfCraft\n"),
+        ("Wrap", "Q %VisionPDF\n"),
+        ("Wrap", "Q %VisionPDF\n"),
         ("HeaderFooter", "q Q"),
     ]);
     assert_eq!(remove_marks(&mut doc, &[0], MarkKind::HeaderFooter).unwrap(), 1);
@@ -12641,7 +12641,7 @@ fn remove_crop_preserves_cm_before_extgstate() {
     let bytes = page_content_bytes(&doc, 0);
     let s = String::from_utf8_lossy(&bytes);
     assert!(s.contains("W n"), "the author clipping path must remain: {s}");
-    assert!(!s.contains("PdfCraftImageCrop"), "the editor crop must be removed: {s}");
+    assert!(!s.contains("VisionPDFImageCrop"), "the editor crop must be removed: {s}");
     // Verify that the initial cm appears before /GS0 gs
     let cm_pos = s.find("2 0 0 2 0 0 cm").expect("cm must be preserved");
     let gs_pos = s.find("/GS0 gs").expect("gs must be preserved");
@@ -14425,13 +14425,13 @@ fn image_editing_frame_keeps_page_edge_outside_explicit_clips() {
     for (prefix, expected) in [
         ("", [-30.0, -20.0, 70.0, 80.0]),
         ("-10 -5 60 65 re W n ", [-10.0, -5.0, 50.0, 60.0]),
-        ("/PdfCraftImageCrop MP -10 -5 60 65 re W n ", [-10.0, -5.0, 50.0, 60.0]),
+        ("/VisionPDFImageCrop MP -10 -5 60 65 re W n ", [-10.0, -5.0, 50.0, 60.0]),
     ] {
         let doc = image_page_with(&format!("q {prefix}100 0 0 100 -30 -20 cm /Im0 Do Q"));
         for doc in [&doc, &reopen(&doc)] {
             let im = images::page_images(doc, 0).unwrap().remove(0);
             assert_eq!(im.frame_rect(), Some(expected));
-            assert_eq!(im.has_editor_crop(), prefix.starts_with("/PdfCraftImageCrop"));
+            assert_eq!(im.has_editor_crop(), prefix.starts_with("/VisionPDFImageCrop"));
             assert_eq!(im.visible_rect.unwrap()[0..2], [0.0, 0.0]);
             assert!(!im.contains([-5.0, 10.0]), "out-of-page pixels stay unselectable");
             assert!(im.contains([10.0, 10.0]));

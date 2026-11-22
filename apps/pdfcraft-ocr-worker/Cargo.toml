@@ -1,6 +1,6 @@
 [package]
 name = "pdfcraft-ocr-worker"
-description = "PdfCraft in the browser: the Web Worker that recognises text (wasm32; trunk builds it with pdfcraft-web)"
+description = "VisionPDF in the browser: the Web Worker that recognises text (wasm32; trunk builds it with pdfcraft-web)"
 version.workspace = true
 edition.workspace = true
 license.workspace = true

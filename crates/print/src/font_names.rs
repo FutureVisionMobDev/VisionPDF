@@ -7,11 +7,11 @@
 //! subset's glyph numbers but draws them with the installed font of the same name, so every letter
 //! prints as the installed glyph with that number: `Revisión de clientes,` in the bold subset comes
 //! out as `Wj{nxn s%ij%hqnjsyjx1`, its `z` as `Ä`. Both Brother queues and the Adobe PDF printer
-//! show it; PdfCraft's renderer, CUPS and Chrome on Windows draw the embedded program and are right.
+//! show it; VisionPDF's renderer, CUPS and Chrome on Windows draw the embedded program and are right.
 //!
-//! [`distinct`] renames each program to `PdfCraftPrint<n>`: the identity records of its `name`
+//! [`distinct`] renames each program to `VisionPDFPrint<n>`: the identity records of its `name`
 //! table, `/FontName` of its descriptors and `/BaseFont` of the fonts drawn with it (a subset keeps
-//! its tag, `AAAAAA+PdfCraftPrint1`). Glyphs, glyph numbers, cmaps, encodings, widths and
+//! its tag, `AAAAAA+VisionPDFPrint1`). Glyphs, glyph numbers, cmaps, encodings, widths and
 //! `/ToUnicode` are not touched, so pages draw and extract as before. A program that can't be
 //! read and rewritten keeps its old name everywhere.
 
@@ -76,7 +76,7 @@ impl Found {
         let descriptor = font.get(b"FontDescriptor")?;
         let (program, true_type) = doc.dict(descriptor).and_then(|d| program(doc, &d))?;
         let number = self.programs.len() + 1;
-        self.programs.entry(program).or_insert_with(|| Program { name: format!("PdfCraftPrint{number}"), true_type });
+        self.programs.entry(program).or_insert_with(|| Program { name: format!("VisionPDFPrint{number}"), true_type });
         if let Object::Ref(descriptor) = descriptor {
             self.descriptors.insert(*descriptor, program);
         }

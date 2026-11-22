@@ -10,7 +10,7 @@
 
 use std::sync::{Arc, Mutex, PoisonError};
 
-use crate::PdfCraftApp;
+use crate::VisionPDFApp;
 
 /// The recent files restored from settings that haven't been checked yet, and the check under way.
 #[derive(Debug, Default)]
@@ -42,10 +42,10 @@ fn gone(path: &str) -> bool {
     matches!(std::fs::exists(path), Ok(false))
 }
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     /// Start checking the recent files restored from settings, and drop the ones found gone so
     /// far (called each frame). The check runs on a worker thread, inline in tests
-    /// ([`PdfCraftApp::run_inline`]).
+    /// ([`VisionPDFApp::run_inline`]).
     pub(crate) fn check_restored_recent(&mut self) {
         let paths = std::mem::take(&mut self.recent_check.unchecked);
         // The web build's recent files aren't paths on a file system.
@@ -96,7 +96,7 @@ mod tests {
     /// listed (CodeRabbit on #5692).
     #[test]
     fn a_file_opened_while_the_check_is_pending_stays() {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.recent = vec![crate::state::RecentFile { name: "a.pdf".into(), path: "/gone/a.pdf".into(), pages: 1, size: 0 }];
         // The worker's answer is waiting: it found the file gone.
         app.recent_check.gone = Some(Arc::new(Mutex::new(vec!["/gone/a.pdf".to_string()])));

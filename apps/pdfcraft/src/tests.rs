@@ -166,12 +166,12 @@ fn the_window_and_windows_taskbar_icons_load_from_the_bundled_png() {
 fn a_software_renderer_is_shown_to_the_user() {
     use eframe::wgpu::DeviceType;
     // Issue #519: WARP or llvmpipe is announced in the app, not just in pdfcraft.log.
-    let mut app = super::PdfCraftApp::new();
+    let mut app = super::VisionPDFApp::new();
     super::notify_software_renderer(&mut app, DeviceType::Cpu);
     let notice = app.toast.as_ref().map(|(m, _)| m.as_str()).unwrap_or_default();
     assert!(notice.contains("without a graphics processor"), "{notice:?}");
     for gpu in [DeviceType::IntegratedGpu, DeviceType::DiscreteGpu, DeviceType::VirtualGpu, DeviceType::Other] {
-        let mut app = super::PdfCraftApp::new();
+        let mut app = super::VisionPDFApp::new();
         super::notify_software_renderer(&mut app, gpu);
         assert!(app.toast.is_none(), "{gpu:?}: {:?}", app.toast);
     }
@@ -334,8 +334,8 @@ fn vendor_provenance_egui_wgpu_surface_fit_identity() {
 fn a_gpu_error_while_a_window_is_set_up_is_returned_not_a_panic() {
     // Issue #519: on a 2015 Intel GPU, wgpu's GL backend couldn't configure the window's
     // surface (`GpuWaitTimeout`), and wgpu's default error handler panicked before the app was
-    // created, so PdfCraft never got to retry with OpenGL. vendor/egui-wgpu configures a new
-    // window's surface inside `catch_errors`. A real device on PdfCraft's own GPU settings,
+    // created, so VisionPDF never got to retry with OpenGL. vendor/egui-wgpu configures a new
+    // window's surface inside `catch_errors`. A real device on VisionPDF's own GPU settings,
     // and an error wgpu raises before anything reaches the driver: a texture one pixel wider
     // than the device allows.
     use eframe::wgpu;
@@ -447,7 +447,7 @@ fn winit_carries_the_windows_11_monitor_scale_fix() {
     // The audited W1 hunk itself, not merely the file's presence: Windows 11 applies the
     // rect Windows suggests, while Windows 10 keeps the old adjustment.
     for marker in [
-        "PdfCraft patch: from Windows 11 (build 22000) on, apply the rect Windows suggests",
+        "VisionPDF patch: from Windows 11 (build 22000) on, apply the rect Windows suggests",
         "if !WIN10_BUILD_VERSION.is_some_and(|build| build < 22000) {",
         "new_outer_rect = suggested_rect;",
     ] {
@@ -719,7 +719,7 @@ fn writing_the_control_file_looks_up_the_users_sid_once() {
 /// so it has to be the class the window carries: the app id, on Wayland and X11 alike.
 #[test]
 fn the_desktop_entry_names_the_window_class() {
-    let entry = include_str!("../../../packaging/linux/ai.storyteller.pdfcraft.desktop");
+    let entry = include_str!("../../../packaging/linux/com.futurevision.visionpdf.desktop");
     let class = entry.lines().find_map(|line| line.strip_prefix("StartupWMClass="));
     assert_eq!(class, Some(super::APP_ID));
 }
@@ -733,7 +733,7 @@ fn the_flatpak_manifests_pin_the_craft_i18n_rev() {
     let rev = std::fs::read_to_string(root.join("craft-i18n.rev")).unwrap();
     let rev = rev.trim();
     assert!(rev.len() == 40 && rev.bytes().all(|b| b.is_ascii_hexdigit()), "craft-i18n.rev holds one full SHA: {rev:?}");
-    for manifest in ["ai.storyteller.pdfcraft.yml", "ai.storyteller.pdfcraft.bundle.yml"] {
+    for manifest in ["com.futurevision.visionpdf.yml", "com.futurevision.visionpdf.bundle.yml"] {
         let text = std::fs::read_to_string(root.join("packaging/linux/flatpak").join(manifest)).unwrap();
         let source =
             text.split("url: https://github.com/storytold/craft-i18n").nth(1).unwrap_or_else(|| panic!("{manifest}: a craft-i18n git source"));

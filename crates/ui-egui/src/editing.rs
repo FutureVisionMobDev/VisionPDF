@@ -4,7 +4,7 @@
 use pdfcraft_engine::Edit;
 use pdfcraft_platform::staging::{StagingName, staging_suffixes};
 
-use crate::PdfCraftApp;
+use crate::VisionPDFApp;
 
 mod close;
 mod save;
@@ -168,7 +168,7 @@ fn form_edit_pages(
     (changed_pages, unbaked)
 }
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     /// Apply an edit to the active document. Returns `true` on success; failures are shown.
     pub fn apply_edit(&mut self, edit: Edit) -> bool {
         let Some((i, id)) = self.active_ids() else { return false };
@@ -1296,7 +1296,7 @@ fn is_form_edit(edit: &Edit) -> bool {
     )
 }
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     /// Carry out a Bookmarks-panel action as an undoable edit.
     pub fn bookmark_action(&mut self, action: crate::panels::BmAction) {
         use crate::panels::BmAction as A;
@@ -1376,7 +1376,7 @@ impl PdfCraftApp {
     }
 }
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     /// Put the bookmark at `path` and its subtree on the bookmark clipboard. `Some(true)` when
     /// bookmarks nested too deep to list were left out; `None` if it could not be read (the reason
     /// is shown).
@@ -1469,13 +1469,13 @@ mod revert_draft_tests {
         }
     }
 
-    fn app() -> PdfCraftApp {
-        let mut app = PdfCraftApp::new();
+    fn app() -> VisionPDFApp {
+        let mut app = VisionPDFApp::new();
         app.open_bytes("source.pdf", None, include_bytes!("../tests/data/form.pdf").to_vec()).unwrap();
         app
     }
 
-    fn queue_draft(app: &mut PdfCraftApp, index: usize, text: &str) {
+    fn queue_draft(app: &mut VisionPDFApp, index: usize, text: &str) {
         app.views[index].forms.focus = Some(focus(text));
         let form = app.session.get(app.views[index].id).unwrap().form.clone();
         crate::forms_ui::commit(&mut app.views[index], &form);
@@ -1524,7 +1524,7 @@ mod revert_draft_tests {
         }
         let mut app = app();
         let fill =
-            |app: &mut PdfCraftApp, text: &str| app.apply_edit(Edit::SetFieldValue { name: "name".into(), value: FieldValue::Text(text.into()) });
+            |app: &mut VisionPDFApp, text: &str| app.apply_edit(Edit::SetFieldValue { name: "name".into(), value: FieldValue::Text(text.into()) });
         assert!(fill(&mut app, "张三"));
         let toast = app.toast.as_ref().map(|t| t.0.clone()).expect("a notice");
         assert!(toast.contains("“张” (U+5F20)") && toast.contains("other PDF viewers redraw the field"), "{toast}");
@@ -1591,7 +1591,7 @@ mod revert_draft_tests {
             let path = dir.join("source.pdf").to_string_lossy().into_owned();
             let bytes = include_bytes!("../tests/data/form.pdf").to_vec();
             std::fs::write(&path, &bytes).unwrap();
-            let mut app = PdfCraftApp::new();
+            let mut app = VisionPDFApp::new();
             app.open_bytes("source.pdf", Some(path.clone()), bytes).unwrap();
             let rect = [72.0, 72.0, 272.0, 92.0];
             app.views[0].content.draft = Some(TextDraft {
@@ -1614,7 +1614,7 @@ mod revert_draft_tests {
             app.resolve_close(&ctx, Some(true));
             assert!(app.views.is_empty(), "the tab closes once saved");
 
-            let mut reopened = PdfCraftApp::new();
+            let mut reopened = VisionPDFApp::new();
             reopened.open_bytes("source.pdf", Some(path.clone()), std::fs::read(&path).unwrap()).unwrap();
             let doc = reopened.session.get(reopened.views[0].id).unwrap();
             assert!(doc.added().iter().any(|a| matches!(&a.content, AddedContent::Text(t) if t.text == "Typed")), "quit: {quit}");
@@ -1626,10 +1626,10 @@ mod revert_draft_tests {
     /// is the saved one again, and nothing changes it after.
     #[test]
     fn revert_runs_no_exit_for_the_field_that_had_the_focus() {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.open_bytes("focus.pdf", None, pdfcraft_xfa::fixtures::shell(&pdfcraft_xfa::fixtures::focus_template())).unwrap();
         let id = app.views[0].id;
-        let count = |app: &PdfCraftApp, name: &str| {
+        let count = |app: &VisionPDFApp, name: &str| {
             app.session.get(id).unwrap().form.iter().find(|f| f.name == name).and_then(|f| f.value.first().cloned()).unwrap_or_default()
         };
         app.views[0].forms.focus = Some(Focus { name: "probe".into(), ..focus("") });
@@ -1646,9 +1646,9 @@ mod revert_draft_tests {
     /// field) runs them before anything reads the document: `hint`'s enter clears its "Type here".
     #[test]
     fn committing_the_form_runs_the_focus_scripts_of_a_move_not_yet_run() {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.open_bytes("focus.pdf", None, pdfcraft_xfa::fixtures::shell(&pdfcraft_xfa::fixtures::focus_template())).unwrap();
-        let hint = |app: &PdfCraftApp| {
+        let hint = |app: &VisionPDFApp| {
             app.session
                 .get(app.views[0].id)
                 .unwrap()
@@ -1690,7 +1690,7 @@ mod revert_draft_tests {
         }
         pdf.extend_from_slice(format!("trailer\n<< /Size {} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n", objs.len() + 1).as_bytes());
         for (typed, shown) in [(false, "new"), (true, "typed")] {
-            let mut app = PdfCraftApp::new();
+            let mut app = VisionPDFApp::new();
             app.open_bytes("hot.pdf", None, pdf.clone()).unwrap();
             let hot = app.session.get(app.views[0].id).unwrap().form.iter().find(|f| f.name == "hot").unwrap().obj;
             let text = if typed { "typed" } else { "old" };
@@ -1781,11 +1781,11 @@ mod content_page_tests {
 #[cfg(test)]
 mod attention_tests {
     use super::CloseRequest;
-    use crate::PdfCraftApp;
+    use crate::VisionPDFApp;
 
     /// The attention requests one frame of `attend_save_prompt` sends, with the window `focused`
     /// or not.
-    fn attend(app: &mut PdfCraftApp, ctx: &egui::Context, focused: bool) -> Vec<egui::UserAttentionType> {
+    fn attend(app: &mut VisionPDFApp, ctx: &egui::Context, focused: bool) -> Vec<egui::UserAttentionType> {
         let mut out = ctx.run_ui(egui::RawInput { focused, ..Default::default() }, |ui| app.attend_save_prompt(ui.ctx()));
         // The frame's font texture isn't uploaded anywhere in a unit test.
         out.textures_delta.clear();
@@ -1801,7 +1801,7 @@ mod attention_tests {
     #[test]
     fn a_save_finishing_behind_a_newer_question_the_user_saw_asks_for_nothing() {
         let ctx = egui::Context::default();
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         for name in ["a.pdf", "b.pdf", "c.pdf"] {
             let bytes = app.session.create_blank(200.0, 300.0, 1).unwrap();
             app.open_bytes(name, None, bytes.as_ref().clone()).unwrap();

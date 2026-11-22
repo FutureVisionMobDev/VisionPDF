@@ -6,9 +6,9 @@ use std::collections::BTreeMap;
 
 use pdfcraft_engine::find_replace::{Replace, Replacement, Which};
 
-use crate::PdfCraftApp;
+use crate::VisionPDFApp;
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     /// Replace the find bar's highlighted match (`all` false) or every match in the document, in
     /// view `i`, with its Replace field's text.
     pub(crate) fn replace_found(&mut self, i: usize, all: bool) {

@@ -13,7 +13,7 @@ use pdfcraft_engine::optimizer::{OptimizeStage, Optimized};
 use pdfcraft_engine::{DocId, EditError, Hidden, OptimizeReport};
 
 use crate::theme::{self, Tokens};
-use crate::{PdfCraftApp, widgets};
+use crate::{VisionPDFApp, widgets};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum OptimizeTab {
@@ -362,7 +362,7 @@ pub(crate) fn audit_table(ui: &mut egui::Ui, rows: &[pdfcraft_engine::optimize::
     });
 }
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     /// Measure the active document's space use, unless `space_audit` already describes it as
     /// it is now. With no document the audit is empty.
     pub(crate) fn refresh_space_audit(&mut self) {
@@ -500,7 +500,7 @@ mod tests {
         let progress = Arc::new(Mutex::new(OptimizeProgress { stage: OptimizeStage::Images { done: 3, total: 10 }, ..Default::default() }));
         let p = progress.clone();
         let mut h = Harness::builder().with_size(egui::vec2(1200.0, 800.0)).build_eframe(move |_cc| {
-            let mut app = PdfCraftApp::new();
+            let mut app = VisionPDFApp::new();
             app.set_option("language", "en").unwrap();
             app.open_bytes("notes.txt", None, b"hello".to_vec()).unwrap();
             let (_, doc) = app.active_ids().unwrap();
@@ -533,7 +533,7 @@ mod tests {
 
     #[test]
     fn the_progress_card_says_what_is_happening() {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         assert_eq!(stage_label(OptimizeStage::default()), "Optimizing… reading the pages");
         assert_eq!(stage_label(OptimizeStage::Reading { done: 11, total: 51 }), "Optimizing… reading page 12 of 51");
@@ -543,7 +543,7 @@ mod tests {
 
     #[test]
     fn a_second_run_is_refused_while_one_is_going() {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("notes.txt", None, b"hello".to_vec()).unwrap();
         let (_, doc) = app.active_ids().unwrap();
@@ -554,7 +554,7 @@ mod tests {
 
     #[test]
     fn optimize_and_enhance_scanned_file_do_not_run_at_once() {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("notes.txt", None, b"hello".to_vec()).unwrap();
         let (_, doc) = app.active_ids().unwrap();

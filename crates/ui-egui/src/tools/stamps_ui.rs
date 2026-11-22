@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use crate::canvas::{DocView, PageToolContext};
 use crate::page_cursor::Layer;
 use crate::theme::{self, Tokens};
-use crate::{Dialog, PdfCraftApp, QuickTool, widgets};
+use crate::{Dialog, VisionPDFApp, QuickTool, widgets};
 
 /// Stamp files larger than this aren't kept in the library (it lives in the app's settings).
 pub const MAX_STAMP_BYTES: usize = 4 << 20;
@@ -121,7 +121,7 @@ pub struct StampDraft {
     pub line: String,
 }
 
-pub(crate) fn create_body(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens) -> (bool, bool) {
+pub(crate) fn create_body(ui: &mut egui::Ui, app: &mut VisionPDFApp, t: &Tokens) -> (bool, bool) {
     let categories: Vec<String> = {
         let mut c: Vec<String> = app.custom_stamps.iter().map(|s| s.category.clone()).collect();
         c.sort();
@@ -174,7 +174,7 @@ pub(crate) fn create_body(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens) 
 }
 
 /// The Custom stamps section of the stamps palette.
-pub(crate) fn palette_section(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens) {
+pub(crate) fn palette_section(app: &mut VisionPDFApp, ui: &mut egui::Ui, t: &Tokens) {
     widgets::section_title(ui, tl!("Custom"));
     let mut remove = None;
     let mut categories: Vec<String> = app.custom_stamps.iter().map(|s| s.category.clone()).collect();
@@ -206,7 +206,7 @@ pub(crate) fn palette_section(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Toke
     }
 }
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     /// Create ▸ choose a PDF or an image for a new custom stamp.
     pub(crate) fn pick_stamp_file(&mut self) {
         #[cfg(not(target_arch = "wasm32"))]

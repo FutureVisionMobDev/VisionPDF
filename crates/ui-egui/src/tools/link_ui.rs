@@ -11,7 +11,7 @@ use crate::page_cursor::Layer;
 use crate::page_keys::PageKeys;
 use crate::page_router::{Hit, Owner};
 use crate::theme::{self, Tokens};
-use crate::{PdfCraftApp, QuickTool, widgets};
+use crate::{VisionPDFApp, QuickTool, widgets};
 
 const LINK_BLUE: Color32 = Color32::from_rgb(0x14, 0x73, 0xE6);
 /// How far around a link (screen points) the Link tool finds it, so a thin one can be picked.
@@ -232,7 +232,7 @@ pub(crate) fn keys(ctx: &egui::Context, keys: PageKeys, view: &mut DocView) {
     }
 }
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     /// Open Link Properties for a new link area or an existing link.
     pub(crate) fn open_link_props(&mut self, page: usize, rect: Option<[f64; 4]>, index: Option<usize>) {
         let Some((_, id)) = self.active_ids() else { return };
@@ -487,7 +487,7 @@ mod tests {
     #[test]
     fn a_zoom_label_stays_short_for_any_factor() {
         assert_eq!(zoom_label(LinkZoom::Percent(200.0)), "200%");
-        // The destination's own zoom, past what PdfCraft writes, is shown as it is.
+        // The destination's own zoom, past what VisionPDF writes, is shown as it is.
         assert_eq!(zoom_label(LinkZoom::Percent(10000.0)), "10000%");
         assert_eq!(zoom_label(LinkZoom::Percent(f64::MAX)), "1.8e308%");
         // A fractional zoom keeps its places instead of rounding to 0%.

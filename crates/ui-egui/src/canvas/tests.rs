@@ -1088,7 +1088,7 @@ fn text_pages_pdf(lines: &[&str]) -> Vec<u8> {
 /// in page order, reading the pages whose text wasn't read for display.
 #[test]
 fn select_all_copies_the_whole_document_while_scrolling_continuously() {
-    let mut app = PdfCraftApp::new();
+    let mut app = VisionPDFApp::new();
     app.open_bytes("three.pdf", None, text_pages_pdf(&["Alpha one", "Bravo two", "Charlie three"])).unwrap();
     let v = &mut app.views[0];
     assert!(v.continuous, "continuous scrolling is the default");
@@ -1137,7 +1137,7 @@ fn select_all_copies_the_whole_document_while_scrolling_continuously() {
 /// those that failed before.
 #[test]
 fn a_document_copy_reads_only_the_pages_it_needs() {
-    let mut app = PdfCraftApp::new();
+    let mut app = VisionPDFApp::new();
     app.open_bytes("three.pdf", None, text_pages_pdf(&["Alpha one", "Bravo two", "Charlie three"])).unwrap();
     app.views[0].text_failed.insert(2);
     let job = crate::DocumentCopyJob::of(&app.views[0], app.session.get(app.views[0].id).unwrap());
@@ -1150,7 +1150,7 @@ fn a_document_copy_reads_only_the_pages_it_needs() {
 /// copied after it started, from the page or anywhere else (a text field, a comment).
 #[test]
 fn a_later_copy_cancels_a_document_copy_still_reading() {
-    let mut app = PdfCraftApp::new();
+    let mut app = VisionPDFApp::new();
     app.open_bytes("three.pdf", None, text_pages_pdf(&["Alpha one", "Bravo two", "Charlie three"])).unwrap();
     let ctx = egui::Context::default();
     // Another copy in the same frame (here a text field's) drops it.
@@ -1184,7 +1184,7 @@ fn a_later_copy_cancels_a_document_copy_still_reading() {
 #[test]
 fn a_press_on_a_page_ends_select_all_of_the_document() {
     let mut h = egui_kittest::Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.open_bytes("three.pdf", None, text_pages_pdf(&["Alpha one", "Bravo two", "Charlie three"])).unwrap();
         app
     });
@@ -1225,7 +1225,7 @@ fn a_press_on_a_page_ends_select_all_of_the_document() {
 /// cancelled copy gives nothing (a new copy or a closed document cancels the old one).
 #[test]
 fn a_document_copy_reads_in_page_order_and_stops_when_cancelled() {
-    let mut app = PdfCraftApp::new();
+    let mut app = VisionPDFApp::new();
     app.open_bytes("three.pdf", None, text_pages_pdf(&["Alpha one", "Bravo two", "Charlie three"])).unwrap();
     // The middle page's text read for display already; the others read by the copy.
     let doc = app.session.get(app.views[0].id).unwrap();
@@ -1543,7 +1543,7 @@ fn solid_result(request: RenderRequest, w: u32, h: u32) -> pdfcraft_render::Rend
 fn replacing_a_page_after_layout_never_uploads_an_oversized_texture() {
     let ctx = egui::Context::default();
     ctx.input_mut(|i| i.max_texture_side = 2048);
-    let mut app = PdfCraftApp::new();
+    let mut app = VisionPDFApp::new();
     let original = app.session.create_blank(200.0, 300.0, 1).unwrap();
     let replacement = app.session.create_blank(400.0, 500.0, 1).unwrap();
     app.open_bytes("original.pdf", None, original.as_ref().clone()).unwrap();
@@ -2149,7 +2149,7 @@ fn thumbnail_tags_do_not_change_as_a_row_scrolls_in_or_out() {
 #[test]
 fn many_open_documents_share_one_raster_allowance_and_close_releases_handles() {
     let ctx = egui::Context::default();
-    let mut app = PdfCraftApp::new();
+    let mut app = VisionPDFApp::new();
     let bytes = app.session.create_blank(612.0, 792.0, 1).unwrap();
     let mut expected = Vec::new();
     for index in 0..6 {
@@ -2272,7 +2272,7 @@ fn suspending_a_view_releases_owned_raster_textures_and_queue_state() {
 #[test]
 fn edit_text_boxes_stay_drawn_while_page_input_is_blocked() {
     let mut h = egui_kittest::Harness::builder().with_size(vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         let bytes = app.session.create_blank(300.0, 400.0, 1).unwrap();
         app.open_bytes("blank.pdf", None, bytes.as_ref().clone()).unwrap();
         app.quick_tool = QuickTool::EditText;
@@ -2296,7 +2296,7 @@ fn a_cut_page_is_named_beside_an_xfa_form_notice() {
     use egui_kittest::kittest::Queryable;
 
     let mut h = egui_kittest::Harness::builder().with_size(vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         let bytes = pdfcraft_xfa::fixtures::static_shell("<form1><page1><name>Ada</name></page1></form1>");
         app.open_bytes("form.pdf", None, bytes).unwrap();
@@ -2306,7 +2306,7 @@ fn a_cut_page_is_named_beside_an_xfa_form_notice() {
     h.get_by_label_contains("XFA data are kept in step");
     h.state_mut().views[0].cut_pages.insert(0);
     h.run_steps(2);
-    h.get_by_label_contains("Page 1 holds more content than PdfCraft can read");
+    h.get_by_label_contains("Page 1 holds more content than VisionPDF can read");
     h.get_by_label_contains("XFA data are kept in step");
 }
 
@@ -2317,7 +2317,7 @@ fn a_page_found_cut_after_a_dismissal_is_still_named() {
     use egui_kittest::kittest::Queryable;
 
     let mut h = egui_kittest::Harness::builder().with_size(vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         let bytes = app.session.create_blank(300.0, 400.0, 2).unwrap();
         app.open_bytes("blank.pdf", None, bytes.as_ref().clone()).unwrap();
@@ -2328,7 +2328,7 @@ fn a_page_found_cut_after_a_dismissal_is_still_named() {
     h.state_mut().views[0].notice_dismissed = true;
     h.state_mut().views[0].cut_pages.insert(0);
     h.run_steps(2);
-    h.get_by_label_contains("Page 1 holds more content than PdfCraft can read");
+    h.get_by_label_contains("Page 1 holds more content than VisionPDF can read");
     h.get_by_label("Dismiss").click();
     h.run_steps(2);
     assert!(h.query_by_label_contains("holds more content").is_none(), "the cut-page notice can be dismissed");
@@ -2339,7 +2339,7 @@ fn a_page_found_cut_after_a_dismissal_is_still_named() {
     assert!(h.query_by_label_contains("holds more content").is_none(), "the dismissed page stays dismissed");
     h.state_mut().views[0].cut_pages.insert(1);
     h.run_steps(2);
-    h.get_by_label_contains("2 pages hold more content than PdfCraft can read, page 1 first");
+    h.get_by_label_contains("2 pages hold more content than VisionPDF can read, page 1 first");
 }
 
 /// Ctrl+wheel zooms a visible window that another application has focus over, as plain
@@ -2347,7 +2347,7 @@ fn a_page_found_cut_after_a_dismissal_is_still_named() {
 #[test]
 fn ctrl_wheel_zooms_an_unfocused_window() {
     let mut h = egui_kittest::Harness::builder().with_size(vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         let bytes = app.session.create_blank(300.0, 400.0, 1).unwrap();
         app.open_bytes("blank.pdf", None, bytes.as_ref().clone()).unwrap();
         app
@@ -2381,7 +2381,7 @@ fn virtualized_organizer_keeps_insert_gaps_at_document_positions() {
     use egui_kittest::kittest::Queryable;
 
     let mut h = egui_kittest::Harness::builder().with_size(vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         let bytes = app.session.create_blank(300.0, 400.0, 100).unwrap();
         app.open_bytes("organize-gaps.pdf", None, bytes.as_ref().clone()).unwrap();
         app.views[0].organize = true;
@@ -2412,7 +2412,7 @@ fn virtualized_organizer_keeps_insert_gaps_at_document_positions() {
 #[test]
 fn real_shell_pages_organizer_and_print_only_collect_current_thumbnail_consumers() {
     let mut h = egui_kittest::Harness::builder().with_size(vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         let bytes = app.session.create_blank(612.0, 792.0, 10_000).unwrap();
         app.open_bytes("synthetic-ten-thousand.pdf", None, bytes.as_ref().clone()).unwrap();
         app.right = Some(RightPanel::Pages);
@@ -2800,14 +2800,14 @@ fn a_moved_picture_is_drawn_from_the_fresh_raster_while_a_tile_is_still_stale() 
     }
     bytes.extend_from_slice(format!("trailer\n<< /Size {} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n", objs.len() + 1).as_bytes());
     let mut h = egui_kittest::Harness::builder().with_size(vec2(1400.0, 1100.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("picture.pdf", None, bytes.clone()).unwrap();
         app.set_option("zoom", "100").unwrap();
         app.quick_tool = QuickTool::EditText;
         app
     });
-    let settle = |h: &mut egui_kittest::Harness<'static, PdfCraftApp>| {
+    let settle = |h: &mut egui_kittest::Harness<'static, VisionPDFApp>| {
         for _ in 0..400 {
             h.step();
             if !h.state().render_pending() {
@@ -2829,7 +2829,7 @@ fn a_moved_picture_is_drawn_from_the_fresh_raster_while_a_tile_is_still_stale() 
     };
     let (old, new) = (Rect::from_two_pos(at(42.0, 262.0), at(98.0, 318.0)), Rect::from_two_pos(at(182.0, 82.0), at(238.0, 138.0)));
     // Select the picture and drag it, without overlap, from (40, 260) to (180, 80).
-    let drag = |h: &mut egui_kittest::Harness<'static, PdfCraftApp>, from: Pos2, to: Pos2, release: bool| {
+    let drag = |h: &mut egui_kittest::Harness<'static, VisionPDFApp>, from: Pos2, to: Pos2, release: bool| {
         h.hover_at(from);
         h.run_steps(1);
         h.drag_at(from);
@@ -3403,7 +3403,7 @@ fn enhancing_a_scan_re_renders_the_page_shown() {
         )
         .as_bytes(),
     );
-    let mut app = PdfCraftApp::new();
+    let mut app = VisionPDFApp::new();
     app.open_bytes("scan.pdf", None, pdf).unwrap();
     let (i, doc) = app.active_ids().unwrap();
     let ctx = egui::Context::default();
@@ -3445,7 +3445,7 @@ fn only_pixel_snapping_passes_for_fitting_the_view() {
 /// page has selected.
 #[test]
 fn a_selection_across_pages_still_to_be_read_is_copied_once_read() {
-    let mut app = PdfCraftApp::new();
+    let mut app = VisionPDFApp::new();
     app.open_bytes("three.pdf", None, text_pages_pdf(&["Alpha one", "Bravo two", "Charlie three"])).unwrap();
     // From the second glyph of page 1 to the first of page 3, no page read yet.
     app.views[0].selection = Some(Selection { page: 0, span: Span::Run { anchor: 1, head: 0, head_page: 2, head_x: None } });
@@ -3483,7 +3483,7 @@ fn a_selection_across_pages_still_to_be_read_is_copied_once_read() {
 /// rather than leave that page unmarked, and says why; markup tools mark the readable pages.
 #[test]
 fn redaction_refuses_a_selection_over_an_unreadable_page() {
-    let mut app = PdfCraftApp::new();
+    let mut app = VisionPDFApp::new();
     app.open_bytes("three.pdf", None, text_pages_pdf(&["Alpha one", "Bravo two", "Charlie three"])).unwrap();
     let info = app.session.get(app.views[0].id).unwrap().info.clone();
     let v = &mut app.views[0];
@@ -3574,12 +3574,12 @@ fn a_wait_ends_when_the_selection_changes() {
 /// change to a page the selection covers, ends the selection, and the wait goes with it.
 #[test]
 fn waiting_marks_are_dropped_when_their_pages_change() {
-    let mut app = PdfCraftApp::new();
+    let mut app = VisionPDFApp::new();
     app.open_bytes("three.pdf", None, text_pages_pdf(&["Alpha one", "Bravo two", "Charlie three"])).unwrap();
     let id = app.views[0].id;
-    let info = |app: &PdfCraftApp| app.session.get(id).unwrap().info.clone();
+    let info = |app: &VisionPDFApp| app.session.get(id).unwrap().info.clone();
     let sel = Selection { page: 0, span: Span::Run { anchor: 1, head: 1, head_page: 2, head_x: None } };
-    let wait = |app: &mut PdfCraftApp| {
+    let wait = |app: &mut VisionPDFApp| {
         let info = info(app);
         let v = &mut app.views[0];
         v.texts.clear();
@@ -3605,7 +3605,7 @@ fn waiting_marks_are_dropped_when_their_pages_change() {
     let redactions = app.session.get(id).unwrap().redaction_marks();
     assert_eq!(redactions, 0);
     // A change to one page the selection covers (a comment added on it) ends it too.
-    let mut app = PdfCraftApp::new();
+    let mut app = VisionPDFApp::new();
     app.open_bytes("three.pdf", None, text_pages_pdf(&["Alpha one", "Bravo two", "Charlie three"])).unwrap();
     let id = app.views[0].id;
     wait(&mut app);

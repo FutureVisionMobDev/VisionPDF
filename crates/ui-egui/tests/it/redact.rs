@@ -4,11 +4,11 @@
 use egui::Pos2;
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::{Dialog, PdfCraftApp, SaveTarget};
+use pdfcraft_ui_egui::{Dialog, VisionPDFApp, SaveTarget};
 
-fn harness() -> Harness<'static, PdfCraftApp> {
+fn harness() -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("form.pdf", None, include_bytes!("../data/form.pdf").to_vec()).unwrap();
         app.set_option("zoom", "150").unwrap();
@@ -18,13 +18,13 @@ fn harness() -> Harness<'static, PdfCraftApp> {
     h
 }
 
-fn at(h: &Harness<'static, PdfCraftApp>, x: f32, y: f32) -> Pos2 {
+fn at(h: &Harness<'static, VisionPDFApp>, x: f32, y: f32) -> Pos2 {
     let r = h.state().views[0].page_screen_rect(0).expect("on screen");
     let k = r.width() / 300.0;
     r.min + egui::vec2(x * k, y * k)
 }
 
-fn marks(h: &Harness<'static, PdfCraftApp>) -> usize {
+fn marks(h: &Harness<'static, VisionPDFApp>) -> usize {
     let s = h.state();
     s.session.get(s.views[0].id).unwrap().redaction_marks()
 }
@@ -87,7 +87,7 @@ fn saving_after_applying_redactions_asks_where() {
     std::fs::write(&original, &source).unwrap();
     let path = original.to_string_lossy().into_owned();
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_path(&path);
         app
@@ -129,7 +129,7 @@ fn undoing_saved_redactions_does_not_save_over_the_redacted_copy() {
     std::fs::write(&original, include_bytes!("../data/form.pdf")).unwrap();
     let path = original.to_string_lossy().into_owned();
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_path(&path);
         app
@@ -186,7 +186,7 @@ fn redoing_a_new_apply_after_undoing_saved_redactions_still_asks_where() {
     std::fs::write(&original, include_bytes!("../data/form.pdf")).unwrap();
     let path = original.to_string_lossy().into_owned();
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_path(&path);
         app
@@ -241,7 +241,7 @@ fn undoing_delivered_redactions_asks_where() {
     std::fs::write(&original, include_bytes!("../data/form.pdf")).unwrap();
     let path = original.to_string_lossy().into_owned();
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_path(&path);
         app
@@ -291,7 +291,7 @@ fn delivered_redactions_save_in_place() {
     std::fs::write(&original, include_bytes!("../data/form.pdf")).unwrap();
     let path = original.to_string_lossy().into_owned();
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_path(&path);
         app
@@ -322,13 +322,13 @@ fn undoing_saved_redactions_while_the_save_dialog_is_open_asks_again() {
     std::fs::write(&original, include_bytes!("../data/form.pdf")).unwrap();
     let path = original.to_string_lossy().into_owned();
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_path(&path);
         app
     });
     crate::support::settle(&mut h);
-    let apply = |h: &mut Harness<'static, PdfCraftApp>| {
+    let apply = |h: &mut Harness<'static, VisionPDFApp>| {
         h.state_mut().execute("redact.pages");
         h.run_steps(2);
         h.get_by_label("OK").click();
@@ -372,7 +372,7 @@ fn undoing_apply_redactions_while_the_save_dialog_is_open_asks_again() {
     std::fs::write(&original, include_bytes!("../data/form.pdf")).unwrap();
     let path = original.to_string_lossy().into_owned();
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_path(&path);
         app
@@ -410,7 +410,7 @@ fn undoing_apply_redactions_saves_in_place_again() {
     std::fs::write(&original, include_bytes!("../data/form.pdf")).unwrap();
     let path = original.to_string_lossy().into_owned();
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_path(&path);
         app
@@ -458,7 +458,7 @@ fn reverting_after_apply_redactions_saves_in_place_again() {
     std::fs::write(&original, include_bytes!("../data/form.pdf")).unwrap();
     let path = original.to_string_lossy().into_owned();
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_path(&path);
         app
@@ -543,7 +543,7 @@ fn redaction_properties_survive_a_restart() {
     h.get_by_label("OK").click();
     h.run_steps(2);
     let json = h.state().persist();
-    let mut fresh = PdfCraftApp::new();
+    let mut fresh = VisionPDFApp::new();
     fresh.restore(&json);
     let p = &fresh.redact_prefs;
     assert_eq!(p.fill, None, "no colour is a saved choice, not a missing one");
@@ -559,7 +559,7 @@ fn redaction_properties_survive_a_restart() {
     assert_eq!((a.style.color, a.style.opacity, a.style.fill), ([0.0, 0.5, 0.0], 0.4, None));
     // Settings are untrusted: a bad colour, an unknown code set and a code outside the set are
     // dropped, the rest kept.
-    let mut odd = PdfCraftApp::new();
+    let mut odd = VisionPDFApp::new();
     odd.restore(
         r#"{"redact_prefs":{"outline":[2,0,0],"opacity":0.7,"code_set":"nope","codes":["(b)(6)","bogus"],"use_overlay":true,"use_code":true}}"#,
     );
@@ -588,7 +588,7 @@ fn redaction_properties_for_this_run_only_and_cancel() {
     h.run_steps(2);
     assert_eq!(h.state().redact_prefs.outline, [0.0, 0.0, 1.0], "used for this run");
     assert_eq!(h.state().redact_defaults.outline, [0.89, 0.13, 0.13], "not made the default");
-    let mut fresh = PdfCraftApp::new();
+    let mut fresh = VisionPDFApp::new();
     fresh.restore(&h.state().persist());
     assert_eq!(fresh.redact_prefs.outline, [0.89, 0.13, 0.13], "the next run starts from the saved defaults");
     // Cancel discards the edits made while the dialog was open.
@@ -605,7 +605,7 @@ fn redaction_properties_for_this_run_only_and_cancel() {
 fn redacting_an_imported_word_list() {
     let memo = pdfcraft_engine::Session::new().create_from_text("memo", "Call Ada today\nAda is private\nPublic line").unwrap().to_vec();
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("memo.pdf", None, memo.clone()).unwrap();
         app
@@ -632,7 +632,7 @@ fn redacting_an_imported_word_list() {
 fn redaction_search_can_match_case_and_whole_words() {
     let memo = pdfcraft_engine::Session::new().create_from_text("memo", "Ada ada Adaline\nAda beta betamax").unwrap().to_vec();
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("memo.pdf", None, memo.clone()).unwrap();
         app
@@ -711,7 +711,7 @@ fn bookmarked_pdf() -> Vec<u8> {
 #[test]
 fn applying_says_where_the_removed_text_is_still_held() {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("bluefin.pdf", None, bookmarked_pdf()).unwrap();
         app
@@ -765,7 +765,7 @@ fn applying_says_the_pdfa_identification_was_written_back() {
     }
     bytes.extend_from_slice(format!("trailer\n<< /Size {} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n", objs.len() + 1).as_bytes());
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("pdfa.pdf", None, bytes).unwrap();
         app

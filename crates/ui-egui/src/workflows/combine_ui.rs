@@ -14,7 +14,7 @@ use egui_extras::{Column, TableBuilder};
 use pdfcraft_engine::SourceProblem;
 
 use crate::theme::{self, Tokens};
-use crate::{PdfCraftApp, icons, widgets};
+use crate::{VisionPDFApp, icons, widgets};
 
 mod actions;
 mod files;

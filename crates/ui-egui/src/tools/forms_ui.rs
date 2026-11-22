@@ -100,7 +100,7 @@ pub struct FormView {
     pub(crate) keys: Option<(egui::Id, bool)>,
     /// The field and widget that had focus when it was last looked at: when the focus moves, the
     /// one it left runs its XFA exit scripts and the one it reached its enter scripts
-    /// (`PdfCraftApp::run_focus_scripts`).
+    /// (`VisionPDFApp::run_focus_scripts`).
     pub(crate) focused: Option<(String, Option<ObjRef>, usize)>,
     /// The list box row clicked last, without Shift: (its field name, the row). A Shift-click picks
     /// the rows from it to the one clicked; the field's value can't say which row came last when
@@ -110,7 +110,7 @@ pub struct FormView {
     /// one left runs its Mouse Exit JavaScript and the one reached its Mouse Enter (#269).
     pub(crate) hovered: Option<WidgetRef>,
     /// Pointer triggers waiting to run their widget's JavaScript, in order (field name, widget,
-    /// trigger): `PdfCraftApp::run_field_triggers` runs them after the frame's edit, so a check
+    /// trigger): `VisionPDFApp::run_field_triggers` runs them after the frame's edit, so a check
     /// box's Mouse Up sees the value its click just stored (#247).
     pub(crate) triggers: Vec<(WidgetRef, pdfcraft_engine::FieldTrigger)>,
 }

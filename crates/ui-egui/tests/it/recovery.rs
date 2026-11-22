@@ -8,7 +8,7 @@ use egui::{Key, Modifiers};
 use egui_kittest::Harness;
 use egui_kittest::kittest::{NodeT, Queryable};
 use pdfcraft_engine::Edit;
-use pdfcraft_ui_egui::{Dialog, PdfCraftApp, RecoveryStore};
+use pdfcraft_ui_egui::{Dialog, VisionPDFApp, RecoveryStore};
 
 fn fixture(n: usize) -> Vec<u8> {
     let mut objs: Vec<String> = vec!["<< /Type /Catalog /Pages 2 0 R >>".into()];
@@ -50,7 +50,7 @@ fn files_in(s: &RecoveryStore) -> usize {
 
 /// A session that edits a document, autosaves, and then "crashes" (is dropped).
 fn crashed_session(s: &RecoveryStore, bytes: Vec<u8>, password: Option<&str>, path: Option<&str>) {
-    let mut app = PdfCraftApp::new();
+    let mut app = VisionPDFApp::new();
     app.set_option("language", "en").unwrap();
     app.enable_recovery(s.clone());
     match password {
@@ -65,9 +65,9 @@ fn crashed_session(s: &RecoveryStore, bytes: Vec<u8>, password: Option<&str>, pa
     // Dropped without a clean quit: the recovery entry stays.
 }
 
-fn harness(s: RecoveryStore) -> Harness<'static, PdfCraftApp> {
+fn harness(s: RecoveryStore) -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1200.0, 800.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.enable_recovery(s);
         app
@@ -109,7 +109,7 @@ fn discarding_removes_the_autosaves() {
 #[test]
 fn saving_or_closing_clears_the_entry_and_nothing_is_written_for_clean_documents() {
     let s = store("save");
-    let mut app = PdfCraftApp::new();
+    let mut app = VisionPDFApp::new();
     app.set_option("language", "en").unwrap();
     app.enable_recovery(s.clone());
     app.open_bytes("a.pdf", None, fixture(2)).unwrap();
@@ -175,7 +175,7 @@ fn a_failed_autosave_is_written_by_the_next_one() {
     let s = store("retry");
     // A file where the folder belongs: the folder can't be made, so nothing can be written.
     std::fs::write(s.dir(), b"").unwrap();
-    let mut app = PdfCraftApp::new();
+    let mut app = VisionPDFApp::new();
     app.set_option("language", "en").unwrap();
     app.enable_recovery(s.clone());
     app.open_bytes("a.pdf", None, fixture(1)).unwrap();
@@ -194,7 +194,7 @@ fn quitting_cleanly_leaves_nothing_behind() {
     let mut h = Harness::builder().with_size(egui::vec2(1200.0, 800.0)).build_eframe({
         let s = s.clone();
         move |_cc| {
-            let mut app = PdfCraftApp::new();
+            let mut app = VisionPDFApp::new();
             app.set_option("language", "en").unwrap();
             app.enable_recovery(s);
             app.open_bytes("q.pdf", None, fixture(2)).unwrap();
@@ -432,7 +432,7 @@ fn control_click_effects_are_visible_when_the_reply_arrives() {
     let slot: std::sync::Arc<std::sync::Mutex<Option<pdfcraft_ui_egui::control::ControlClient>>> = Default::default();
     let (slot2, s2) = (slot.clone(), s.clone());
     let mut h = Harness::builder().with_size(egui::vec2(1200.0, 800.0)).build_eframe(move |cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         *slot2.lock().unwrap() = Some(app.attach_control(&cc.egui_ctx));
         app.enable_recovery(s2);
@@ -440,7 +440,7 @@ fn control_click_effects_are_visible_when_the_reply_arrives() {
     });
     h.run_steps(4);
     let c = slot.lock().unwrap().take().unwrap();
-    let call = |h: &mut Harness<'static, PdfCraftApp>, m: &str, p: serde_json::Value| {
+    let call = |h: &mut Harness<'static, VisionPDFApp>, m: &str, p: serde_json::Value| {
         let rx = c.send(m, p);
         for _ in 0..30 {
             h.step();
@@ -464,7 +464,7 @@ fn control_click_effects_are_visible_when_the_reply_arrives() {
 fn a_running_instances_autosaves_are_not_offered_to_a_second_instance() {
     let s = store("live");
     let instance = || RecoveryStore::new(s.dir());
-    let mut first = PdfCraftApp::new();
+    let mut first = VisionPDFApp::new();
     first.set_option("language", "en").unwrap();
     first.enable_recovery(instance());
     first.open_bytes("work.pdf", None, fixture(2)).unwrap();

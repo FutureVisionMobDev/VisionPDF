@@ -9,7 +9,7 @@ use pdfcraft_engine::DocId;
 use pdfcraft_engine::ocr::{EngineChoice, LANGUAGES, MergeStrategy, OcrPage, OcrSettings, OutputMode};
 
 use crate::theme::{self, Tokens};
-use crate::{PdfCraftApp, widgets};
+use crate::{VisionPDFApp, widgets};
 
 /// Which pages to read.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -184,7 +184,7 @@ pub struct BatchProgress {
     pub cancel: bool,
 }
 
-/// A page Edit should read now (see [`PdfCraftApp::scan_to_read`]).
+/// A page Edit should read now (see [`VisionPDFApp::scan_to_read`]).
 struct ScanToRead {
     view: usize,
     doc: DocId,
@@ -210,7 +210,7 @@ pub struct OcrRun {
     /// The dialog promised an editable document: the result goes to the OCR Verify screen
     /// (whose Accept produces the editable document), not to an invisible layer.
     pub editable: bool,
-    /// The web build reads the pages in Web Workers, pumped by [`PdfCraftApp::poll_ocr`].
+    /// The web build reads the pages in Web Workers, pumped by [`VisionPDFApp::poll_ocr`].
     #[cfg(target_arch = "wasm32")]
     pub web: Option<crate::ocr_web::Pages>,
 }
@@ -243,7 +243,7 @@ const OCR_MIN_SCROLL: f32 = 40.0;
 /// The Recognize Text dialog: the title, the settings groups (scrolling when the window is too
 /// short for them), any engine notice, and the Cancel / Recognize text row. Returns
 /// `(recognize, cancel)`, which of those buttons was clicked this frame.
-pub(crate) fn body(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens) -> (bool, bool) {
+pub(crate) fn body(ui: &mut egui::Ui, app: &mut VisionPDFApp, t: &Tokens) -> (bool, bool) {
     let pages = app.active_ids().and_then(|(_, id)| app.session.get(id)).map_or(1, |d| d.info.pages.len().max(1));
     let d = &mut app.ocr_draft;
     d.to = d.to.clamp(1, pages);
@@ -414,7 +414,7 @@ pub(crate) fn body(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens) -> (boo
         // notice users know; Tesseract's reasons are catalog keys of their own.
         let text = match d.engine {
             pdfcraft_engine::ocr::EngineChoice::Tesseract => crate::i18n::t(&why).to_string(),
-            _ => tl!("Text recognition isn't installed: its model files are missing. Reinstall PdfCraft, or set PDFCRAFT_MODELS to the folder that holds them.")
+            _ => tl!("Text recognition isn't installed: its model files are missing. Reinstall VisionPDF, or set PDFCRAFT_MODELS to the folder that holds them.")
                 .to_string(),
         };
         ui.label(egui::RichText::new(text).small().color(t.text_muted));
@@ -436,7 +436,7 @@ pub(crate) fn body(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens) -> (boo
     (go, cancel)
 }
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     /// Recognize text on the pages chosen in the dialog, in the background.
     pub fn start_ocr(&mut self) {
         let Some((vi, id)) = self.active_ids() else { return };
@@ -1106,14 +1106,14 @@ mod tests {
         Session::new().create_from_images(&[("scan.png".into(), png)]).unwrap().to_vec()
     }
 
-    fn app_with(pdf: Vec<u8>) -> PdfCraftApp {
-        let mut app = PdfCraftApp::new();
+    fn app_with(pdf: Vec<u8>) -> VisionPDFApp {
+        let mut app = VisionPDFApp::new();
         app.open_bytes("doc.pdf", None, pdf).unwrap();
         app.quick_tool = QuickTool::EditText;
         app
     }
 
-    fn found(app: &mut PdfCraftApp) -> Option<usize> {
+    fn found(app: &mut VisionPDFApp) -> Option<usize> {
         app.scan_to_read().map(|s| s.page)
     }
 
@@ -1195,7 +1195,7 @@ mod tests {
             confidence: None,
             source: "ocrs".into(),
         };
-        let finished = |app: &PdfCraftApp, automatic: bool| {
+        let finished = |app: &VisionPDFApp, automatic: bool| {
             let generation = app.session.get(app.active_ids().unwrap().1).unwrap().edit_generation();
             let page = pdfcraft_engine::ocr::OcrPage { page: 0, words: vec![word()], already_on_page: 0, skipped: None, notes: Vec::new() };
             let progress = Arc::new(Mutex::new(OcrProgress { done: 1, total: 1, result: Some(Ok(vec![page])), cancel: false }));
@@ -1208,7 +1208,7 @@ mod tests {
                 editable: false,
             }
         };
-        let label = |app: &PdfCraftApp| app.session.get(app.active_ids().unwrap().1).unwrap().can_undo().map(String::from);
+        let label = |app: &VisionPDFApp| app.session.get(app.active_ids().unwrap().1).unwrap().can_undo().map(String::from);
 
         let mut app = app_with(scan());
         app.ocr_run = Some(finished(&app, true));
@@ -1287,7 +1287,7 @@ mod tests {
 
     #[test]
     fn a_run_whose_worker_died_ends_instead_of_waiting_forever() {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         let pdf = pdfcraft_engine::Session::new().create_from_text("t", "guard fixture").unwrap();
         app.open_bytes("a.pdf", None, pdf.to_vec()).unwrap();
@@ -1444,7 +1444,7 @@ mod tests {
     /// write the same output: the batch stops before anything is read or written.
     #[test]
     fn inputs_that_share_a_file_name_are_refused_before_anything_is_read() {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.run_inline = true;
         let dir = std::env::temp_dir().join(format!("pdfcraft-ocr-same-name-{}", std::process::id()));
         std::fs::create_dir_all(&dir).expect("fixture");
@@ -1463,7 +1463,7 @@ mod tests {
     /// and its collision pre-flight still stops the batch before the first page is read.
     #[test]
     fn a_remembered_output_folder_is_used_and_still_preflights_collisions() {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.run_inline = true;
         let dir = std::env::temp_dir().join(format!("pdfcraft-ocr-folder-{}", std::process::id()));
         std::fs::create_dir_all(&dir).expect("fixture");
@@ -1485,7 +1485,7 @@ mod tests {
     /// writes nothing, so words read before a redaction cannot come back as invisible text.
     #[test]
     fn a_result_that_arrives_after_the_document_changed_is_refused() {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         let pdf = pdfcraft_engine::Session::new().create_from_text("t", "Typed text").expect("fixture");
         app.open_bytes("a.pdf", None, pdf.to_vec()).expect("opens");
         let id = app.active_ids().expect("a document").1;

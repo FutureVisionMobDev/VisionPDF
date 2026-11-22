@@ -4,12 +4,12 @@
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::{PdfCraftApp, QuickTool};
+use pdfcraft_ui_egui::{VisionPDFApp, QuickTool};
 
 /// Two tabs, a.pdf (0) and b.pdf (1), with Snapshot chosen and the system clipboard left alone.
-fn harness() -> Harness<'static, PdfCraftApp> {
+fn harness() -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("a.pdf", None, crate::support::fixtures::pdf_pages(2)).unwrap();
         app.open_bytes("b.pdf", None, crate::support::fixtures::pdf_pages(2)).unwrap();
@@ -23,7 +23,7 @@ fn harness() -> Harness<'static, PdfCraftApp> {
 }
 
 /// Take a snapshot of `area` on page 1 in tab `index`, as the Snapshot tool does at the end of a drag.
-fn snapshot_in(h: &mut Harness<'static, PdfCraftApp>, index: usize, area: [f32; 4]) -> (u32, u32, Vec<u8>) {
+fn snapshot_in(h: &mut Harness<'static, VisionPDFApp>, index: usize, area: [f32; 4]) -> (u32, u32, Vec<u8>) {
     h.state_mut().active = Some(index);
     h.run_steps(2);
     h.state_mut().snapshot(index, 0, area).expect("a snapshot");

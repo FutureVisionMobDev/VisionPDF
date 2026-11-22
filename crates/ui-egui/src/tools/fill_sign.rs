@@ -1,6 +1,6 @@
 //! Fill & Sign (Acrobat's Fill & Sign tool, execution plan M5.7): type text onto the page, place
 //! ✓ ✕ ● ─ marks and today's date (in Preferences ▸ Date format), and sign with a drawn
-//! signature. Everything is an annotation (typewriter text, PdfCraft-drawn stamps, ink), so it
+//! signature. Everything is an annotation (typewriter text, VisionPDF-drawn stamps, ink), so it
 //! can be moved, deleted and undone like any comment.
 
 use crate::file_filter::AddFilterAnyCase as _;
@@ -400,7 +400,7 @@ pub(crate) fn script_preview(text: &str, w: usize, h: usize) -> egui::ColorImage
 }
 
 /// Saved previews and add/remove controls, shared by the left panel and quick-tool picker.
-pub(crate) fn signature_entries(ui: &mut egui::Ui, app: &mut crate::PdfCraftApp, t: &Tokens) -> Option<&'static str> {
+pub(crate) fn signature_entries(ui: &mut egui::Ui, app: &mut crate::VisionPDFApp, t: &Tokens) -> Option<&'static str> {
     ui.set_width(ui.available_width().clamp(240.0, 248.0));
     let mut command = None;
     for (i, (saved, what, use_id, change_id, remove_id)) in [
@@ -879,7 +879,7 @@ struct PickedImage {
     bytes: Option<Result<Vec<u8>, String>>,
 }
 
-impl crate::PdfCraftApp {
+impl crate::VisionPDFApp {
     /// Browse asynchronously, answering only into the dialog (and tab) that asked for the image
     /// or, on the Scan tab, the photo.
     pub(crate) fn pick_signature_image(&mut self) {

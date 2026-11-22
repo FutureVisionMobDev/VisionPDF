@@ -7,10 +7,10 @@ use craft_update::updater::{Action, CheckSource, Status, Updater};
 #[cfg(not(target_arch = "wasm32"))]
 use craft_update::{CheckResultDialog, CheckResultResponse};
 
-use crate::PdfCraftApp;
+use crate::VisionPDFApp;
 
-/// Where every PdfCraft release is listed.
-pub const RELEASES_PAGE: &str = "https://github.com/storytold/pdfcraft/releases";
+/// Where every VisionPDF release is listed.
+pub const RELEASES_PAGE: &str = "https://github.com/FutureVisionMobDev/VisionPDF/releases";
 
 /// Stands in for the network in tests.
 #[cfg(not(target_arch = "wasm32"))]
@@ -109,7 +109,7 @@ impl Updates {
     }
 }
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     /// Whether the app asks for a newer release on its first frame (off until the desktop app turns it on).
     #[cfg(not(target_arch = "wasm32"))]
     pub fn set_startup_update_check(&mut self, on: bool) {
@@ -154,7 +154,7 @@ impl PdfCraftApp {
 }
 
 /// The startup prompt, and the Updates dialog that answers Help ▸ Check for updates.
-pub(crate) fn dialog(app: &mut PdfCraftApp, ctx: &egui::Context) {
+pub(crate) fn dialog(app: &mut VisionPDFApp, ctx: &egui::Context) {
     #[cfg(not(target_arch = "wasm32"))]
     {
         // The restart helper is scheduled before the app closes, so no update starts over unsaved work.
@@ -182,7 +182,7 @@ pub(crate) fn dialog(app: &mut PdfCraftApp, ctx: &egui::Context) {
 
 /// Carries out the answer to the Updates dialog.
 #[cfg(not(target_arch = "wasm32"))]
-fn answer_result(app: &mut PdfCraftApp, ctx: &egui::Context, response: CheckResultResponse) {
+fn answer_result(app: &mut VisionPDFApp, ctx: &egui::Context, response: CheckResultResponse) {
     match response {
         CheckResultResponse::None => {}
         CheckResultResponse::Close => {
@@ -198,7 +198,7 @@ fn answer_result(app: &mut PdfCraftApp, ctx: &egui::Context, response: CheckResu
 /// them; Cancel there leaves the update ready. An open startup prompt keeps its own Restart to
 /// Update and save-first note, so the app stays open.
 #[cfg(not(target_arch = "wasm32"))]
-fn restart_to_update(app: &mut PdfCraftApp, ctx: &egui::Context) {
+fn restart_to_update(app: &mut VisionPDFApp, ctx: &egui::Context) {
     if app.first_dirty().is_none() {
         app.updates.queue_close();
         return;
@@ -223,8 +223,8 @@ mod tests {
     use std::sync::Arc;
 
     /// An app with one open document holding a form, and with `dirty` an unsaved change to it.
-    fn app(dirty: bool) -> PdfCraftApp {
-        let mut app = PdfCraftApp::new();
+    fn app(dirty: bool) -> VisionPDFApp {
+        let mut app = VisionPDFApp::new();
         app.open_bytes("source.pdf", None, include_bytes!("../../tests/data/form.pdf").to_vec()).unwrap();
         if dirty {
             assert!(app.apply_edit(Edit::SetFieldValue { name: "name".into(), value: FieldValue::Text("Changed".into()) }));
@@ -236,14 +236,14 @@ mod tests {
 
     /// An app with an unsaved change to a document in a new temporary folder, which Save writes
     /// without asking where. Returns the document's path too.
-    fn app_with_file(test: &str) -> (PdfCraftApp, PathBuf) {
+    fn app_with_file(test: &str) -> (VisionPDFApp, PathBuf) {
         let dir = std::env::temp_dir().join(format!("pdfcraft-ui-updates-{test}-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join("source.pdf");
         let bytes = include_bytes!("../../tests/data/form.pdf").to_vec();
         std::fs::write(&path, &bytes).unwrap();
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.open_bytes("source.pdf", Some(path.to_string_lossy().into_owned()), bytes).unwrap();
         assert!(app.apply_edit(Edit::SetFieldValue { name: "name".into(), value: FieldValue::Text("Changed".into()) }));
         app.updates.open = true;
@@ -282,7 +282,7 @@ mod tests {
         app.resolve_close(&ctx, Some(true));
         assert!(app.allow_quit, "the app quits once the document is saved");
 
-        let mut reopened = PdfCraftApp::new();
+        let mut reopened = VisionPDFApp::new();
         reopened.open_bytes("source.pdf", Some(path.to_string_lossy().into_owned()), std::fs::read(&path).unwrap()).unwrap();
         let doc = reopened.session.get(reopened.views[0].id).unwrap();
         let name = doc.form.iter().find(|f| f.name == "name").and_then(|f| f.value.first().cloned());
@@ -323,8 +323,8 @@ mod tests {
         app.updates.updater.offer(craft_update::Release {
             tag: "v99.0.0".into(),
             version: craft_update::parse_version("99.0.0"),
-            name: "PdfCraft 99.0.0".into(),
-            html_url: "https://github.com/storytold/pdfcraft/releases/tag/v99.0.0".into(),
+            name: "VisionPDF 99.0.0".into(),
+            html_url: "https://github.com/FutureVisionMobDev/VisionPDF/releases/tag/v99.0.0".into(),
             ..Default::default()
         });
         assert!(app.updates.updater.prompt_open());
@@ -336,7 +336,7 @@ mod tests {
 
     #[test]
     fn on_exit_calls_the_update_exit_hook_once() {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.on_exit(None);
         assert_eq!(app.updates.exits, 1);
     }

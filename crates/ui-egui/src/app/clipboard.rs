@@ -33,7 +33,7 @@ fn picture_hash(width: usize, height: usize, rgba: &[u8]) -> u64 {
     h.finish()
 }
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     /// Whether text and images may be copied out of document `id`; says why not when they may
     /// not. Reading aloud and accessibility tools don't ask (assistive technology may read
     /// anything, §7.6.4.2).
@@ -412,15 +412,15 @@ mod review_tests {
         egui::Event::Key { key: egui::Key::V, physical_key: None, pressed, repeat: false, modifiers }
     }
 
-    fn image_app() -> PdfCraftApp {
-        let mut app = PdfCraftApp::new();
+    fn image_app() -> VisionPDFApp {
+        let mut app = VisionPDFApp::new();
         app.system_clipboard = false;
         app.create_blank();
         app.clipboard_override = Some(crate::create_ui::Clip::Image { width: 1, height: 1, rgba: vec![255, 0, 0, 255] });
         app
     }
 
-    fn frame(app: &mut PdfCraftApp, ctx: &egui::Context, time: f64, events: Vec<egui::Event>) -> usize {
+    fn frame(app: &mut VisionPDFApp, ctx: &egui::Context, time: f64, events: Vec<egui::Event>) -> usize {
         ctx.run_ui(egui::RawInput { time: Some(time), events, ..Default::default() }, |ui| app.clipboard_keys(0, ui.ctx()))
             .drop_without_applying_deltas();
         app.session.get(app.views[0].id).unwrap().page_images(0).len()
@@ -539,7 +539,7 @@ mod review_tests {
             ..Default::default()
         }));
         let bytes = app.session.save_bytes(app.views[0].id).unwrap();
-        let mut restricted = PdfCraftApp::new();
+        let mut restricted = VisionPDFApp::new();
         restricted.open_bytes("restricted.pdf", None, bytes.as_ref().clone()).unwrap();
         assert!(!restricted.session.get(restricted.views[0].id).unwrap().allows_modification());
         assert_eq!(frame(&mut restricted, &ctx, 3.0, vec![delivered()]), 0);
@@ -547,7 +547,7 @@ mod review_tests {
 
     #[test]
     fn review_an_image_less_release_is_silent_but_explicit_paste_explains() {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.system_clipboard = false;
         app.create_blank();
         app.toast = None;
@@ -573,7 +573,7 @@ mod review_tests {
 
     #[test]
     fn review_text_paste_release_is_silent_and_later_image_paste_still_works() {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.system_clipboard = false;
         app.create_blank();
         app.last_copied_image = Some((1, 1, vec![255, 0, 0, 255]));
@@ -609,7 +609,7 @@ mod review_tests {
 
     #[test]
     fn review_failed_keyboard_cut_keeps_the_image_selection() {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.system_clipboard = false;
         app.create_blank();
         app.views[0].image_selection = Some(crate::edit_text_ui::ImageSelection::at(0, 0));
@@ -623,7 +623,7 @@ mod review_tests {
     /// even with a comment selected too, rather than copying the comment.
     #[test]
     fn a_selection_waiting_for_its_text_takes_copy_over_a_selected_comment() {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.system_clipboard = false;
         app.create_blank();
         let shape = pdfcraft_engine::Shape::Rectangle { rect: [10.0, 10.0, 50.0, 50.0] };

@@ -617,11 +617,11 @@ mod tests {
     #[test]
     fn delete_key_removes_selected_object() {
         use crate::canvas::page_pointer::PagePointer;
-        use crate::{PdfCraftApp, canvas::ViewDefaults};
+        use crate::{VisionPDFApp, canvas::ViewDefaults};
         use pdfcraft_engine::{DocId, ImageEdit};
         use pdfcraft_render::PageInfo;
 
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         let bytes = app.session.create_blank(300.0, 400.0, 1).unwrap();
         app.open_bytes("blank.pdf", None, bytes.as_ref().clone()).unwrap();
         let doc = app.session.get(app.views[0].id).unwrap();

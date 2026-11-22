@@ -4,7 +4,7 @@ use egui::{Pos2, pos2};
 use egui_kittest::Harness;
 use egui_kittest::kittest::{NodeT, Queryable};
 use pdfcraft_ui_egui::fill_sign::{FillTool, SavedSig};
-use pdfcraft_ui_egui::{Dialog, PdfCraftApp, QuickTool, SaveTarget};
+use pdfcraft_ui_egui::{Dialog, VisionPDFApp, QuickTool, SaveTarget};
 
 const FIXTURE: &[u8] = b"%PDF-1.7
 1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj
@@ -15,14 +15,14 @@ trailer << /Root 1 0 R >>
 
 use crate::gpu;
 
-fn harness() -> Harness<'static, PdfCraftApp> {
+fn harness() -> Harness<'static, VisionPDFApp> {
     harness_bytes(FIXTURE)
 }
 
-fn harness_bytes(fixture: &[u8]) -> Harness<'static, PdfCraftApp> {
+fn harness_bytes(fixture: &[u8]) -> Harness<'static, VisionPDFApp> {
     let fixture = fixture.to_vec();
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("form.pdf", None, fixture.clone()).unwrap();
         app.set_option("left", "closed").unwrap();
@@ -34,7 +34,7 @@ fn harness_bytes(fixture: &[u8]) -> Harness<'static, PdfCraftApp> {
     h
 }
 
-fn at(h: &Harness<'static, PdfCraftApp>, x: f32, y: f32) -> Pos2 {
+fn at(h: &Harness<'static, VisionPDFApp>, x: f32, y: f32) -> Pos2 {
     let s = h.state();
     let page = &s.session.get(s.views[0].id).unwrap().info.pages[0];
     let xf = pdfcraft_ui_egui::canvas::PageXform {
@@ -49,7 +49,7 @@ fn at(h: &Harness<'static, PdfCraftApp>, x: f32, y: f32) -> Pos2 {
 
 /// The screen point `dx` points right and `dy` points up, as displayed, from the user-space point
 /// (`x`, `y`): unlike `at`, offsets don't turn with the page's /Rotate.
-fn shown(h: &Harness<'static, PdfCraftApp>, x: f32, y: f32, dx: f32, dy: f32) -> Pos2 {
+fn shown(h: &Harness<'static, VisionPDFApp>, x: f32, y: f32, dx: f32, dy: f32) -> Pos2 {
     let s = h.state();
     let page = &s.session.get(s.views[0].id).unwrap().info.pages[0];
     let xf = pdfcraft_ui_egui::canvas::PageXform {
@@ -62,7 +62,7 @@ fn shown(h: &Harness<'static, PdfCraftApp>, x: f32, y: f32, dx: f32, dy: f32) ->
     xf.norm_to_screen((p[0] + dx) / xf.pw, (p[1] - dy) / xf.ph)
 }
 
-fn click(h: &mut Harness<'static, PdfCraftApp>, x: f32, y: f32) {
+fn click(h: &mut Harness<'static, VisionPDFApp>, x: f32, y: f32) {
     let p = at(h, x, y);
     h.hover_at(p);
     h.run_steps(1);
@@ -72,7 +72,7 @@ fn click(h: &mut Harness<'static, PdfCraftApp>, x: f32, y: f32) {
     h.run_steps(3);
 }
 
-fn items(h: &Harness<'static, PdfCraftApp>) -> Vec<(String, Option<String>)> {
+fn items(h: &Harness<'static, VisionPDFApp>) -> Vec<(String, Option<String>)> {
     let s = h.state();
     let mut v: Vec<_> = s.session.get(s.views[0].id).unwrap().info.annotations.iter().map(|a| (a.subtype.clone(), a.contents.clone())).collect();
     v.sort();
@@ -80,7 +80,7 @@ fn items(h: &Harness<'static, PdfCraftApp>) -> Vec<(String, Option<String>)> {
 }
 
 /// Page rasters arrive from the render worker independently of kittest's virtual frames.
-fn rendered_ink(h: &mut Harness<'static, PdfCraftApp>, x: f32, y: f32) -> image::RgbaImage {
+fn rendered_ink(h: &mut Harness<'static, VisionPDFApp>, x: f32, y: f32) -> image::RgbaImage {
     for _ in 0..50 {
         h.run_steps(2);
         let p = at(h, x, y);
@@ -140,7 +140,7 @@ fn text_marks_and_date() {
 }
 
 /// The open type box, found by its accessible name for either input role.
-fn type_box_rect(h: &Harness<'static, PdfCraftApp>) -> egui::Rect {
+fn type_box_rect(h: &Harness<'static, VisionPDFApp>) -> egui::Rect {
     h.get_by_label("Text to place").rect()
 }
 
@@ -227,7 +227,7 @@ fn fill_text_size_controls_new_text_and_survives_settings_restore() {
         h.state().session.get(h.state().views[0].id).unwrap().info.annotations.iter().find(|a| a.contents.as_deref() == Some("Larger text")).unwrap();
     assert!(annotation.rect[3] - annotation.rect[1] > 24.0, "24 pt text has a larger annotation: {annotation:?}");
     let settings = h.state().persist();
-    let mut restored = PdfCraftApp::new();
+    let mut restored = VisionPDFApp::new();
     restored.restore(&settings);
     assert_eq!(restored.fill_text_size, 24.0);
     restored.restore(r#"{"fill_text_size":1000000}"#);
@@ -245,13 +245,13 @@ fn fill_text_size_resizes_the_selected_text() {
     h.run_steps(1);
     commit_typed_text(&mut h);
     h.run_steps(3);
-    let height = |h: &Harness<'static, PdfCraftApp>| {
+    let height = |h: &Harness<'static, VisionPDFApp>| {
         let s = h.state();
         let a = s.session.get(s.views[0].id).unwrap().info.annotations.iter().find(|a| a.contents.as_deref() == Some("Resize me")).cloned().unwrap();
         a.rect[3] - a.rect[1]
     };
     let before = height(&h);
-    let set_size = |h: &mut Harness<'static, PdfCraftApp>, value: &str| {
+    let set_size = |h: &mut Harness<'static, VisionPDFApp>, value: &str| {
         h.get_by_role_and_label(egui::accesskit::Role::Button, "Font size").click();
         h.run_steps(2);
         h.query_all_by_role(egui::accesskit::Role::SpinButton)
@@ -337,7 +337,7 @@ fn dragging_the_font_size_resizes_the_selected_text_to_where_the_drag_ends() {
 }
 
 /// The font sizes of the texts `text` drawn in the last frame.
-fn drawn_sizes(h: &Harness<'static, PdfCraftApp>, text: &str) -> Vec<f32> {
+fn drawn_sizes(h: &Harness<'static, VisionPDFApp>, text: &str) -> Vec<f32> {
     fn walk(shape: &egui::Shape, text: &str, out: &mut Vec<f32>) {
         match shape {
             egui::Shape::Vec(shapes) => shapes.iter().for_each(|s| walk(s, text, out)),
@@ -397,8 +397,8 @@ fn the_toolbar_shows_and_changes_the_selected_texts_border() {
         let a = s.session.get(s.views[0].id).unwrap().info.annotations.iter().find(|a| a.contents.as_deref() == Some("Framed")).cloned().unwrap();
         (a.page, a.index)
     };
-    let props = |h: &Harness<'static, PdfCraftApp>| h.state().session.get(h.state().views[0].id).unwrap().comment_props(page, index).unwrap();
-    let shows = |h: &Harness<'static, PdfCraftApp>, value: &str| {
+    let props = |h: &Harness<'static, VisionPDFApp>| h.state().session.get(h.state().views[0].id).unwrap().comment_props(page, index).unwrap();
+    let shows = |h: &Harness<'static, VisionPDFApp>, value: &str| {
         h.query_all_by_role(egui::accesskit::Role::ComboBox).any(|n| n.value().as_deref() == Some(value))
     };
     h.state_mut().views[0].comments.selected = Some((page, index));
@@ -459,7 +459,7 @@ fn typed_text_takes_an_oval_or_a_circle_from_the_toolbar() {
         let a = s.session.get(s.views[0].id).unwrap().info.annotations.iter().find(|a| a.contents.as_deref() == Some("12")).cloned().unwrap();
         (a.page, a.index)
     };
-    let props = |h: &Harness<'static, PdfCraftApp>| h.state().session.get(h.state().views[0].id).unwrap().comment_props(page, index).unwrap();
+    let props = |h: &Harness<'static, VisionPDFApp>| h.state().session.get(h.state().views[0].id).unwrap().comment_props(page, index).unwrap();
     assert_eq!(props(&h).border_shape, Some(BorderShape::Circle), "new text gets the circle");
     let r = h.state().session.get(h.state().views[0].id).unwrap().info.annotations.iter().find(|a| a.index == index).unwrap().rect;
     assert!(((r[2] - r[0]) - (r[3] - r[1])).abs() < 0.01, "a circle's square box: {r:?}");
@@ -488,8 +488,8 @@ fn typed_text_takes_an_oval_or_a_circle_from_the_toolbar() {
     h.run_steps(3);
     assert!(h.query_all_by_role(egui::accesskit::Role::ComboBox).any(|n| n.value().as_deref() == Some("Rectangle")), "the selected text's own");
 
-    // The circle for new text lasts until PdfCraft quits; a saved default is read back.
-    let mut restored = PdfCraftApp::new();
+    // The circle for new text lasts until VisionPDF quits; a saved default is read back.
+    let mut restored = VisionPDFApp::new();
     restored.restore(&h.state().persist());
     assert_eq!(restored.fill_text_border_shape, BorderShape::Rectangle);
     restored.restore(r#"{"fill_text_border_shape":"oval"}"#);
@@ -517,9 +517,9 @@ fn no_border_takes_the_oval_or_circle_away_too() {
         let a = s.session.get(s.views[0].id).unwrap().info.annotations.iter().find(|a| a.contents.as_deref() == Some("12")).cloned().unwrap();
         (a.page, a.index)
     };
-    let props = |h: &Harness<'static, PdfCraftApp>| h.state().session.get(h.state().views[0].id).unwrap().comment_props(page, index).unwrap();
+    let props = |h: &Harness<'static, VisionPDFApp>| h.state().session.get(h.state().views[0].id).unwrap().comment_props(page, index).unwrap();
     assert_eq!(props(&h).border_shape, Some(BorderShape::Circle));
-    let no_border = |h: &mut Harness<'static, PdfCraftApp>| {
+    let no_border = |h: &mut Harness<'static, VisionPDFApp>| {
         h.query_all_by_role(egui::accesskit::Role::ComboBox).find(|n| n.value().as_deref() == Some("1 pt")).expect("the Border control").click();
         h.run_steps(2);
         h.get_by_label("None").click();
@@ -553,14 +553,14 @@ fn fill_text_border_frames_new_and_selected_text() {
     h.state_mut().execute("sign.fill.text");
     h.run_steps(2);
     h.get_by_label("Border:");
-    let type_at = |h: &mut Harness<'static, PdfCraftApp>, y: f32| {
+    let type_at = |h: &mut Harness<'static, VisionPDFApp>, y: f32| {
         click(h, 50.0, y);
         h.event(egui::Event::Text("Same".into()));
         h.run_steps(1);
         commit_typed_text(h);
     };
     // The two texts, oldest first: (page, index, rect).
-    let texts = |h: &Harness<'static, PdfCraftApp>| {
+    let texts = |h: &Harness<'static, VisionPDFApp>| {
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
         let mut v: Vec<_> =
@@ -591,9 +591,9 @@ fn fill_text_border_frames_new_and_selected_text() {
     assert!((width(now) - width(plain) - 4.0).abs() < 0.01, "2 pt on each side: {plain:?} {now:?}");
     assert!((plain[0] - now[0] - 2.0).abs() < 0.01 && (now[3] - plain[3] - 2.0).abs() < 0.01, "grown outwards, the text in place: {plain:?} {now:?}");
 
-    // The toolbar's border lasts until PdfCraft quits; a saved default is read back.
+    // The toolbar's border lasts until VisionPDF quits; a saved default is read back.
     let settings = h.state().persist();
-    let mut restored = PdfCraftApp::new();
+    let mut restored = VisionPDFApp::new();
     restored.restore(&settings);
     assert_eq!(restored.fill_text_border, 0.0);
     restored.restore(r#"{"fill_text_border":2}"#);
@@ -609,7 +609,7 @@ fn typed_text_made_default_is_what_new_text_gets() {
     use pdfcraft_engine::{BorderShape, Edit};
     let mut h = harness();
     h.state_mut().execute("sign.fill.text");
-    let type_at = |h: &mut Harness<'static, PdfCraftApp>, y: f32, text: &str| {
+    let type_at = |h: &mut Harness<'static, VisionPDFApp>, y: f32, text: &str| {
         click(h, 50.0, y);
         h.event(egui::Event::Text(text.into()));
         h.run_steps(1);
@@ -636,7 +636,7 @@ fn typed_text_made_default_is_what_new_text_gets() {
     h.run_steps(3);
     let s = h.state();
     assert_eq!((s.fill_text_size, s.fill_text_border, s.fill_text_border_color, s.fill_text_border_shape), (14.0, 1.5, red, BorderShape::Circle));
-    let mut restored = PdfCraftApp::new();
+    let mut restored = VisionPDFApp::new();
     restored.restore(&h.state().persist());
     assert_eq!(
         (restored.fill_text_size, restored.fill_text_border, restored.fill_text_border_color, restored.fill_text_border_shape),
@@ -683,7 +683,7 @@ fn fill_text_colour_survives_preview_commit_settings_and_save() {
         .find(|a| a.contents.as_deref() == Some("Blue form text"))
         .unwrap();
     assert_eq!(saved.color, Some(expected));
-    let mut restored = PdfCraftApp::new();
+    let mut restored = VisionPDFApp::new();
     restored.restore(&h.state().persist());
     assert_eq!(restored.fill_text_color, color);
     restored.restore(r#"{"fill_text_color":[2,0,0]}"#);
@@ -739,7 +739,7 @@ fn signing_draws_a_signature_once_and_places_it() {
     assert_eq!(h.state().views[0].comments.selected, Some((0, 0)));
     // The signature is remembered (persisted with the app's settings).
     let saved = h.state().persist();
-    let mut again = PdfCraftApp::new();
+    let mut again = VisionPDFApp::new();
     again.set_option("language", "en").unwrap();
     again.restore(&saved);
     assert!(again.signature.is_some());
@@ -771,7 +771,7 @@ fn typed_signatures_and_initials() {
     assert_eq!(items(&h).iter().filter(|(t, _)| t == "Stamp").count(), 2);
     // Both are remembered.
     let saved = h.state().persist();
-    let mut again = PdfCraftApp::new();
+    let mut again = VisionPDFApp::new();
     again.set_option("language", "en").unwrap();
     again.restore(&saved);
     assert_eq!(again.signature, h.state().signature);
@@ -826,7 +826,7 @@ fn changing_saved_signatures_and_initials_preserves_placed_marks() {
     assert_eq!(h.state().quick_tool, QuickTool::Fill(FillTool::Initials));
     click(&mut h, 40.0, 100.0);
     assert_eq!(items(&h).len(), 3);
-    let mut again = PdfCraftApp::new();
+    let mut again = VisionPDFApp::new();
     again.set_option("language", "en").unwrap();
     again.restore(&h.state().persist());
     assert_eq!(again.signature, Some(SavedSig::Typed("Grace Hopper".into())));
@@ -906,7 +906,7 @@ fn saved_signature_cards_remove_and_add_without_changing_the_document() {
     h.run_steps(3);
     assert_eq!(h.state().signature, None);
     assert_eq!(h.state().initials, Some(SavedSig::Typed("AL".into())));
-    let mut again = PdfCraftApp::new();
+    let mut again = VisionPDFApp::new();
     again.set_option("language", "en").unwrap();
     again.restore(&h.state().persist());
     assert_eq!(again.signature, None, "removal survives restart");
@@ -972,7 +972,7 @@ fn signature_file_with_mark(test: &str, mark: std::ops::Range<u32>) -> std::path
     path
 }
 
-fn browse_image(h: &mut Harness<'static, PdfCraftApp>, path: &std::path::Path) {
+fn browse_image(h: &mut Harness<'static, VisionPDFApp>, path: &std::path::Path) {
     h.state_mut().pick_override = Some(vec![path.to_string_lossy().into_owned()]);
     h.get_by_label("Browse…").click();
     h.run_steps(3);
@@ -1012,7 +1012,7 @@ fn image_signatures_and_initials_can_be_imported_placed_and_remembered() {
     assert_eq!(doc.can_undo(), Some("Add initials"));
     let settings = state.persist();
     assert!(!settings.contains(&path.to_string_lossy().to_string()), "only the image is saved, never its source path");
-    let mut again = PdfCraftApp::new();
+    let mut again = VisionPDFApp::new();
     again.set_option("language", "en").unwrap();
     again.restore(&settings);
     assert_eq!(again.signature, state.signature);
@@ -1174,7 +1174,7 @@ fn assert_rect(actual: [f32; 4], expected: [f32; 4]) {
     assert!(actual.iter().zip(expected).all(|(a, b)| (*a - b).abs() < 0.001), "{actual:?} != {expected:?}");
 }
 
-fn pixel_at(h: &Harness<'static, PdfCraftApp>, pixels: &image::RgbaImage, x: f32, y: f32) -> [u8; 4] {
+fn pixel_at(h: &Harness<'static, VisionPDFApp>, pixels: &image::RgbaImage, x: f32, y: f32) -> [u8; 4] {
     let p = at(h, x, y);
     pixels.get_pixel(p.x.round() as u32, p.y.round() as u32).0
 }
@@ -1479,7 +1479,7 @@ fn image_import_cancel_clear_and_errors_preserve_saved_signatures() {
     h.run_steps(3);
     assert!(h.state().signature_draft.image.is_none());
     // Malformed settings are ignored while legacy typed/drawn values still restore.
-    let mut again = PdfCraftApp::new();
+    let mut again = VisionPDFApp::new();
     again.set_option("language", "en").unwrap();
     again.restore(r#"{"signature_text":"Ada","signature_image":{"Image":"bm90IGFuIGltYWdl"},"initials":{"Image":"%%%"}}"#);
     assert_eq!(again.signature, Some(SavedSig::Typed("Ada".into())));
@@ -1489,15 +1489,15 @@ fn image_import_cancel_clear_and_errors_preserve_saved_signatures() {
 
 #[test]
 fn flatten_on_save_is_off_by_default_and_round_trips() {
-    let mut app = PdfCraftApp::new();
+    let mut app = VisionPDFApp::new();
     assert!(!app.flatten_fill_sign_on_save);
     app.set_option("flatten-fill-sign", "true").unwrap();
     assert!(app.set_option("flatten-fill-sign", "yes").is_err());
-    let mut restored = PdfCraftApp::new();
+    let mut restored = VisionPDFApp::new();
     restored.restore(&app.persist());
     assert!(restored.flatten_fill_sign_on_save);
     restored.set_option("flatten-fill-sign", "false").unwrap();
-    let mut again = PdfCraftApp::new();
+    let mut again = VisionPDFApp::new();
     again.restore(&restored.persist());
     assert!(!again.flatten_fill_sign_on_save);
 }
@@ -1519,7 +1519,7 @@ fn saving_flattens_fill_and_sign_only_when_the_preference_is_on() {
         author: "Ada".into(),
     });
 
-    let mut app = PdfCraftApp::new();
+    let mut app = VisionPDFApp::new();
     app.open_bytes("form.pdf", None, FIXTURE.to_vec()).unwrap();
     let id = app.views[0].id;
     app.session.apply(id, mark).unwrap();
@@ -1535,7 +1535,7 @@ fn saving_flattens_fill_and_sign_only_when_the_preference_is_on() {
     let kept = dir.join("kept.pdf");
     app.save_override = Some(kept.to_string_lossy().into_owned());
     assert!(app.save_active(SaveTarget::InPlace));
-    let mut reopened = PdfCraftApp::new();
+    let mut reopened = VisionPDFApp::new();
     reopened.open_bytes("kept.pdf", None, std::fs::read(&kept).unwrap()).unwrap();
     let texts: Vec<String> =
         reopened.session.get(reopened.views[0].id).unwrap().info.annotations.iter().map(|a| a.contents.clone().unwrap_or_default()).collect();
@@ -1555,7 +1555,7 @@ fn saving_flattens_fill_and_sign_only_when_the_preference_is_on() {
     let flat = dir.join("flat.pdf");
     app.save_override = Some(flat.to_string_lossy().into_owned());
     assert!(app.save_active(SaveTarget::InPlace));
-    let mut flattened = PdfCraftApp::new();
+    let mut flattened = VisionPDFApp::new();
     flattened.open_bytes("flat.pdf", None, std::fs::read(&flat).unwrap()).unwrap();
     let left = &flattened.session.get(flattened.views[0].id).unwrap().info.annotations;
     assert!(left.is_empty(), "text and the check mark are page content: {left:?}");
@@ -1643,7 +1643,7 @@ fn drawn_and_typed_signatures_stay_upright_on_rotated_pages() {
 }
 
 /// Press, move in steps and release, from one user-space point to another.
-fn drag(h: &mut Harness<'static, PdfCraftApp>, from: (f32, f32), to: (f32, f32)) {
+fn drag(h: &mut Harness<'static, VisionPDFApp>, from: (f32, f32), to: (f32, f32)) {
     let (a, b) = (at(h, from.0, from.1), at(h, to.0, to.1));
     h.hover_at(a);
     h.run_steps(1);
@@ -1657,7 +1657,7 @@ fn drag(h: &mut Harness<'static, PdfCraftApp>, from: (f32, f32), to: (f32, f32))
     h.run_steps(4);
 }
 
-fn rects(h: &Harness<'static, PdfCraftApp>) -> Vec<[f32; 4]> {
+fn rects(h: &Harness<'static, VisionPDFApp>) -> Vec<[f32; 4]> {
     let s = h.state();
     s.session.get(s.views[0].id).unwrap().info.annotations.iter().map(|a| a.rect).collect()
 }
@@ -1801,7 +1801,7 @@ fn lines_grow_and_shrink_with_their_handles_before_release() {
         // A line runs across the page as /Rotate displays it (#3781): along user y on a quarter turn.
         // `d` is the distance along the line from the click at (100, 250).
         let along =
-            |h: &Harness<'static, PdfCraftApp>, d: f32| if document_rotation == 90 { at(h, 100.0, 250.0 + d) } else { at(h, 100.0 + d, 250.0) };
+            |h: &Harness<'static, VisionPDFApp>, d: f32| if document_rotation == 90 { at(h, 100.0, 250.0 + d) } else { at(h, 100.0 + d, 250.0) };
         let line = |from: f32, to: f32| {
             if document_rotation == 90 { [98.0, 250.0 + from, 102.0, 250.0 + to] } else { [100.0 + from, 248.0, 100.0 + to, 252.0] }
         };
@@ -1925,7 +1925,7 @@ fn signature_photo(test: &str) -> std::path::PathBuf {
     path
 }
 
-fn choose_photo(h: &mut Harness<'static, PdfCraftApp>, path: &std::path::Path) {
+fn choose_photo(h: &mut Harness<'static, VisionPDFApp>, path: &std::path::Path) {
     h.state_mut().pick_override = Some(vec![path.to_string_lossy().into_owned()]);
     h.get_by_label("Choose photo…").click();
     h.run_steps(3);
@@ -1933,7 +1933,7 @@ fn choose_photo(h: &mut Harness<'static, PdfCraftApp>, path: &std::path::Path) {
 }
 
 /// Scans run on a worker thread: step frames until the answer has been picked up.
-fn settle_scan(h: &mut Harness<'static, PdfCraftApp>) {
+fn settle_scan(h: &mut Harness<'static, VisionPDFApp>) {
     for _ in 0..1000 {
         if !h.state().signature_draft.scan.as_ref().is_some_and(|s| s.scanning()) {
             h.run_steps(1);
@@ -2043,7 +2043,7 @@ fn scanned_signatures_are_framed_cleaned_adjusted_placed_and_remembered() {
     let settings = h.state().persist();
     assert!(!settings.contains(&path.to_string_lossy().to_string()));
     assert!(settings.len() < 200_000, "only the trimmed signature is kept: {} bytes", settings.len());
-    let mut again = PdfCraftApp::new();
+    let mut again = VisionPDFApp::new();
     again.set_option("language", "en").unwrap();
     again.restore(&settings);
     assert_eq!(again.signature, h.state().signature);
@@ -2148,7 +2148,7 @@ fn the_first_save_after_placing_a_signature_asks_to_lock_it() {
     h.state_mut().execute("sign.fill.signature");
     h.run_steps(2);
     click(&mut h, 40.0, 300.0);
-    let signed = |h: &Harness<'static, PdfCraftApp>| {
+    let signed = |h: &Harness<'static, VisionPDFApp>| {
         h.state().session.get(h.state().views[0].id).unwrap().info.annotations.iter().filter(|a| a.fill_sign).count()
     };
     assert_eq!(signed(&h), 1);
@@ -2264,14 +2264,14 @@ fn reverting_forgets_a_signature_just_placed() {
 fn placing_a_signature_offers_to_lock_it_now() {
     const NOTICE: &str = "Signature added. Others can move it until it's locked.";
     let out = std::env::temp_dir().join(format!("pdfcraft-lock-now-{}.pdf", std::process::id()));
-    let place = |h: &mut Harness<'static, PdfCraftApp>, y: f32| {
+    let place = |h: &mut Harness<'static, VisionPDFApp>, y: f32| {
         h.state_mut().signature = Some(SavedSig::Typed("Ada Lovelace".into()));
         h.state_mut().execute("sign.fill.signature");
         h.run_steps(2);
         click(h, 40.0, y);
         h.run_steps(2);
     };
-    let marks = |h: &Harness<'static, PdfCraftApp>| {
+    let marks = |h: &Harness<'static, VisionPDFApp>| {
         h.state().session.get(h.state().views[0].id).unwrap().info.annotations.iter().filter(|a| a.fill_sign).count()
     };
     let mut h = harness();
@@ -2375,7 +2375,7 @@ fn a_lock_that_fails_keeps_the_question() {
     h.state_mut().execute("sign.fill.signature");
     h.run_steps(2);
     click(&mut h, 40.0, 300.0);
-    let signed = |h: &Harness<'static, PdfCraftApp>| {
+    let signed = |h: &Harness<'static, VisionPDFApp>| {
         h.state().session.get(h.state().views[0].id).unwrap().info.annotations.iter().filter(|a| a.fill_sign).count()
     };
     assert_eq!(signed(&h), 1, "comments are allowed");
@@ -2400,7 +2400,7 @@ fn a_lock_that_fails_keeps_the_question() {
 /// signing.
 #[test]
 fn the_lock_question_is_skipped_or_kept_where_it_must_be() {
-    let place = |h: &mut Harness<'static, PdfCraftApp>| {
+    let place = |h: &mut Harness<'static, VisionPDFApp>| {
         h.state_mut().signature = Some(SavedSig::Typed("Ada Lovelace".into()));
         h.state_mut().execute("sign.fill.signature");
         h.run_steps(2);
@@ -2482,7 +2482,7 @@ fn cancelling_the_lock_question_saves_nothing() {
     h.run_steps(3);
     assert!(out.exists() && !h.state().ask_to_lock_signatures);
     let restored = {
-        let mut a = PdfCraftApp::new();
+        let mut a = VisionPDFApp::new();
         a.restore(&h.state().persist());
         a.ask_to_lock_signatures
     };
@@ -2491,17 +2491,17 @@ fn cancelling_the_lock_question_saves_nothing() {
 }
 
 /// Where a mode bar tab is, by its label.
-fn mode_tab(h: &Harness<'static, PdfCraftApp>, label: &str) -> egui::Rect {
+fn mode_tab(h: &Harness<'static, VisionPDFApp>, label: &str) -> egui::Rect {
     h.get_all_by_role_and_label(egui::accesskit::Role::Button, label).map(|n| n.rect()).find(|r| r.bottom() < 120.0).expect("a mode tab")
 }
 
 /// Scroll the page until `what` (on screen) lies across the mode bar, then the cursor over each
 /// tab it lies under: with the All tools panel closed, every tab: All tools, Edit, Convert and E-Sign.
 fn mode_tab_cursors(
-    h: &mut Harness<'static, PdfCraftApp>,
-    what: impl Fn(&Harness<'static, PdfCraftApp>) -> egui::Rect,
+    h: &mut Harness<'static, VisionPDFApp>,
+    what: impl Fn(&Harness<'static, VisionPDFApp>) -> egui::Rect,
 ) -> [(&'static str, egui::CursorIcon); 4] {
-    let page = |h: &Harness<'static, PdfCraftApp>| h.state().views[0].page_screen_rect(0).expect("on screen");
+    let page = |h: &Harness<'static, VisionPDFApp>| h.state().views[0].page_screen_rect(0).expect("on screen");
     let y = what(h).center().y - page(h).top();
     let tabs = mode_tab(h, "Convert").center().y;
     h.state_mut().views[0].goto = Some((0, 0.0));
@@ -2551,7 +2551,7 @@ fn mode_tabs_keep_the_hand_over_a_type_box_scrolled_under_them() {
     assert_eq!(h.state().mode, pdfcraft_ui_egui::Mode::Convert, "the tab takes the click, not the text box");
 }
 
-fn place_selected_text(h: &mut Harness<'static, PdfCraftApp>, text: &str) {
+fn place_selected_text(h: &mut Harness<'static, VisionPDFApp>, text: &str) {
     h.state_mut().execute("sign.fill.text");
     click(h, 50.0, 250.0);
     h.event(egui::Event::Text(text.into()));
@@ -2573,13 +2573,13 @@ fn place_selected_text(h: &mut Harness<'static, PdfCraftApp>, text: &str) {
     h.run_steps(2);
 }
 
-fn placed_height(h: &Harness<'static, PdfCraftApp>, text: &str) -> f32 {
+fn placed_height(h: &Harness<'static, VisionPDFApp>, text: &str) -> f32 {
     let s = h.state();
     let a = s.session.get(s.views[0].id).unwrap().info.annotations.iter().find(|a| a.contents.as_deref() == Some(text)).unwrap();
     a.rect[3] - a.rect[1]
 }
 
-fn placed_color(h: &Harness<'static, PdfCraftApp>, text: &str) -> Option<[f32; 3]> {
+fn placed_color(h: &Harness<'static, VisionPDFApp>, text: &str) -> Option<[f32; 3]> {
     let s = h.state();
     s.session.get(s.views[0].id).unwrap().info.annotations.iter().find(|a| a.contents.as_deref() == Some(text)).unwrap().color
 }
@@ -2638,7 +2638,7 @@ fn pressing_the_fill_text_size_slider_without_moving_it_adds_no_undo_step() {
     h.run_steps(2);
     let slider = h.get_by_role(egui::accesskit::Role::Slider).rect();
     let at = pos2(slider.min.x + (slider.max.x - slider.min.x) * 0.75, (slider.min.y + slider.max.y) / 2.0);
-    let press = |h: &mut Harness<'static, PdfCraftApp>| {
+    let press = |h: &mut Harness<'static, VisionPDFApp>| {
         h.hover_at(at);
         h.run_steps(1);
         h.drag_at(at);
@@ -2663,7 +2663,7 @@ fn typing_a_fill_text_size_that_rounds_to_the_stored_one_adds_no_undo_step() {
     let height = placed_height(&h, "Round me");
     h.get_by_label("Font size").click();
     h.run_steps(2);
-    let type_size = |h: &mut Harness<'static, PdfCraftApp>, value: &str| {
+    let type_size = |h: &mut Harness<'static, VisionPDFApp>, value: &str| {
         h.query_all_by_role(egui::accesskit::Role::SpinButton)
             .find(|n| n.value().is_some_and(|v| v.ends_with(" pt")))
             .expect("the Font size control")
@@ -2814,7 +2814,7 @@ fn the_quick_bar_fill_button_keeps_date_after_deselecting_and_across_documents()
     assert_eq!(h.state().quick_tool, QuickTool::Fill(FillTool::Date), "the tool outlives closing every document");
 }
 
-fn commit_typed_text(h: &mut Harness<'static, PdfCraftApp>) {
+fn commit_typed_text(h: &mut Harness<'static, VisionPDFApp>) {
     let p = pos2(350.0, 850.0); // Blank canvas outside the page and the type box.
     h.hover_at(p);
     h.drag_at(p);
@@ -2823,7 +2823,7 @@ fn commit_typed_text(h: &mut Harness<'static, PdfCraftApp>) {
     h.run_steps(3);
 }
 
-fn fill_input(h: &mut Harness<'static, PdfCraftApp>, events: impl IntoIterator<Item = egui::Event>) {
+fn fill_input(h: &mut Harness<'static, VisionPDFApp>, events: impl IntoIterator<Item = egui::Event>) {
     h.input_mut().events.extend(events);
     let ctx = h.ctx.clone();
     let mut raw = std::mem::take(h.input_mut());
@@ -2833,7 +2833,7 @@ fn fill_input(h: &mut Harness<'static, PdfCraftApp>, events: impl IntoIterator<I
     h.run_steps(2);
 }
 
-fn fill_key(h: &mut Harness<'static, PdfCraftApp>, key: egui::Key) {
+fn fill_key(h: &mut Harness<'static, VisionPDFApp>, key: egui::Key) {
     fill_input(
         h,
         [true, false].map(|pressed| egui::Event::Key { key, physical_key: Some(key), pressed, repeat: false, modifiers: egui::Modifiers::NONE }),
@@ -2883,7 +2883,7 @@ fn fill_sign_enter_adds_lines_outside_click_commits_and_escape_cancels() {
     assert_eq!(annot.contents.as_deref(), Some(text));
     assert!(annot.rect[3] - annot.rect[1] >= 5.0 * 10.0 * 1.2, "the saved box keeps all five lines");
     // Compared as edits, not saved bytes: a save stamps its time, so two saves a second apart differ.
-    let unchanged = |h: &Harness<'static, PdfCraftApp>| {
+    let unchanged = |h: &Harness<'static, VisionPDFApp>| {
         let doc = h.state().session.get(id).unwrap();
         (doc.edit_generation(), doc.dirty, doc.can_undo().map(str::to_owned))
     };

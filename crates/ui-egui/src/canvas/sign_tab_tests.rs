@@ -262,7 +262,7 @@ trailer << /Root 1 0 R >>
 %%EOF";
 
 /// Every shape painted in the last frame, with nested lists flattened.
-fn painted(h: &egui_kittest::Harness<'static, PdfCraftApp>) -> Vec<egui::Shape> {
+fn painted(h: &egui_kittest::Harness<'static, VisionPDFApp>) -> Vec<egui::Shape> {
     let mut stack: Vec<egui::Shape> = h.output().shapes.iter().map(|c| c.shape.clone()).collect();
     let mut out = Vec::new();
     while let Some(shape) = stack.pop() {
@@ -275,7 +275,7 @@ fn painted(h: &egui_kittest::Harness<'static, PdfCraftApp>) -> Vec<egui::Shape> 
 }
 
 /// Where the named field's first widget is on screen.
-fn field_on_screen(h: &egui_kittest::Harness<'static, PdfCraftApp>, name: &str) -> Rect {
+fn field_on_screen(h: &egui_kittest::Harness<'static, VisionPDFApp>, name: &str) -> Rect {
     let app = h.state();
     let view = &app.views[0];
     let doc = app.session.get(view.id).expect("open");
@@ -295,9 +295,9 @@ trailer << /Root 1 0 R >>
 %%EOF";
 
 /// The real shell with `bytes` open, the side panes closed, after the first frames.
-fn shell(bytes: &'static [u8]) -> egui_kittest::Harness<'static, PdfCraftApp> {
+fn shell(bytes: &'static [u8]) -> egui_kittest::Harness<'static, VisionPDFApp> {
     let mut h = egui_kittest::Harness::builder().with_size(vec2(1400.0, 900.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("sign-fields.pdf", None, bytes.to_vec()).unwrap();
         app.set_option("left", "closed").unwrap();
@@ -309,7 +309,7 @@ fn shell(bytes: &'static [u8]) -> egui_kittest::Harness<'static, PdfCraftApp> {
 }
 
 /// The accent chips painted in the last frame: the sign tabs.
-fn chips(h: &egui_kittest::Harness<'static, PdfCraftApp>) -> Vec<Rect> {
+fn chips(h: &egui_kittest::Harness<'static, VisionPDFApp>) -> Vec<Rect> {
     let accent = Tokens::get(&h.ctx).accent;
     painted(h)
         .iter()
@@ -321,7 +321,7 @@ fn chips(h: &egui_kittest::Harness<'static, PdfCraftApp>) -> Vec<Rect> {
 }
 
 /// Clicks at `at` and lets the shell answer.
-fn click_at(h: &mut egui_kittest::Harness<'static, PdfCraftApp>, at: Pos2) {
+fn click_at(h: &mut egui_kittest::Harness<'static, VisionPDFApp>, at: Pos2) {
     h.drag_at(at);
     h.run_steps(1);
     h.drop_at(at);

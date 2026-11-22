@@ -1,11 +1,11 @@
 use super::bookmarks::{BmAction, OutlineCtx, outline_item, outline_matches};
 use super::pages::{page_tools, pages, thumbnail_size};
 use super::{
-    Align, Align2, Color32, DocInfo, FieldKind, Layout, Nav, PdfCraftApp, Rect, RightPanel, Sense, Stroke, Tokens, human_size, icons, theme, vec2,
+    Align, Align2, Color32, DocInfo, FieldKind, Layout, Nav, VisionPDFApp, Rect, RightPanel, Sense, Stroke, Tokens, human_size, icons, theme, vec2,
 };
 
 /// Draw the selected right-hand panel and apply its navigation, layer, bookmark or edit actions.
-pub fn right_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
+pub fn right_panel(app: &mut VisionPDFApp, ui: &mut egui::Ui) {
     let t = Tokens::get(ui.ctx());
     let Some((index, id)) = app.active_ids() else { return };
     let Some(panel) = app.right else { return };
@@ -378,7 +378,7 @@ pub fn right_panel(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
                                 })
                             });
                             // A double-click opens a PDF in a new tab, as Acrobat opens an attachment;
-                            // any other file is saved, since PdfCraft opens only PDFs.
+                            // any other file is saved, since VisionPDF opens only PDFs.
                             if row.response.double_clicked() {
                                 attachment_action = Some((ai, is_pdf));
                             }

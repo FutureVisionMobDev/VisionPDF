@@ -3,7 +3,7 @@
 use egui::{Key, Modifiers, MouseWheelUnit, TouchPhase};
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use pdfcraft_ui_egui::PdfCraftApp;
+use pdfcraft_ui_egui::VisionPDFApp;
 
 /// Three 300×400 pt pages. Page 1 links to page 3.
 const PAGES: &[u8] = b"%PDF-1.7
@@ -18,14 +18,14 @@ trailer << /Root 1 0 R >>
 
 use crate::gpu;
 
-fn harness(options: &'static [(&'static str, &'static str)]) -> Harness<'static, PdfCraftApp> {
+fn harness(options: &'static [(&'static str, &'static str)]) -> Harness<'static, VisionPDFApp> {
     harness_stepping(1.0 / 4.0, options)
 }
 
 /// [`harness`] with frames `step_dt` seconds apart (a quarter second is kittest's default).
-fn harness_stepping(step_dt: f32, options: &'static [(&'static str, &'static str)]) -> Harness<'static, PdfCraftApp> {
+fn harness_stepping(step_dt: f32, options: &'static [(&'static str, &'static str)]) -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).with_step_dt(step_dt).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("pages.pdf", None, PAGES.to_vec()).expect("opens");
         app.set_option("left", "closed").unwrap();
@@ -39,11 +39,11 @@ fn harness_stepping(step_dt: f32, options: &'static [(&'static str, &'static str
     h
 }
 
-fn rect(h: &Harness<'static, PdfCraftApp>, page: usize) -> Option<egui::Rect> {
+fn rect(h: &Harness<'static, VisionPDFApp>, page: usize) -> Option<egui::Rect> {
     h.state().views[0].page_screen_rect(page)
 }
 
-fn sidebar_key(h: &mut Harness<'static, PdfCraftApp>, key: Key, modifiers: Modifiers) {
+fn sidebar_key(h: &mut Harness<'static, VisionPDFApp>, key: Key, modifiers: Modifiers) {
     h.event(egui::Event::ModifiersChanged(modifiers));
     for pressed in [true, false] {
         h.event(egui::Event::Key { key, physical_key: None, pressed, repeat: false, modifiers });
@@ -105,9 +105,9 @@ const MIXED: &[u8] = b"%PDF-1.7
 trailer << /Root 1 0 R >>
 %%EOF";
 
-fn mixed_harness(options: &'static [(&'static str, &'static str)]) -> Harness<'static, PdfCraftApp> {
+fn mixed_harness(options: &'static [(&'static str, &'static str)]) -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("mixed.pdf", None, MIXED.to_vec()).expect("opens");
         app.set_option("left", "closed").unwrap();
@@ -233,9 +233,9 @@ fn page_gaps_in_organizer_do_not_move_the_document_scroll_position() {
 }
 
 /// A three-page comparison, with the old pane leading while the new document stays active.
-fn page_gaps_comparison_harness() -> Harness<'static, PdfCraftApp> {
+fn page_gaps_comparison_harness() -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.set_option("left", "closed").unwrap();
         app.open_bytes("old.pdf", None, PAGES.to_vec()).unwrap();
@@ -284,9 +284,9 @@ fn page_gaps_comparison_control_preserves_both_states() {
 /// The saved default survives restart and applies to newly opened documents.
 #[test]
 fn page_gaps_default_survives_restart_and_applies_to_new_documents() {
-    let mut app = PdfCraftApp::new();
+    let mut app = VisionPDFApp::new();
     app.set_option("default-page-gaps", "off").unwrap();
-    let mut restored = PdfCraftApp::new();
+    let mut restored = VisionPDFApp::new();
     restored.restore(&app.persist());
     restored.open_bytes("pages.pdf", None, PAGES.to_vec()).unwrap();
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| restored);
@@ -338,7 +338,7 @@ fn page_gaps_work_for_mixed_sizes_and_two_page_rows() {
 fn page_gaps_stay_closed_at_fractional_device_scales() {
     for ppp in [1.0, 1.25, 1.5, 2.0] {
         let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).with_pixels_per_point(ppp).build_eframe(|_cc| {
-            let mut app = PdfCraftApp::new();
+            let mut app = VisionPDFApp::new();
             app.open_bytes("pages.pdf", None, PAGES.to_vec()).unwrap();
             for (key, value) in [("left", "closed"), ("panel", "none"), ("layout", "continuous"), ("zoom", "43"), ("page-gaps", "off")] {
                 app.set_option(key, value).unwrap();
@@ -492,7 +492,7 @@ fn single_page_swipe_that_reaches_the_edge_does_not_turn_but_a_fresh_one_does() 
     let at = h.state().views[0].viewport_rect().center();
     h.hover_at(at);
     h.run_steps(4);
-    let send = |h: &mut Harness<'static, PdfCraftApp>, phase, dy| {
+    let send = |h: &mut Harness<'static, VisionPDFApp>, phase, dy| {
         h.event(wheel(MouseWheelUnit::Point, dy, phase));
         h.step();
     };
@@ -856,8 +856,8 @@ fn scroll_regression_key_interrupt_retains_current_wheel_input() {
 /// Steps `frames` frames and returns how far the document scrolled down over them, from the
 /// pages on screen in each pair of consecutive frames (a page can leave the screen on the way).
 /// Used by wheel and non-macOS glide tests below.
-fn scroll_over(h: &mut Harness<'static, PdfCraftApp>, frames: usize) -> f32 {
-    let tops = |h: &Harness<'static, PdfCraftApp>| (0..3).map(|p| rect(h, p).map(|r| r.min.y)).collect::<Vec<_>>();
+fn scroll_over(h: &mut Harness<'static, VisionPDFApp>, frames: usize) -> f32 {
+    let tops = |h: &Harness<'static, VisionPDFApp>| (0..3).map(|p| rect(h, p).map(|r| r.min.y)).collect::<Vec<_>>();
     let mut moved = 0.0;
     for _ in 0..frames {
         let before = tops(h);
@@ -874,7 +874,7 @@ fn scroll_over(h: &mut Harness<'static, PdfCraftApp>, frames: usize) -> f32 {
 /// it scrolled by the frame after the lift (the page is drawn a frame behind its scroll).
 /// Same gate as its callers below.
 #[cfg(not(target_os = "macos"))]
-fn swipe_and_lift(h: &mut Harness<'static, PdfCraftApp>) -> f32 {
+fn swipe_and_lift(h: &mut Harness<'static, VisionPDFApp>) -> f32 {
     let at = h.state().views[0].viewport_rect().center();
     h.hover_at(at);
     h.run_steps(2);
@@ -1105,7 +1105,7 @@ fn layout_option_rejects_typos() {
 
 #[test]
 fn view_options_without_a_document() {
-    let mut app = PdfCraftApp::new();
+    let mut app = VisionPDFApp::new();
     app.set_option("language", "en").unwrap();
     assert!(app.set_option("default-layout", "single").is_ok(), "the default needs no document");
     assert_eq!(app.view_defaults.layout, pdfcraft_ui_egui::canvas::PageLayout::Single);
@@ -1117,8 +1117,8 @@ fn view_options_without_a_document() {
 fn default_page_display_is_used_for_new_documents() {
     use pdfcraft_ui_egui::canvas::PageLayout;
     // The factory default is single page, scrolling continuously, without snap jumps.
-    assert_eq!(PdfCraftApp::new().view_defaults.layout, PageLayout::Single);
-    assert!(PdfCraftApp::new().view_defaults.continuous);
+    assert_eq!(VisionPDFApp::new().view_defaults.layout, PageLayout::Single);
+    assert!(VisionPDFApp::new().view_defaults.continuous);
     let mut h = harness(&[]);
     h.state_mut().set_option("default-layout", "single").unwrap();
     h.state_mut().open_bytes("other.pdf", None, PAGES.to_vec()).expect("opens");
@@ -1128,7 +1128,7 @@ fn default_page_display_is_used_for_new_documents() {
     assert_eq!(h.state().views[2].layout, PageLayout::Single);
     // Persisted preferences survive a restart.
     let saved = h.state().persist();
-    let mut fresh = PdfCraftApp::new();
+    let mut fresh = VisionPDFApp::new();
     fresh.set_option("language", "en").unwrap();
     fresh.restore(&saved);
     assert_eq!(fresh.view_defaults.layout, PageLayout::Single);
@@ -1137,7 +1137,7 @@ fn default_page_display_is_used_for_new_documents() {
     assert_eq!(fresh.view_defaults.layout, PageLayout::Single);
     fresh.restore(r#"{"default_layout":"TWO-UP"}"#);
     assert_eq!(fresh.view_defaults.layout, PageLayout::TwoUp);
-    let mut legacy = PdfCraftApp::new();
+    let mut legacy = VisionPDFApp::new();
     legacy.set_option("language", "en").unwrap();
     legacy.restore("{}");
     assert_eq!(legacy.view_defaults.layout, PageLayout::Single);
@@ -1147,7 +1147,7 @@ fn default_page_display_is_used_for_new_documents() {
 #[test]
 fn default_zoom_is_used_for_new_documents() {
     use pdfcraft_ui_egui::canvas::Fit;
-    let fit_zoom = |app: &PdfCraftApp, i: usize| (app.views[i].fit, app.views[i].zoom);
+    let fit_zoom = |app: &VisionPDFApp, i: usize| (app.views[i].fit, app.views[i].zoom);
     let mut h = harness(&[]);
     // The factory default fits the width.
     assert_eq!(h.state().views[0].fit, Fit::Width);
@@ -1167,7 +1167,7 @@ fn default_zoom_is_used_for_new_documents() {
     }
     // Saved settings keep it, and garbage leaves it alone.
     let saved = h.state().persist();
-    let mut fresh = PdfCraftApp::new();
+    let mut fresh = VisionPDFApp::new();
     fresh.set_option("language", "en").unwrap();
     fresh.restore(&saved);
     fresh.restore(r#"{"default_zoom":"bogus"}"#);
@@ -1181,7 +1181,7 @@ fn the_rail_zoom_field_sets_a_typed_zoom() {
     use egui_kittest::kittest::Queryable;
     use pdfcraft_ui_egui::canvas::Fit;
     let mut h = harness(&[]);
-    let type_zoom = |h: &mut Harness<'static, PdfCraftApp>, typed: &str, key: Key| {
+    let type_zoom = |h: &mut Harness<'static, VisionPDFApp>, typed: &str, key: Key| {
         h.get_by_role_and_label(Role::TextInput, "Zoom").click();
         h.run_steps(2);
         h.get_by_role_and_label(Role::TextInput, "Zoom").type_text(typed);
@@ -1210,7 +1210,7 @@ fn always_use_my_default_zoom_and_page_layout_ignores_what_the_pdf_asks_for() {
     // Opens on page 2 at fit page, two pages side by side.
     let asks = String::from_utf8_lossy(PAGES).replace("/Pages 2 0 R >>", "/Pages 2 0 R /OpenAction [4 0 R /Fit] /PageLayout /TwoPageLeft >>");
     let open = |always: Option<&str>| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         if let Some(on) = always {
             app.set_option("always-default-view", on).unwrap();
@@ -1224,20 +1224,20 @@ fn always_use_my_default_zoom_and_page_layout_ignores_what_the_pdf_asks_for() {
     assert_eq!(open(Some("off")), (Fit::Page, PageLayout::TwoUp, false, 1));
     // On: Default zoom and Default page display; the page it opens at is still the document's.
     assert_eq!(open(Some("on")), (Fit::Width, PageLayout::Single, true, 1));
-    assert!(PdfCraftApp::new().set_option("always-default-view", "yes").is_err());
+    assert!(VisionPDFApp::new().set_option("always-default-view", "yes").is_err());
 }
 
 #[test]
 fn always_use_my_default_zoom_and_page_layout_survives_a_restart() {
-    let mut app = PdfCraftApp::new();
+    let mut app = VisionPDFApp::new();
     assert!(!app.always_default_view, "off by default");
     app.always_default_view = true;
-    let mut restarted = PdfCraftApp::new();
+    let mut restarted = VisionPDFApp::new();
     restarted.restore(&app.persist());
     assert!(restarted.always_default_view, "the choice is kept");
     restarted.restore(r#"{"always_default_view":"bogus"}"#);
     assert!(restarted.always_default_view, "garbage leaves it alone");
-    let mut legacy = PdfCraftApp::new();
+    let mut legacy = VisionPDFApp::new();
     legacy.restore("{}");
     assert!(!legacy.always_default_view, "a legacy file without the key keeps it off");
 }
@@ -1418,13 +1418,13 @@ fn rail_page_display_menu_offers_acrobats_view_choices() {
     use pdfcraft_ui_egui::canvas::{Fit, PageLayout};
     let mut h = harness(&[]);
     h.run_steps(4);
-    let pick = |h: &mut Harness<'static, PdfCraftApp>, item: &str| {
+    let pick = |h: &mut Harness<'static, VisionPDFApp>, item: &str| {
         h.get_by_label_contains("Page display:").click();
         h.run_steps(3);
         h.get_by_label(item).click();
         h.run_steps(4);
     };
-    let shown = |h: &Harness<'static, PdfCraftApp>| (h.state().views[0].layout, h.state().views[0].continuous(), h.state().views[0].fit);
+    let shown = |h: &Harness<'static, VisionPDFApp>| (h.state().views[0].layout, h.state().views[0].continuous(), h.state().views[0].fit);
     pick(&mut h, "Fit one full page");
     assert_eq!(shown(&h), (PageLayout::Single, false, Fit::Page), "one full page at a time, not scrolling");
     // The whole page fits at once, so the wheel turns pages without zooming out first.
@@ -1535,7 +1535,7 @@ fn single_page_fit_page_fits_the_shown_page() {
 
 #[test]
 fn pages_shorter_than_the_window_sit_in_its_middle() {
-    let centred = |h: &Harness<'static, PdfCraftApp>, r: egui::Rect| {
+    let centred = |h: &Harness<'static, VisionPDFApp>, r: egui::Rect| {
         let vp = h.state().views[0].viewport_rect();
         assert!(r.height() < vp.height(), "{r:?} is shorter than {vp:?}");
         assert!((r.center().y - vp.center().y).abs() < 1.0, "{r:?} is in the middle of {vp:?}");
@@ -1629,14 +1629,14 @@ const DESTS: &[u8] = b"%PDF-1.7
 trailer << /Root 1 0 R >>
 %%EOF";
 
-fn dests_harness() -> Harness<'static, PdfCraftApp> {
+fn dests_harness() -> Harness<'static, VisionPDFApp> {
     bookmarks_harness("dests.pdf", DESTS)
 }
 
 /// `pdf` open with the Bookmarks panel showing, once the window's layout holds still.
-fn bookmarks_harness(name: &'static str, pdf: &'static [u8]) -> Harness<'static, PdfCraftApp> {
+fn bookmarks_harness(name: &'static str, pdf: &'static [u8]) -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes(name, None, pdf.to_vec()).expect("opens");
         app.set_option("left", "closed").unwrap();
@@ -1659,7 +1659,7 @@ fn bookmarks_harness(name: &'static str, pdf: &'static [u8]) -> Harness<'static,
 
 /// Where the point a fraction (`fx`, `fy`) across and down `page` is on screen, relative to the
 /// viewport's top-left corner.
-fn from_viewport_corner(h: &Harness<'static, PdfCraftApp>, page: usize, fx: f32, fy: f32) -> egui::Vec2 {
+fn from_viewport_corner(h: &Harness<'static, VisionPDFApp>, page: usize, fx: f32, fy: f32) -> egui::Vec2 {
     let (r, vp) = (rect(h, page).expect("page on screen"), h.state().views[0].viewport_rect());
     egui::pos2(r.min.x + fx * r.width(), r.min.y + fy * r.height()) - vp.min
 }
@@ -1770,9 +1770,9 @@ endstream endobj
 trailer << /Root 1 0 R >>
 %%EOF";
 
-fn form_harness() -> Harness<'static, PdfCraftApp> {
+fn form_harness() -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("form.pdf", None, FORM.to_vec()).expect("opens");
         app.set_option("left", "closed").unwrap();
@@ -1806,7 +1806,7 @@ fn highlight_fields_tints_the_field_area() {
     let r = rect(&h, 0).expect("page 1");
     // The field spans x 50..250, y 300..330 (PDF space, y up) on a 300×400 page; sample inside it.
     let at = egui::pos2(r.min.x + r.width() * (60.0 / 300.0), r.min.y + r.height() * (1.0 - 305.0 / 400.0));
-    let pixel = |h: &mut Harness<'static, PdfCraftApp>| {
+    let pixel = |h: &mut Harness<'static, VisionPDFApp>| {
         let img = h.render().expect("renders");
         let ppp = h.ctx.pixels_per_point();
         *img.get_pixel((at.x * ppp) as u32, (at.y * ppp) as u32)
@@ -1835,7 +1835,7 @@ trailer << /Root 1 0 R >>
 #[test]
 fn highlight_fields_leaves_read_only_fields_alone() {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("locked.pdf", None, LOCKED.to_vec()).expect("opens");
         app.set_option("left", "closed").unwrap();
@@ -1866,7 +1866,7 @@ trailer << /Root 1 0 R >>
 #[test]
 fn highlight_fields_leaves_a_groups_read_only_button_alone() {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("radio.pdf", None, LOCKED_RADIO.to_vec()).expect("opens");
         app.set_option("left", "closed").unwrap();
@@ -1895,7 +1895,7 @@ trailer << /Root 1 0 R >>
 #[test]
 fn highlight_fields_leaves_push_buttons_alone() {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("button.pdf", None, BUTTON_AND_TEXT.to_vec()).expect("opens");
         app.set_option("left", "closed").unwrap();
@@ -1921,7 +1921,7 @@ trailer << /Root 1 0 R >>
 #[test]
 fn the_viewer_runs_the_pages_open_action_and_its_timers() {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("timer.pdf", None, PAGE_TIMER.to_vec()).expect("opens");
         app
@@ -1939,7 +1939,7 @@ fn the_viewer_runs_the_pages_open_action_and_its_timers() {
 #[test]
 fn page_actions_and_timers_wait_under_a_dialog() {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("timer.pdf", None, PAGE_TIMER.to_vec()).expect("opens");
         app.dialog = Some(pdfcraft_ui_egui::Dialog::Shortcuts);
@@ -1969,7 +1969,7 @@ trailer << /Root 1 0 R >>
 #[test]
 fn timers_wait_for_the_page_a_page_action_goes_to() {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("hop.pdf", None, PAGE_HOP.to_vec()).expect("opens");
         app
@@ -1977,7 +1977,7 @@ fn timers_wait_for_the_page_a_page_action_goes_to() {
     h.run_steps(2);
     let id = h.state().views[0].id;
     assert!(h.state_mut().session.next_timer(id).is_some(), "the first page's open action set the interval");
-    let count = |h: &mut Harness<'static, PdfCraftApp>| h.state_mut().session.run_javascript(id, "n", None).expect("runs").result;
+    let count = |h: &mut Harness<'static, VisionPDFApp>| h.state_mut().session.run_javascript(id, "n", None).expect("runs").result;
     let before = count(&mut h);
     std::thread::sleep(std::time::Duration::from_millis(30));
     h.state_mut().views[0].go_to_page(1);
@@ -1998,7 +1998,7 @@ trailer << /Root 1 0 R >>
 %%EOF";
 
 /// Press field `name`'s first widget, wherever the document has it.
-fn press_field(h: &mut Harness<'static, PdfCraftApp>, name: &str) {
+fn press_field(h: &mut Harness<'static, VisionPDFApp>, name: &str) {
     let p = {
         let s = h.state();
         let doc = s.session.get(s.views[0].id).unwrap();
@@ -2018,7 +2018,7 @@ fn press_field(h: &mut Harness<'static, PdfCraftApp>, name: &str) {
 #[test]
 fn a_timer_writing_the_focused_field_shows_in_its_editor() {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("clock.pdf", None, FIELD_TIMER.to_vec()).expect("opens");
         app.set_option("left", "closed").unwrap();
@@ -2034,7 +2034,7 @@ fn a_timer_writing_the_focused_field_shows_in_its_editor() {
     let id = h.state().views[0].id;
     let set = h.state_mut().session.run_javascript(id, "app.setTimeOut('getField(\"clock\").value = \"tick\";', 50);", None).expect("runs");
     assert_eq!(set.error, None);
-    let value = |h: &Harness<'static, PdfCraftApp>| {
+    let value = |h: &Harness<'static, VisionPDFApp>| {
         let s = h.state();
         s.session.get(s.views[0].id).unwrap().form.iter().find(|f| f.name == "clock").unwrap().value.clone()
     };
@@ -2066,7 +2066,7 @@ trailer << /Root 1 0 R >>
 #[test]
 fn buttons_take_presses_as_the_scripts_show_them() {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("frames.pdf", None, SHOWN_BY_SCRIPT.to_vec()).expect("opens");
         app
@@ -2075,7 +2075,7 @@ fn buttons_take_presses_as_the_scripts_show_them() {
     let id = h.state().views[0].id;
     // Native button actions run on a worker. Frames alone do not ensure it has finished;
     // wait for the UI to accept its completion before inspecting the retained realm.
-    let pressed = |h: &mut Harness<'static, PdfCraftApp>| {
+    let pressed = |h: &mut Harness<'static, VisionPDFApp>| {
         let deadline = std::time::Instant::now() + std::time::Duration::from_secs(12);
         loop {
             h.run_steps(1);
@@ -2101,7 +2101,7 @@ fn buttons_take_presses_as_the_scripts_show_them() {
 #[test]
 fn a_groups_read_only_button_is_not_chosen_by_a_click() {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("radio.pdf", None, LOCKED_RADIO.to_vec()).expect("opens");
         app.set_option("left", "closed").unwrap();
@@ -2112,7 +2112,7 @@ fn a_groups_read_only_button_is_not_chosen_by_a_click() {
     let r = rect(&h, 0).expect("page 1");
     // The buttons' centers on the 300×400 pt page (y up).
     let at = |x: f32, y: f32| egui::pos2(r.min.x + r.width() * (x / 300.0), r.min.y + r.height() * (1.0 - y / 400.0));
-    let click = |h: &mut Harness<'static, PdfCraftApp>, pos: egui::Pos2| {
+    let click = |h: &mut Harness<'static, VisionPDFApp>, pos: egui::Pos2| {
         h.event(egui::Event::PointerMoved(pos));
         h.run_steps(1);
         h.event(egui::Event::PointerButton { pos, button: egui::PointerButton::Primary, pressed: true, modifiers: Modifiers::NONE });
@@ -2120,7 +2120,7 @@ fn a_groups_read_only_button_is_not_chosen_by_a_click() {
         h.event(egui::Event::PointerButton { pos, button: egui::PointerButton::Primary, pressed: false, modifiers: Modifiers::NONE });
         h.run_steps(4);
     };
-    let value = |h: &Harness<'static, PdfCraftApp>| {
+    let value = |h: &Harness<'static, VisionPDFApp>| {
         let s = h.state();
         s.session.get(s.views[0].id).unwrap().form.iter().find(|f| f.name == "choice").map(|f| f.value.clone()).unwrap_or_default()
     };
@@ -2147,7 +2147,7 @@ trailer << /Root 1 0 R >>
 fn required_radio_buttons_get_a_round_red_border() {
     let _gpu = gpu();
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("radios.pdf", None, RADIOS.to_vec()).expect("opens");
         app.set_option("left", "closed").unwrap();
@@ -2194,7 +2194,7 @@ trailer << /Root 1 0 R >>
 fn round_check_boxes_get_a_round_highlight() {
     let _gpu = gpu();
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("checks.pdf", None, ROUND_CHECKS.to_vec()).expect("opens");
         app.set_option("left", "closed").unwrap();
@@ -2240,7 +2240,7 @@ fn field_highlighting_is_on_by_default_and_remembered() {
     h.run_steps(4);
     assert!(!h.state().views[1].highlight_fields, "the next document opens plain");
     let saved = h.state().persist();
-    let mut next = PdfCraftApp::new();
+    let mut next = VisionPDFApp::new();
     next.set_option("language", "en").unwrap();
     next.restore(&saved);
     next.open_bytes("form.pdf", None, FORM.to_vec()).expect("opens");
@@ -2258,7 +2258,7 @@ fn stored_field_highlight_choice_wins_over_the_default() {
         (r#"{"highlight_fields": "no"}"#, true),
         (r#"{"highlight_fields": null}"#, true),
     ] {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.restore(stored);
         app.open_bytes("form.pdf", None, FORM.to_vec()).expect("opens");
@@ -2308,7 +2308,7 @@ fn the_hand_tool_moves_the_page_with_the_pointer() {
     let start = h.state().views[0].viewport_rect().center();
     h.hover_at(start);
     h.run_steps(2);
-    let page = |h: &Harness<'static, PdfCraftApp>| rect(h, 0).expect("page 1 on screen").min;
+    let page = |h: &Harness<'static, VisionPDFApp>| rect(h, 0).expect("page 1 on screen").min;
     let grabbed = page(&h);
     let click_dist = h.ctx.options(|o| o.input_options.max_click_dist);
     let button = |pos, pressed| egui::Event::PointerButton { pos, button: egui::PointerButton::Primary, pressed, modifiers: Modifiers::NONE };
@@ -2386,7 +2386,7 @@ trailer << /Root 1 0 R >>
     for ppp in [1.0, 2.0] {
         let bytes = pdf.clone();
         let mut h = Harness::builder().with_size(egui::vec2(1000.0, 800.0)).with_pixels_per_point(ppp).build_eframe(move |_cc| {
-            let mut app = PdfCraftApp::new();
+            let mut app = VisionPDFApp::new();
             app.set_option("language", "en").unwrap();
             app.open_bytes("lines.pdf", None, bytes.clone()).expect("opens");
             app.set_option("left", "closed").unwrap();
@@ -2401,7 +2401,7 @@ trailer << /Root 1 0 R >>
 
 /// Mean and largest difference between page 1 on screen and the page rendered directly at the
 /// view's exact device scale, over the lined area of `page_raster_maps_one_to_one_onto_screen_pixels`.
-fn compare_page_with_raster(h: &mut Harness<'static, PdfCraftApp>, pdf: &[u8], zoom: f32) -> (f64, u8) {
+fn compare_page_with_raster(h: &mut Harness<'static, VisionPDFApp>, pdf: &[u8], zoom: f32) -> (f64, u8) {
     crate::support::settle(h);
     let ppp = h.ctx.pixels_per_point();
     let r = rect(h, 0).expect("page 1");
@@ -2456,9 +2456,9 @@ trailer << /Root 1 0 R >>
     .into_bytes()
 }
 
-fn grid_harness(pdf: Vec<u8>, zoom: &str) -> Harness<'static, PdfCraftApp> {
+fn grid_harness(pdf: Vec<u8>, zoom: &str) -> Harness<'static, VisionPDFApp> {
     Harness::builder().with_size(egui::vec2(1000.0, 800.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.open_bytes("grid.pdf", None, pdf.clone()).expect("opens");
         app.set_option("left", "closed").unwrap();
         app.set_option("panel", "none").unwrap();
@@ -2468,7 +2468,7 @@ fn grid_harness(pdf: Vec<u8>, zoom: &str) -> Harness<'static, PdfCraftApp> {
 }
 
 /// Detail in the middle of the window: the summed difference between neighbouring pixels.
-fn centre_detail(h: &mut Harness<'static, PdfCraftApp>) -> u64 {
+fn centre_detail(h: &mut Harness<'static, VisionPDFApp>) -> u64 {
     let img = h.render().expect("renders");
     let (cx, cy) = (img.width() / 2, img.height() / 2);
     let mut sum = 0u64;
@@ -2521,7 +2521,7 @@ fn returning_to_a_visited_zoom_reuses_its_cached_tiles() {
 fn sidebar_collapse_and_resize_preserves_scroll_position() {
     use pdfcraft_ui_egui::canvas::Fit;
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("pages.pdf", None, PAGES.to_vec()).expect("opens");
         app.set_option("left", "closed").unwrap();
@@ -2596,7 +2596,7 @@ fn final_spread_at_scroll_end(heights: &[u32], cover: bool) -> (Vec<(usize, egui
     }
     pdf += "trailer << /Root 1 0 R >>\n%%EOF";
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).with_step_dt(1.0 / 60.0).build_eframe(move |_| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("unequal-spreads.pdf", None, pdf.as_bytes().to_vec()).unwrap();
         for (key, value) in [("left", "closed"), ("panel", "none"), ("layout", "two-up"), ("zoom", "200")] {
@@ -2670,7 +2670,7 @@ fn switching_modes_keeps_the_current_page_at_fixed_zoom() {
     pdf.push_str("trailer << /Root 1 0 R >>\n%%EOF");
     let other = pdf.clone().into_bytes();
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("pages.pdf", None, pdf.into_bytes()).unwrap();
         app.set_option("zoom", "100").unwrap();
@@ -2713,7 +2713,7 @@ fn switching_modes_keeps_the_current_page_at_fixed_zoom() {
 fn long_view_menu_fits_a_short_window() {
     use egui_kittest::kittest::Queryable;
     let mut h = Harness::builder().with_size(egui::vec2(1000.0, 400.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("pages.pdf", None, PAGES.to_vec()).unwrap();
         app
@@ -2737,7 +2737,7 @@ fn long_view_menu_fits_a_short_window() {
     assert_eq!(h.state().right, Some(pdfcraft_ui_egui::RightPanel::Bookmarks));
 }
 
-fn click_with(h: &mut Harness<'static, PdfCraftApp>, pos: egui::Pos2, modifiers: Modifiers) {
+fn click_with(h: &mut Harness<'static, VisionPDFApp>, pos: egui::Pos2, modifiers: Modifiers) {
     h.hover_at(pos);
     h.run_steps(1);
     for pressed in [true, false] {
@@ -2879,9 +2879,9 @@ fn full_screen_clicks_turn_pages_whatever_tool_was_on() {
 fn the_pages_panel_tools_act_on_the_selected_pages() {
     let mut h = harness(&[("panel", "pages")]);
     let id = h.state().views[0].id;
-    let rotations = |h: &Harness<'static, PdfCraftApp>| h.state().session.get(id).unwrap().info.pages.iter().map(|p| p.rotation).collect::<Vec<_>>();
+    let rotations = |h: &Harness<'static, VisionPDFApp>| h.state().session.get(id).unwrap().info.pages.iter().map(|p| p.rotation).collect::<Vec<_>>();
     // The panel's Page tools menu, on the right-hand side of the window.
-    let tool = |h: &mut Harness<'static, PdfCraftApp>, label: &str| {
+    let tool = |h: &mut Harness<'static, VisionPDFApp>, label: &str| {
         h.get_all_by_label("Page tools").find(|n| n.rect().left() > 1000.0).expect("Page tools in the Pages panel").click();
         h.run_steps(2);
         h.get_by_label(label).click();
@@ -2916,8 +2916,8 @@ fn the_pages_panel_tools_insert_from_a_file_and_extract() {
     std::fs::write(&more, PAGES).unwrap();
     let mut h = harness(&[("panel", "pages")]);
     let id = h.state().views[0].id;
-    let count = |h: &Harness<'static, PdfCraftApp>| h.state().session.get(id).unwrap().info.pages.len();
-    let tool = |h: &mut Harness<'static, PdfCraftApp>, label: &str| {
+    let count = |h: &Harness<'static, VisionPDFApp>| h.state().session.get(id).unwrap().info.pages.len();
+    let tool = |h: &mut Harness<'static, VisionPDFApp>, label: &str| {
         h.get_all_by_label("Page tools").find(|n| n.rect().left() > 1000.0).expect("Page tools in the Pages panel").click();
         h.run_steps(2);
         h.get_by_label(label).click();
@@ -3110,7 +3110,7 @@ fn full_screen_keeps_the_reading_position_when_fill_is_off() {
     h.run_steps(4);
     h.state_mut().views[0].goto = Some((1, 0.5));
     h.run_steps(4);
-    let above = |h: &Harness<'static, PdfCraftApp>| {
+    let above = |h: &Harness<'static, VisionPDFApp>| {
         let v = &h.state().views[0];
         v.viewport_rect().top() - rect(h, 1).expect("page 2 on screen").top()
     };
@@ -3191,7 +3191,7 @@ trailer << /Root 1 0 R >>
 #[test]
 fn full_screen_hides_the_notice_bar_and_the_page_fits_whole() {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("form.pdf", None, include_bytes!("../data/form.pdf").to_vec()).expect("opens");
         app.set_option("left", "closed").unwrap();
@@ -3199,7 +3199,7 @@ fn full_screen_hides_the_notice_bar_and_the_page_fits_whole() {
         app
     });
     h.run_steps(8);
-    let notice = |h: &Harness<'static, PdfCraftApp>| h.query_by_label_contains("interactive form fields").is_some();
+    let notice = |h: &Harness<'static, VisionPDFApp>| h.query_by_label_contains("interactive form fields").is_some();
     assert!(notice(&h), "the form notice shows in the window");
     h.key_press_modifiers(Modifiers::COMMAND, Key::L);
     h.run_steps(6);
@@ -3233,7 +3233,7 @@ fn delete_with_a_menu_open_and_escape_closing_a_thumbnail_menu_leave_the_pages_p
     assert!(egui::Popup::is_any_open(&h.ctx), "the menu is open");
     h.key_press(Key::Delete);
     h.run_steps(3);
-    let pages = |h: &Harness<'static, PdfCraftApp>| h.state().session.get(h.state().views[0].id).unwrap().info.pages.len();
+    let pages = |h: &Harness<'static, VisionPDFApp>| h.state().session.get(h.state().views[0].id).unwrap().info.pages.len();
     assert_eq!(pages(&h), 3, "Delete with a menu open deleted pages");
     assert_eq!(h.state().views[0].selected, selected, "Delete with a menu open dropped the page selection");
     h.key_press(Key::Escape);
@@ -3284,14 +3284,14 @@ trailer << /Root 1 0 R >>
 %%EOF";
 
 /// The presentation document in full screen, frames a tenth of a second apart, every raster in.
-fn presenting(options: &'static [(&'static str, &'static str)]) -> Harness<'static, PdfCraftApp> {
+fn presenting(options: &'static [(&'static str, &'static str)]) -> Harness<'static, VisionPDFApp> {
     presenting_pdf(PRESENTATION, options)
 }
 
 /// [`presenting`] with another document.
-fn presenting_pdf(pdf: &'static [u8], options: &'static [(&'static str, &'static str)]) -> Harness<'static, PdfCraftApp> {
+fn presenting_pdf(pdf: &'static [u8], options: &'static [(&'static str, &'static str)]) -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).with_step_dt(0.1).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("slides.pdf", None, pdf.to_vec()).expect("opens");
         app.set_option("left", "closed").unwrap();
@@ -3312,7 +3312,7 @@ fn presenting_pdf(pdf: &'static [u8], options: &'static [(&'static str, &'static
 
 /// Run frames until the renderer has nothing left to deliver (bounded, in real time: the
 /// renderer's threads do not follow the harness clock).
-fn settle(h: &mut Harness<'static, PdfCraftApp>) {
+fn settle(h: &mut Harness<'static, VisionPDFApp>) {
     for _ in 0..300 {
         h.run_steps(1);
         if !h.state().render_pending() {
@@ -3323,7 +3323,7 @@ fn settle(h: &mut Harness<'static, PdfCraftApp>) {
 }
 
 /// Run frames until `done` holds (bounded), returning the number of frames it took.
-fn frames_until(h: &mut Harness<'static, PdfCraftApp>, done: impl Fn(&PdfCraftApp) -> bool) -> usize {
+fn frames_until(h: &mut Harness<'static, VisionPDFApp>, done: impl Fn(&VisionPDFApp) -> bool) -> usize {
     for n in 0..300 {
         if done(h.state()) {
             return n;
@@ -3347,7 +3347,7 @@ fn full_screen_plays_a_page_transition_and_honours_the_display_time() {
     assert!(h.state().views[0].presenting_a_transition(), "page 2 comes in with its Wipe");
     // The Wipe is painted, not only timed: once page 2 has rendered, a frame shows a strip of it as
     // tall as the page and only part of its width.
-    let wipe_strip = |h: &Harness<'static, PdfCraftApp>| {
+    let wipe_strip = |h: &Harness<'static, VisionPDFApp>| {
         h.state().views[0].page_screen_rect(1).is_some_and(|page| {
             h.output().shapes.iter().any(|clipped| {
                 let egui::Shape::Mesh(mesh) = &clipped.shape else { return false };
@@ -3842,7 +3842,7 @@ fn a_page_whose_content_was_cut_is_named_in_a_notice() {
     let slot: std::sync::Arc<std::sync::Mutex<Option<pdfcraft_ui_egui::control::ControlClient>>> = Default::default();
     let s = slot.clone();
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         *s.lock().unwrap() = Some(app.attach_control(&cc.egui_ctx));
         app.open_bytes("cut.pdf", None, pdf).expect("opens");
@@ -3856,7 +3856,7 @@ fn a_page_whose_content_was_cut_is_named_in_a_notice() {
     h.run_steps(2);
     assert_eq!(h.state().views[0].cut_pages(), [0]);
     assert!(h.state().views[0].page_errors().is_empty(), "a cut page still draws");
-    h.get_by_label_contains("Page 1 holds more content than PdfCraft can read");
+    h.get_by_label_contains("Page 1 holds more content than VisionPDF can read");
     // Automation counts pages from 1, as the notice does (review on #2113).
     let client = slot.lock().unwrap().take().expect("the control channel");
     let rx = client.send("ui.state", serde_json::json!({}));

@@ -10,7 +10,7 @@ use pdfcraft_render::DocInfo;
 use crate::canvas::{DocView, PageToolContext, PageXform};
 use crate::page_cursor::Layer;
 use crate::theme::Tokens;
-use crate::{PdfCraftApp, widgets};
+use crate::{VisionPDFApp, widgets};
 
 const MARK_RED: Color32 = Color32::from_rgb(0xE3, 0x22, 0x22);
 
@@ -296,7 +296,7 @@ pub(crate) fn paint(painter: &egui::Painter, page: usize, view: &DocView, pointe
     }
 }
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     /// Mark every match of the search draft on every page; returns how many were marked.
     pub fn redact_search(&mut self) -> usize {
         let Some((_, id)) = self.active_ids() else { return 0 };
@@ -630,7 +630,7 @@ pub struct HiddenDraft {
     pub found: Vec<(pdfcraft_engine::Hidden, usize, bool)>,
 }
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     pub fn open_remove_hidden(&mut self) {
         let Some((_, id)) = self.active_ids() else { return };
         let Some(doc) = self.session.get(id) else { return };

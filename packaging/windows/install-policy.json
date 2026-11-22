@@ -1,6 +1,6 @@
 {
   "id": "pdfcraft",
-  "name": "PdfCraft",
+  "name": "VisionPDF",
   "upgradeCode": "EA00C367-7270-4C50-9D8B-A7A5C88AD27F",
   "sources": [
     "pdfcraft.wxs",
@@ -26,39 +26,39 @@
     ],
     [
       "-1",
-      "Software\\Classes\\PdfCraft.Document",
+      "Software\\Classes\\VisionPDF.Document",
       "",
       "PDF Document"
     ],
     [
       "-1",
-      "Software\\Classes\\PdfCraft.Document\\DefaultIcon",
+      "Software\\Classes\\VisionPDF.Document\\DefaultIcon",
       "",
       "\"[#PdfcraftExe]\",-2"
     ],
     [
       "-1",
-      "Software\\Classes\\PdfCraft.Document\\shell\\open\\command",
+      "Software\\Classes\\VisionPDF.Document\\shell\\open\\command",
       "",
       "\"[#PdfcraftExe]\" \"%1\""
     ],
     [
       "-1",
-      "Software\\Classes\\PdfCraft.Document",
+      "Software\\Classes\\VisionPDF.Document",
       "TypeOverlay",
       ""
     ],
     [
       "-1",
       "Software\\Classes\\.pdf\\OpenWithProgids",
-      "PdfCraft.Document",
+      "VisionPDF.Document",
       ""
     ],
     [
       "-1",
       "Software\\Classes\\Applications\\pdfcraft.exe",
       "FriendlyAppName",
-      "PdfCraft"
+      "VisionPDF"
     ],
     [
       "-1",
@@ -80,247 +80,247 @@
     ],
     [
       "-1",
-      "Software\\PdfCraft\\Capabilities",
+      "Software\\VisionPDF\\Capabilities",
       "ApplicationName",
-      "PdfCraft"
+      "VisionPDF"
     ],
     [
       "-1",
-      "Software\\PdfCraft\\Capabilities",
+      "Software\\VisionPDF\\Capabilities",
       "ApplicationDescription",
       "Open-source PDF workbench"
     ],
     [
       "-1",
-      "Software\\PdfCraft\\Capabilities",
+      "Software\\VisionPDF\\Capabilities",
       "ApplicationIcon",
       "[#PdfcraftExe],0"
     ],
     [
       "-1",
-      "Software\\PdfCraft\\Capabilities\\FileAssociations",
+      "Software\\VisionPDF\\Capabilities\\FileAssociations",
       ".pdf",
-      "PdfCraft.Document"
+      "VisionPDF.Document"
     ],
     [
       "-1",
       "Software\\RegisteredApplications",
-      "PdfCraft",
-      "Software\\PdfCraft\\Capabilities"
+      "VisionPDF",
+      "Software\\VisionPDF\\Capabilities"
     ],
     [
       "-1",
-      "Software\\PdfCraft\\Shortcuts",
+      "Software\\VisionPDF\\Shortcuts",
       "StartMenu",
       "#1"
     ],
     [
       "-1",
-      "Software\\PdfCraft\\Shortcuts",
+      "Software\\VisionPDF\\Shortcuts",
       "Desktop",
       "#1"
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.pdf\\shell\\PdfCraft.Edit",
+      "Software\\Classes\\SystemFileAssociations\\.pdf\\shell\\VisionPDF.Edit",
       "",
-      "Edit with PdfCraft"
+      "Edit with VisionPDF"
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.pdf\\shell\\PdfCraft.Edit",
+      "Software\\Classes\\SystemFileAssociations\\.pdf\\shell\\VisionPDF.Edit",
       "Icon",
       "\"[#PdfcraftExe]\",0"
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.pdf\\shell\\PdfCraft.Edit",
+      "Software\\Classes\\SystemFileAssociations\\.pdf\\shell\\VisionPDF.Edit",
       "MultiSelectModel",
       "Document"
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.pdf\\shell\\PdfCraft.Edit\\command",
+      "Software\\Classes\\SystemFileAssociations\\.pdf\\shell\\VisionPDF.Edit\\command",
       "",
       "\"[#PdfcraftExe]\" \"%1\""
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.png\\shell\\PdfCraft.CreatePdf",
+      "Software\\Classes\\SystemFileAssociations\\.png\\shell\\VisionPDF.CreatePdf",
       "",
-      "Create PDF with PdfCraft\u2026"
+      "Create PDF with VisionPDF\u2026"
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.png\\shell\\PdfCraft.CreatePdf",
+      "Software\\Classes\\SystemFileAssociations\\.png\\shell\\VisionPDF.CreatePdf",
       "MultiSelectModel",
       "Single"
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.png\\shell\\PdfCraft.CreatePdf\\command",
+      "Software\\Classes\\SystemFileAssociations\\.png\\shell\\VisionPDF.CreatePdf\\command",
       "",
       "\"[#PdfcraftExe]\" --create-images \"%1\""
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.jpg\\shell\\PdfCraft.CreatePdf",
+      "Software\\Classes\\SystemFileAssociations\\.jpg\\shell\\VisionPDF.CreatePdf",
       "",
-      "Create PDF with PdfCraft\u2026"
+      "Create PDF with VisionPDF\u2026"
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.jpg\\shell\\PdfCraft.CreatePdf",
+      "Software\\Classes\\SystemFileAssociations\\.jpg\\shell\\VisionPDF.CreatePdf",
       "MultiSelectModel",
       "Single"
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.jpg\\shell\\PdfCraft.CreatePdf\\command",
+      "Software\\Classes\\SystemFileAssociations\\.jpg\\shell\\VisionPDF.CreatePdf\\command",
       "",
       "\"[#PdfcraftExe]\" --create-images \"%1\""
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.jpeg\\shell\\PdfCraft.CreatePdf",
+      "Software\\Classes\\SystemFileAssociations\\.jpeg\\shell\\VisionPDF.CreatePdf",
       "",
-      "Create PDF with PdfCraft\u2026"
+      "Create PDF with VisionPDF\u2026"
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.jpeg\\shell\\PdfCraft.CreatePdf",
+      "Software\\Classes\\SystemFileAssociations\\.jpeg\\shell\\VisionPDF.CreatePdf",
       "MultiSelectModel",
       "Single"
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.jpeg\\shell\\PdfCraft.CreatePdf\\command",
+      "Software\\Classes\\SystemFileAssociations\\.jpeg\\shell\\VisionPDF.CreatePdf\\command",
       "",
       "\"[#PdfcraftExe]\" --create-images \"%1\""
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.tif\\shell\\PdfCraft.CreatePdf",
+      "Software\\Classes\\SystemFileAssociations\\.tif\\shell\\VisionPDF.CreatePdf",
       "",
-      "Create PDF with PdfCraft\u2026"
+      "Create PDF with VisionPDF\u2026"
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.tif\\shell\\PdfCraft.CreatePdf",
+      "Software\\Classes\\SystemFileAssociations\\.tif\\shell\\VisionPDF.CreatePdf",
       "MultiSelectModel",
       "Single"
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.tif\\shell\\PdfCraft.CreatePdf\\command",
+      "Software\\Classes\\SystemFileAssociations\\.tif\\shell\\VisionPDF.CreatePdf\\command",
       "",
       "\"[#PdfcraftExe]\" --create-images \"%1\""
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.tiff\\shell\\PdfCraft.CreatePdf",
+      "Software\\Classes\\SystemFileAssociations\\.tiff\\shell\\VisionPDF.CreatePdf",
       "",
-      "Create PDF with PdfCraft\u2026"
+      "Create PDF with VisionPDF\u2026"
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.tiff\\shell\\PdfCraft.CreatePdf",
+      "Software\\Classes\\SystemFileAssociations\\.tiff\\shell\\VisionPDF.CreatePdf",
       "MultiSelectModel",
       "Single"
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.tiff\\shell\\PdfCraft.CreatePdf\\command",
+      "Software\\Classes\\SystemFileAssociations\\.tiff\\shell\\VisionPDF.CreatePdf\\command",
       "",
       "\"[#PdfcraftExe]\" --create-images \"%1\""
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.gif\\shell\\PdfCraft.CreatePdf",
+      "Software\\Classes\\SystemFileAssociations\\.gif\\shell\\VisionPDF.CreatePdf",
       "",
-      "Create PDF with PdfCraft\u2026"
+      "Create PDF with VisionPDF\u2026"
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.gif\\shell\\PdfCraft.CreatePdf",
+      "Software\\Classes\\SystemFileAssociations\\.gif\\shell\\VisionPDF.CreatePdf",
       "MultiSelectModel",
       "Single"
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.gif\\shell\\PdfCraft.CreatePdf\\command",
+      "Software\\Classes\\SystemFileAssociations\\.gif\\shell\\VisionPDF.CreatePdf\\command",
       "",
       "\"[#PdfcraftExe]\" --create-images \"%1\""
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.bmp\\shell\\PdfCraft.CreatePdf",
+      "Software\\Classes\\SystemFileAssociations\\.bmp\\shell\\VisionPDF.CreatePdf",
       "",
-      "Create PDF with PdfCraft\u2026"
+      "Create PDF with VisionPDF\u2026"
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.bmp\\shell\\PdfCraft.CreatePdf",
+      "Software\\Classes\\SystemFileAssociations\\.bmp\\shell\\VisionPDF.CreatePdf",
       "MultiSelectModel",
       "Single"
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.bmp\\shell\\PdfCraft.CreatePdf\\command",
+      "Software\\Classes\\SystemFileAssociations\\.bmp\\shell\\VisionPDF.CreatePdf\\command",
       "",
       "\"[#PdfcraftExe]\" --create-images \"%1\""
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.jp2\\shell\\PdfCraft.CreatePdf",
+      "Software\\Classes\\SystemFileAssociations\\.jp2\\shell\\VisionPDF.CreatePdf",
       "",
-      "Create PDF with PdfCraft\u2026"
+      "Create PDF with VisionPDF\u2026"
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.jp2\\shell\\PdfCraft.CreatePdf",
+      "Software\\Classes\\SystemFileAssociations\\.jp2\\shell\\VisionPDF.CreatePdf",
       "MultiSelectModel",
       "Single"
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.jp2\\shell\\PdfCraft.CreatePdf\\command",
+      "Software\\Classes\\SystemFileAssociations\\.jp2\\shell\\VisionPDF.CreatePdf\\command",
       "",
       "\"[#PdfcraftExe]\" --create-images \"%1\""
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.j2k\\shell\\PdfCraft.CreatePdf",
+      "Software\\Classes\\SystemFileAssociations\\.j2k\\shell\\VisionPDF.CreatePdf",
       "",
-      "Create PDF with PdfCraft\u2026"
+      "Create PDF with VisionPDF\u2026"
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.j2k\\shell\\PdfCraft.CreatePdf",
+      "Software\\Classes\\SystemFileAssociations\\.j2k\\shell\\VisionPDF.CreatePdf",
       "MultiSelectModel",
       "Single"
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.j2k\\shell\\PdfCraft.CreatePdf\\command",
+      "Software\\Classes\\SystemFileAssociations\\.j2k\\shell\\VisionPDF.CreatePdf\\command",
       "",
       "\"[#PdfcraftExe]\" --create-images \"%1\""
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.jpx\\shell\\PdfCraft.CreatePdf",
+      "Software\\Classes\\SystemFileAssociations\\.jpx\\shell\\VisionPDF.CreatePdf",
       "",
-      "Create PDF with PdfCraft\u2026"
+      "Create PDF with VisionPDF\u2026"
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.jpx\\shell\\PdfCraft.CreatePdf",
+      "Software\\Classes\\SystemFileAssociations\\.jpx\\shell\\VisionPDF.CreatePdf",
       "MultiSelectModel",
       "Single"
     ],
     [
       "-1",
-      "Software\\Classes\\SystemFileAssociations\\.jpx\\shell\\PdfCraft.CreatePdf\\command",
+      "Software\\Classes\\SystemFileAssociations\\.jpx\\shell\\VisionPDF.CreatePdf\\command",
       "",
       "\"[#PdfcraftExe]\" --create-images \"%1\""
     ]

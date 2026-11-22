@@ -23,7 +23,7 @@ use pdfcraft_engine::{DocId, Session};
 
 use super::ocr_ui;
 use crate::theme::{self, Tokens};
-use crate::{PdfCraftApp, widgets};
+use crate::{VisionPDFApp, widgets};
 
 /// Where the screen stands. Run is enabled in Idle, ReviewReady and RecoverableError; the
 /// review tools (Accept, Reject, navigation, the inspector, re-OCR) only in ReviewReady, and
@@ -925,7 +925,7 @@ impl OcrVerify {
     /// anything runs — the render, the recognition and the engine probe (a `--list-langs`
     /// process for Tesseract) happen off it, with the status line and a Cancel while they run.
     /// The reading is applied by [`Self::poll_reread`] when it lands.
-    pub fn start_reread(&mut self, app: &mut PdfCraftApp, page: usize, region: Option<[f32; 4]>) {
+    pub fn start_reread(&mut self, app: &mut VisionPDFApp, page: usize, region: Option<[f32; 4]>) {
         if self.phase != Phase::ReviewReady || self.reread.is_some() {
             return; // one re-read at a time, and never under a run
         }
@@ -1001,7 +1001,7 @@ impl OcrVerify {
 
     /// The web build: start what waited for the models once the download is over.
     #[cfg(target_arch = "wasm32")]
-    pub(crate) fn poll_models(&mut self, app: &mut PdfCraftApp) {
+    pub(crate) fn poll_models(&mut self, app: &mut VisionPDFApp) {
         if self.awaiting_models.is_none() {
             return;
         }
@@ -1019,7 +1019,7 @@ impl OcrVerify {
     /// The model download is over: run what waited for it, or say why it can't. Nothing runs
     /// once the screen is closed.
     #[cfg_attr(not(target_arch = "wasm32"), allow(dead_code))]
-    pub(crate) fn models_landed(&mut self, app: &mut PdfCraftApp, outcome: Result<(), String>) {
+    pub(crate) fn models_landed(&mut self, app: &mut VisionPDFApp, outcome: Result<(), String>) {
         let Some(what) = self.awaiting_models.take() else { return };
         self.message.clear();
         if let Err(e) = outcome {
@@ -1049,7 +1049,7 @@ impl OcrVerify {
     /// words, a region re-read the words inside the drawn rectangle. A cancel discards the
     /// reading, and so does a refusal — a document changed since the review began no longer
     /// matches the page the words were read from. Called every frame while a re-read is out.
-    pub(crate) fn poll_reread(&mut self, app: &mut PdfCraftApp) {
+    pub(crate) fn poll_reread(&mut self, app: &mut VisionPDFApp) {
         if self.phase != Phase::ReviewReady {
             return;
         }
@@ -1194,7 +1194,7 @@ impl OcrVerify {
         self.progress = None;
     }
 
-    pub(crate) fn start_run(&mut self, app: &mut PdfCraftApp) {
+    pub(crate) fn start_run(&mut self, app: &mut VisionPDFApp) {
         let Some((_, id)) = app.active_ids() else { return };
         if !self.can_run() || self.phase == Phase::Running {
             return;
@@ -1268,7 +1268,7 @@ impl OcrVerify {
     }
 
     /// Take the worker's result, once it is done.
-    pub(crate) fn poll(&mut self, app: &mut PdfCraftApp) {
+    pub(crate) fn poll(&mut self, app: &mut VisionPDFApp) {
         if self.phase != Phase::Running {
             return;
         }
@@ -1297,7 +1297,7 @@ impl OcrVerify {
 
 /// Run `work` on a worker thread named `name` (inline under `run_inline` and on the web).
 /// Whether it started: the OS can refuse a new thread.
-fn launch(app: &PdfCraftApp, name: &str, work: impl FnOnce() + Send + 'static) -> std::io::Result<()> {
+fn launch(app: &VisionPDFApp, name: &str, work: impl FnOnce() + Send + 'static) -> std::io::Result<()> {
     #[cfg(test)]
     if tests::FAIL_LAUNCH.with(std::cell::Cell::get) {
         return Err(std::io::Error::other("no thread for this test"));
@@ -1350,7 +1350,7 @@ fn band_color(band: ConfidenceBand) -> egui::Color32 {
 }
 
 /// The OCR Verify screen (Scan & OCR ▸ Correct recognized text), in the document area.
-pub(crate) fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
+pub(crate) fn show(app: &mut VisionPDFApp, ui: &mut egui::Ui) {
     use egui::{Key, Modifiers};
     follow_active_document(app);
     let ctx = ui.ctx().clone();
@@ -1420,7 +1420,7 @@ pub(crate) fn show(app: &mut PdfCraftApp, ui: &mut egui::Ui) {
 /// With no reading in hand (before a run, or after a review was accepted or rejected), the
 /// source pane shows the document in front at the page it is on, so the screen never opens on
 /// a blank pane (#6485). A run or a review keeps the document and page it was made for.
-fn follow_active_document(app: &mut PdfCraftApp) {
+fn follow_active_document(app: &mut VisionPDFApp) {
     if app.ocr_verify.has_reading() {
         return;
     }
@@ -1445,7 +1445,7 @@ fn pane_title(ui: &mut egui::Ui, t: &Tokens, name: &str, focused: bool) {
 
 /// Toolbar: every control is live — the choices feed the next run (and are persisted), Run
 /// starts a recognition, Accept/Reject/navigate/verify only act in ReviewReady.
-fn toolbar(app: &mut PdfCraftApp, ui: &mut egui::Ui, n: &mut Intents) {
+fn toolbar(app: &mut VisionPDFApp, ui: &mut egui::Ui, n: &mut Intents) {
     let v = &app.ocr_verify;
     let d = &mut app.ocr_draft;
     let review = v.phase == Phase::ReviewReady;
@@ -1630,7 +1630,7 @@ fn output_combo(ui: &mut egui::Ui, mode: &mut OutputMode) {
 
 /// The info strip: where the review stands, in facts — page, average confidence, how many
 /// words ask for review, the share verified, and the engine · strategy that read it.
-fn info_strip(app: &PdfCraftApp, ui: &mut egui::Ui, t: &Tokens) {
+fn info_strip(app: &VisionPDFApp, ui: &mut egui::Ui, t: &Tokens) {
     let v = &app.ocr_verify;
     let read = v.pages.iter().filter(|p| p.skipped.is_none()).count();
     let avg = v.page(v.current).and_then(pdfcraft_engine::ocr::OcrPage::mean_confidence);
@@ -1655,7 +1655,7 @@ fn info_strip(app: &PdfCraftApp, ui: &mut egui::Ui, t: &Tokens) {
 
 /// The page list: one row per read page, with its live word count and a flag for the words
 /// that still ask for review. Clicking shows the page.
-fn pages_pane(app: &mut PdfCraftApp, ui: &mut egui::Ui, n: &mut Intents) {
+fn pages_pane(app: &mut VisionPDFApp, ui: &mut egui::Ui, n: &mut Intents) {
     let v = &app.ocr_verify;
     egui::ScrollArea::vertical().show(ui, |ui| {
         for pg in &v.pages {
@@ -1690,7 +1690,7 @@ fn pages_pane(app: &mut PdfCraftApp, ui: &mut egui::Ui, n: &mut Intents) {
 /// to the page). Words are coloured by their confidence band; removed words are struck out and
 /// dimmed, corrected words outlined. The context menu re-reads a region or the page, and
 /// accepts or rejects the page.
-fn source_pane(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens, n: &mut Intents) {
+fn source_pane(app: &mut VisionPDFApp, ui: &mut egui::Ui, t: &Tokens, n: &mut Intents) {
     let page = app.ocr_verify.current;
     let review = app.ocr_verify.phase == Phase::ReviewReady;
     ensure_preview(app, page);
@@ -1869,7 +1869,7 @@ pub fn legend_rows() -> [(ConfidenceBand, String); 3] {
 /// Render (or re-render) the source pane's page preview when the shown page changed. One
 /// synchronous render per page; the texture is cached until then, and a failed render is not
 /// retried until the document changes ([`FailedPreview`]).
-fn ensure_preview(app: &mut PdfCraftApp, page: usize) {
+fn ensure_preview(app: &mut VisionPDFApp, page: usize) {
     let doc = app.ocr_verify.doc;
     // A preview of another document or page never stands in for this one, even when this
     // page cannot be rendered.
@@ -1918,7 +1918,7 @@ fn ensure_preview(app: &mut PdfCraftApp, page: usize) {
 /// The RECOGNIZED pane: the page's words as the engine read them — a preview, not
 /// authoritative (the source pane's boxes and the inspector are where corrections happen).
 /// Removed words show struck out; clicking a word selects it in the inspector.
-fn text_pane(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens, n: &mut Intents) {
+fn text_pane(app: &mut VisionPDFApp, ui: &mut egui::Ui, t: &Tokens, n: &mut Intents) {
     let v = &app.ocr_verify;
     let Some(pg) = v.page(v.current) else { return };
     if let Some(why) = &pg.skipped {
@@ -1951,7 +1951,7 @@ fn text_pane(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens, n: &mut Inten
 /// confidence, engine, review state), the correction field (Enter commits; clearing removes
 /// the word; the original box never moves), Remove/Restore, + Dictionary, the per-word
 /// Verified toggle, and suggestions within edit distance 2.
-fn inspector(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens, n: &mut Intents) {
+fn inspector(app: &mut VisionPDFApp, ui: &mut egui::Ui, t: &Tokens, n: &mut Intents) {
     let v = &app.ocr_verify;
     let Some(key) = v.selected else {
         ui.label(egui::RichText::new(tl!("Select a word on the page to inspect it")).small().color(t.text_muted));
@@ -2028,7 +2028,7 @@ fn inspector(app: &mut PdfCraftApp, ui: &mut egui::Ui, t: &Tokens, n: &mut Inten
 }
 
 /// The magnified crop of the selected word, drawn out of the page preview's texture.
-fn zoom_crop(app: &PdfCraftApp, ui: &mut egui::Ui, key: (usize, usize), t: &Tokens) {
+fn zoom_crop(app: &VisionPDFApp, ui: &mut egui::Ui, key: (usize, usize), t: &Tokens) {
     let Some(preview) = &app.ocr_verify.preview else { return };
     let Some(tex) = &preview.texture else { return };
     let Some(w) = app.ocr_verify.word(key) else { return };
@@ -2064,7 +2064,7 @@ fn zoom_crop(app: &PdfCraftApp, ui: &mut egui::Ui, key: (usize, usize), t: &Toke
 
 /// Run `f` with the screen's state moved out of the app (a step that needs both the state and
 /// the rest of the app would otherwise borrow it twice). The state is put back afterwards.
-pub(crate) fn with_state(app: &mut PdfCraftApp, f: impl FnOnce(&mut OcrVerify, &mut PdfCraftApp)) {
+pub(crate) fn with_state(app: &mut VisionPDFApp, f: impl FnOnce(&mut OcrVerify, &mut VisionPDFApp)) {
     let mut v = std::mem::take(&mut app.ocr_verify);
     f(&mut v, app);
     app.ocr_verify = v;
@@ -2072,7 +2072,7 @@ pub(crate) fn with_state(app: &mut PdfCraftApp, f: impl FnOnce(&mut OcrVerify, &
 
 /// Apply what the frame's controls asked for. The guards live in the [`OcrVerify`] methods:
 /// outside ReviewReady, Accept/Reject/Re-OCR and edits are ignored, not acted on.
-fn apply(app: &mut PdfCraftApp, n: Intents) {
+fn apply(app: &mut VisionPDFApp, n: Intents) {
     with_state(app, |v, app| {
         if n.exit {
             v.open = false;
@@ -2172,7 +2172,7 @@ fn apply(app: &mut PdfCraftApp, n: Intents) {
 /// Accept: searchable mode applies the review to the open document as one undoable step;
 /// editable mode asks where to write the new `<name>_ocr.pdf`. Stale sessions and empty
 /// reviews are typed failures the user sees (the edits are kept).
-fn do_accept(v: &mut OcrVerify, app: &mut PdfCraftApp) {
+fn do_accept(v: &mut OcrVerify, app: &mut VisionPDFApp) {
     let doc = v.doc;
     match app.ocr_draft.output_mode {
         OutputMode::Searchable => match v.accept(&mut app.session) {
@@ -2198,7 +2198,7 @@ fn do_accept(v: &mut OcrVerify, app: &mut PdfCraftApp) {
 /// cancelled dialog keeps the review. The write is the [`Phase::Saving`] state: it ends the
 /// review when the file lands, and returns to ReviewReady when it does not, so a failed or
 /// cancelled save can simply be tried again.
-fn save_editable(app: &mut PdfCraftApp, bytes: Arc<Vec<u8>>, name: String, doc: Option<DocId>) {
+fn save_editable(app: &mut VisionPDFApp, bytes: Arc<Vec<u8>>, name: String, doc: Option<DocId>) {
     let source = doc.and_then(|id| app.session.get(id)).and_then(|d| d.path.clone());
     // The chosen file is the open source when both resolve to the same path (a new file does
     // not exist yet, so fall back to its folder and name).
@@ -2258,7 +2258,7 @@ fn save_editable(app: &mut PdfCraftApp, bytes: Arc<Vec<u8>>, name: String, doc: 
 /// review is done), back to ReviewReady when it fails — the reviewer sees the error and can
 /// accept again without re-reading the document. Desktop only: the web build downloads instead.
 #[cfg(not(target_arch = "wasm32"))]
-fn write_editable(app: &mut PdfCraftApp, target: &std::path::Path, bytes: Arc<Vec<u8>>) {
+fn write_editable(app: &mut VisionPDFApp, target: &std::path::Path, bytes: Arc<Vec<u8>>) {
     with_state(app, |v, _| v.phase = Phase::Saving);
     match crate::editing::write_atomically(&target.to_string_lossy(), &bytes) {
         Ok(()) => {
@@ -2273,7 +2273,7 @@ fn write_editable(app: &mut PdfCraftApp, target: &std::path::Path, bytes: Arc<Ve
 }
 
 /// Pull the document's changed appearance into its view after an apply.
-fn refresh_view(app: &mut PdfCraftApp, doc: DocId) {
+fn refresh_view(app: &mut VisionPDFApp, doc: DocId) {
     if let Some(info) = app.session.get(doc).map(|d| d.info.clone())
         && let Some(view) = app.views.iter_mut().find(|view| view.id == doc)
     {
@@ -2588,9 +2588,9 @@ mod tests {
 
     /// A blank two-page-shaped review inside a real app (the document open, Run set to go
     /// inline), one word list per page, against a real job's guard.
-    fn app_review(words: Vec<Vec<PlacedWord>>) -> (PdfCraftApp, DocId) {
+    fn app_review(words: Vec<Vec<PlacedWord>>) -> (VisionPDFApp, DocId) {
         let blank = Session::new().create_blank(612.0, 792.0, words.len()).expect("fixture").to_vec();
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.run_inline = true;
         app.open_bytes("blank.pdf", None, blank).expect("fixture");
         let id = app.active_ids().expect("open").1;
@@ -2605,7 +2605,7 @@ mod tests {
     }
 
     /// The status the tests see, from the app's last toast.
-    fn toast(app: &mut PdfCraftApp) -> String {
+    fn toast(app: &mut VisionPDFApp) -> String {
         app.toast.take().map(|t| t.0).unwrap_or_default()
     }
 
@@ -2817,7 +2817,7 @@ mod tests {
     /// save dialog never touches the review either — Accept can simply be tried again.
     #[test]
     fn editable_save_lands_and_a_failed_or_cancelled_one_keeps_the_review() {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.run_inline = true;
         let text = app.session.create_from_text("t", "Recognize these scanned words").expect("fixture");
         let id = app.session.open("t.pdf", None, text, None).expect("fixture");
@@ -3093,7 +3093,7 @@ mod tests {
         use egui_kittest::kittest::Queryable;
         let bytes = Session::new().create_from_text("t", "Recognize these scanned words").expect("fixture").to_vec();
         let mut h = egui_kittest::Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(move |_cc| {
-            let mut app = PdfCraftApp::new();
+            let mut app = VisionPDFApp::new();
             app.open_bytes("scan.pdf", None, bytes.clone()).expect("fixture");
             app
         });
@@ -3171,7 +3171,7 @@ mod tests {
     /// the new page cannot be rendered: the pane never shows another page's image.
     #[test]
     fn a_preview_of_another_page_is_dropped() {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         let text = app.session.create_from_text("t", "Recognize these scanned words").expect("fixture");
         let id = app.session.open("t.pdf", None, text, None).expect("fixture");
         app.ocr_verify.doc = Some(id);
@@ -3190,7 +3190,7 @@ mod tests {
     /// is rejected the document closes.
     #[test]
     fn closing_the_reviewed_document_brings_its_review_forward() {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         let bytes = Session::new().create_from_text("t", "Recognize these scanned words").expect("fixture").to_vec();
         for name in ["a.pdf", "b.pdf", "c.pdf"] {
             app.open_bytes(name, None, bytes.clone()).expect("fixture");
@@ -3221,8 +3221,8 @@ mod tests {
     }
 
     /// Three open documents with a review of the first one, a word of it corrected.
-    fn reviewing_the_first_of_three() -> (PdfCraftApp, DocId) {
-        let mut app = PdfCraftApp::new();
+    fn reviewing_the_first_of_three() -> (VisionPDFApp, DocId) {
+        let mut app = VisionPDFApp::new();
         let bytes = Session::new().create_from_text("t", "Recognize these scanned words").expect("fixture").to_vec();
         for name in ["a.pdf", "b.pdf", "c.pdf"] {
             app.open_bytes(name, None, bytes.clone()).expect("fixture");
@@ -3302,7 +3302,7 @@ mod tests {
     /// and holds no document open, and a review already on the screen stays as it was.
     #[test]
     fn a_run_that_cannot_start_keeps_the_review_and_holds_nothing() {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         let bytes = Session::new().create_from_text("t", "Recognize these scanned words").expect("fixture").to_vec();
         for name in ["a.pdf", "b.pdf"] {
             app.open_bytes(name, None, bytes.clone()).expect("fixture");
@@ -3358,7 +3358,7 @@ mod tests {
     #[test]
     fn the_web_leave_warning_asks_while_a_review_is_open() {
         use std::sync::atomic::Ordering;
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         let bytes = Session::new().create_from_text("t", "Recognize these scanned words").expect("fixture").to_vec();
         app.open_bytes("a.pdf", None, bytes).expect("fixture");
         let a = app.views[0].id;
@@ -3381,7 +3381,7 @@ mod tests {
     /// changes; once the review is rejected, the application quits.
     #[test]
     fn quitting_brings_an_open_review_forward() {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         let bytes = Session::new().create_from_text("t", "Recognize these scanned words").expect("fixture").to_vec();
         for name in ["a.pdf", "b.pdf"] {
             app.open_bytes(name, None, bytes.clone()).expect("fixture");
@@ -3422,7 +3422,7 @@ mod tests {
     /// document changes; a page that renders clears the failure.
     #[test]
     fn a_page_that_cannot_render_is_not_rendered_on_every_frame() {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         let text = app.session.create_from_text("t", "Recognize these scanned words").expect("fixture");
         let id = app.session.open("t.pdf", None, text, None).expect("fixture");
         app.ocr_verify.doc = Some(id);

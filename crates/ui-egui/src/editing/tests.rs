@@ -327,7 +327,7 @@ fn no_changes_pdf() -> Vec<u8> {
 /// behind once the add was refused.
 #[test]
 fn a_refused_text_box_is_put_back_whole() {
-    let mut app = crate::PdfCraftApp::new();
+    let mut app = crate::VisionPDFApp::new();
     app.set_option("language", "en").unwrap();
     app.open_bytes("a.pdf", None, no_changes_pdf()).unwrap();
     let style = crate::content_ui::default_style();
@@ -351,7 +351,7 @@ fn a_refused_text_box_is_put_back_whole() {
 fn save_commits_the_open_text_box() {
     let dir = staging_dir("open-text-box");
     let dest = dir.join("out.pdf");
-    let mut app = crate::PdfCraftApp::new();
+    let mut app = crate::VisionPDFApp::new();
     app.set_option("language", "en").unwrap();
     app.open_bytes("a.pdf", None, one_page_pdf()).unwrap();
     app.save_override = Some(dest.to_string_lossy().into_owned());
@@ -396,7 +396,7 @@ fn moving_pages_cancels_an_in_progress_drawing() {
     }
     pdf.extend_from_slice(format!("trailer\n<< /Size {} /Root 1 0 R >>\nstartxref\n{xref}\n%%EOF\n", objs.len() + 1).as_bytes());
 
-    let mut app = crate::PdfCraftApp::new();
+    let mut app = crate::VisionPDFApp::new();
     app.set_option("language", "en").unwrap();
     app.open_bytes("a.pdf", None, pdf).unwrap();
     let drawing =
@@ -419,7 +419,7 @@ fn save_asks_where_to_keep_an_email_attachment_and_leaves_the_temporary_copy_alo
     std::fs::write(&attachment, &original).unwrap();
     let kept = dir.join("Quote.pdf");
 
-    let mut app = crate::PdfCraftApp::new();
+    let mut app = crate::VisionPDFApp::new();
     app.set_option("language", "en").unwrap();
     app.open_bytes("Quote.pdf", Some(attachment.to_string_lossy().into_owned()), original.clone()).unwrap();
     assert!(app.apply_edit(pdfcraft_engine::Edit::RotatePages { pages: vec![0], degrees: 90 }));
@@ -445,7 +445,7 @@ fn save_asks_where_to_keep_an_email_attachment_and_leaves_the_temporary_copy_alo
 fn recolouring_print_ink_text_in_its_box_drops_the_ink_without_an_empty_step() {
     // 100 K text, open in its box.
     let open = || {
-        let mut app = crate::PdfCraftApp::new();
+        let mut app = crate::VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("a.pdf", None, one_page_pdf()).unwrap();
         let mut text = pdfcraft_engine::AddedText { rect: [20.0, 200.0, 180.0, 220.0], text: "Proof".into(), ..Default::default() };
@@ -465,18 +465,18 @@ fn recolouring_print_ink_text_in_its_box_drops_the_ink_without_an_empty_step() {
         });
         app
     };
-    fn item(app: &crate::PdfCraftApp) -> pdfcraft_engine::AddedText {
+    fn item(app: &crate::VisionPDFApp) -> pdfcraft_engine::AddedText {
         match &app.session.get(app.views[0].id).unwrap().added()[0].content {
             pdfcraft_engine::AddedContent::Text(t) => t.clone(),
             other => panic!("{other:?}"),
         }
     }
     // The box's style with another colour, set as the Format panel hands it over.
-    let recolour = |app: &mut crate::PdfCraftApp, color: [f64; 3]| {
+    let recolour = |app: &mut crate::VisionPDFApp, color: [f64; 3]| {
         let style = app.views[0].content.draft.as_ref().map(|d| d.style.clone()).unwrap();
         app.restyle_draft(0, pdfcraft_engine::AddedText { color, ..style });
     };
-    let finish = |app: &mut crate::PdfCraftApp| {
+    let finish = |app: &mut crate::VisionPDFApp| {
         let added = app.session.get(app.views[0].id).unwrap().added().to_vec();
         app.views[0].content.finish_draft(&added)
     };

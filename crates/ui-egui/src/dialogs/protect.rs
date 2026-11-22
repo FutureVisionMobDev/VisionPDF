@@ -6,7 +6,7 @@ use egui::{Align, Color32, Layout};
 use pdfcraft_engine::{Changes, Edit, Printing, Protection};
 
 use crate::theme::{self, Tokens};
-use crate::{PdfCraftApp, widgets};
+use crate::{VisionPDFApp, widgets};
 
 /// The dialog's state while it is open.
 #[derive(Clone, Debug, PartialEq)]
@@ -105,7 +105,7 @@ fn radio(ui: &mut egui::Ui, t: &Tokens, on: bool, label: &str) -> egui::Response
 }
 
 /// Draw the dialog body; returns (apply, cancel).
-pub(crate) fn body(ui: &mut egui::Ui, app: &mut PdfCraftApp, t: &Tokens) -> (bool, bool) {
+pub(crate) fn body(ui: &mut egui::Ui, app: &mut VisionPDFApp, t: &Tokens) -> (bool, bool) {
     use pdfcraft_engine::Algorithm as A;
     let d = &mut app.protect_draft;
     ui.label(egui::RichText::new(tl!("Protect Using Password")).font(theme::semibold(18.0)));
@@ -271,7 +271,7 @@ mod tests {
         use egui_kittest::{Harness, kittest::Queryable};
 
         let mut h = Harness::builder().with_size(egui::vec2(1200.0, 800.0)).build_eframe(|_| {
-            let mut app = PdfCraftApp::new();
+            let mut app = VisionPDFApp::new();
             app.set_option("language", "en").unwrap();
             app.dialog = Some(crate::Dialog::Protect);
             app.protect_draft.password = "TopSecret123!".into();

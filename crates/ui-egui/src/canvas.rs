@@ -16,7 +16,7 @@ use pdfcraft_render::{DestView, DocInfo, LayerOp, LinkTarget, PRINT_TAG, PageTex
 use crate::page_cursor::Layer;
 use crate::page_pointer::PagePointer;
 use crate::theme::{self, Tokens};
-use crate::{PdfCraftApp, QuickTool, RightPanel, comments, icons, widgets};
+use crate::{VisionPDFApp, QuickTool, RightPanel, comments, icons, widgets};
 
 mod area;
 pub(crate) mod autoscroll;
@@ -282,7 +282,7 @@ impl PageLayout {
         }
     }
 
-    /// Registry command that switches to this base layout (`PdfCraftApp::execute`).
+    /// Registry command that switches to this base layout (`VisionPDFApp::execute`).
     pub fn command(self) -> &'static str {
         match self {
             Self::Single => "view.layout.single",
@@ -471,7 +471,7 @@ fn verdict_mark_rect(widget: Rect, page: Rect, anchor: Pos2) -> Option<Rect> {
 /// A snapshot reads like its source document, plus the snapshot suffix that tells
 /// the tabs apart. Without a title the file name (which already carries the suffix)
 /// is enough.
-pub(crate) fn tab_label(app: &PdfCraftApp, index: usize) -> Option<String> {
+pub(crate) fn tab_label(app: &VisionPDFApp, index: usize) -> Option<String> {
     let view = app.views.get(index)?;
     let doc = app.session.get(view.id)?;
     let Some(snap) = view.snapshot.as_ref() else { return Some(doc.display_name()) };
@@ -662,7 +662,7 @@ pub struct DocView {
     pub(crate) auto_ocr_skipped: std::collections::HashMap<usize, u64>,
     /// Scans Edit found while no engine could read them, with the document's edit generation
     /// then: they wait for one (the web build downloads the models when first needed), and are
-    /// read once the models are in (see `PdfCraftApp::ocr_models_loaded`) or the document changes.
+    /// read once the models are in (see `VisionPDFApp::ocr_models_loaded`) or the document changes.
     pub(crate) auto_ocr_awaiting_models: std::collections::HashMap<usize, u64>,
     /// Turns wheel input into page turns in single-page view.
     wheel: crate::wheel_pager::WheelPager,
@@ -2660,7 +2660,7 @@ fn plan_renders(ui: &egui::Ui, view: &mut DocView, info: &DocInfo, renders: Page
 }
 
 /// Acts on the notice bar button that was clicked.
-fn apply_notice(app: &mut PdfCraftApp, index: usize, notice: Option<Notice>) {
+fn apply_notice(app: &mut VisionPDFApp, index: usize, notice: Option<Notice>) {
     match notice {
         #[cfg(not(target_arch = "wasm32"))]
         Some(Notice::Reload) => app.watch.reload_request = app.views.get(index).map(|view| view.id),
@@ -2699,7 +2699,7 @@ fn apply_notice(app: &mut PdfCraftApp, index: usize, notice: Option<Notice>) {
 /// tab is looked up by its view key (indices may have shifted since the click, and split view can
 /// show one document in two tabs), and the flag rides its own view, so a stale flag can never
 /// close the wrong tab. Whether a tab was closed (or asked about).
-fn close_requested_tab(app: &mut PdfCraftApp, index: usize) -> bool {
+fn close_requested_tab(app: &mut VisionPDFApp, index: usize) -> bool {
     let pending = app.views.get(index).filter(|v| v.close_requested).map(|v| v.view_key()).and_then(|key| app.tab_with_key(key));
     let Some(i) = pending else { return false };
     app.views[i].close_requested = false;
@@ -2953,7 +2953,7 @@ fn schedule_presentation_turn(ui: &egui::Ui, view: &mut DocView, click: Option<b
 /// Follows the link, or the bookmark's action, that was clicked. A link to another file comes
 /// back, to be opened once the document is no longer borrowed.
 pub(crate) fn follow_link(
-    app: &mut PdfCraftApp,
+    app: &mut VisionPDFApp,
     index: usize,
     target: Option<LinkTarget>,
 ) -> Option<(pdfcraft_engine::DocId, String, pdfcraft_render::RemoteDestination)> {
@@ -2968,7 +2968,7 @@ pub(crate) fn follow_link(
         LinkTarget::Uri(u) => app.request_document_url(&u, crate::LinkOrigin::Link),
         LinkTarget::SetLayers { changes, preserve_rb } => set_layers(app, index, &changes, preserve_rb),
         LinkTarget::RemoteGoTo { file, destination, .. } => return Some((view_id, file, destination)),
-        // Run by `PdfCraftApp::run_link_script`, which needs the link's page and index.
+        // Run by `VisionPDFApp::run_link_script`, which needs the link's page and index.
         LinkTarget::JavaScript(_) => {}
         LinkTarget::Other(s) => app.notify_fmt("This PDF uses the unsupported {s} action.", &[("s", &s)]),
     }
@@ -2977,7 +2977,7 @@ pub(crate) fn follow_link(
 
 /// A finished marquee zoom, a signature rectangle drawn, or an empty signature field clicked.
 /// Returns the tool to go on with.
-fn finish_sign_requests(app: &mut PdfCraftApp, index: usize, mut tool: QuickTool) -> QuickTool {
+fn finish_sign_requests(app: &mut VisionPDFApp, index: usize, mut tool: QuickTool) -> QuickTool {
     if let Some(done) = app.views[index].marquee_done.take() {
         app.finish_marquee(index, done);
     }
@@ -3236,7 +3236,7 @@ fn fits_height(r: Rect, view_height: f32, pixels_per_point: f32) -> bool {
 /// Draws the document tab at `index`: its notice bars, then its pages (or the Organize grid) in a
 /// scroll area with this frame's zoom, scrolling, tool input, overlays (form fields, comments,
 /// signature badges and sign tabs) and render requests.
-pub fn document_area(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui) {
+pub fn document_area(app: &mut VisionPDFApp, index: usize, ui: &mut egui::Ui) {
     let t = Tokens::get(ui.ctx());
     let can_paste_key = egui::Id::unique("can-paste-image");
     let can_paste_image = if ui.input(|i| i.pointer.secondary_pressed()) {
@@ -3687,7 +3687,7 @@ struct FrameRequests {
 
 /// Opens the dialogs and runs the app commands the frame asked for.
 #[allow(clippy::cognitive_complexity)]
-fn apply_frame_requests(app: &mut PdfCraftApp, index: usize, ui: &mut egui::Ui, requests: FrameRequests) {
+fn apply_frame_requests(app: &mut VisionPDFApp, index: usize, ui: &mut egui::Ui, requests: FrameRequests) {
     let FrameRequests {
         open_props,
         field_props,

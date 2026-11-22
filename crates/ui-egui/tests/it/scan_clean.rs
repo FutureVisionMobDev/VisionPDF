@@ -4,7 +4,7 @@
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
 use pdfcraft_engine::{Edit, NewAnnotation, NoteIcon, Session, Shape, Style};
-use pdfcraft_ui_egui::PdfCraftApp;
+use pdfcraft_ui_egui::VisionPDFApp;
 
 /// A two-page PDF: page 1 a grey scan with a darker gutter and text bars (and a sticky note),
 /// page 2 the same scan again.
@@ -25,9 +25,9 @@ fn scan() -> Vec<u8> {
     s.save_bytes(id).unwrap().to_vec()
 }
 
-fn harness() -> Harness<'static, PdfCraftApp> {
+fn harness() -> Harness<'static, VisionPDFApp> {
     let mut h = Harness::builder().with_size(egui::vec2(1400.0, 900.0)).build_eframe(|_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         app.open_bytes("scan.pdf", None, scan()).unwrap();
         app.run_inline = true;

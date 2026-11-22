@@ -1,10 +1,10 @@
-//! Headless screenshot of the real PdfCraft shell (egui_kittest + wgpu, no window needed).
+//! Headless screenshot of the real VisionPDF shell (egui_kittest + wgpu, no window needed).
 //!
 //! ```text
 //! cargo run -p pdfcraft-ui-egui --example shot -- out.png [file.pdf] [--size 1440x900] [--scale 2] [--page 3 --panel pages …]
 //! ```
 //! `--width N` downscales the image to N pixels wide (README screenshots). Any other
-//! `--key value` pair is passed to `PdfCraftApp::set_option`
+//! `--key value` pair is passed to `VisionPDFApp::set_option`
 //! (the same verbs as the desktop app's command-line flags and the future control channel).
 //! `--ocr-verify on` ignores any file and instead builds a synthetic scanned page, recognizes
 //! it with the real engines (models required: `cargo xtask models`) and opens the OCR Verify
@@ -15,13 +15,13 @@ use std::time::{Duration, Instant};
 use egui_kittest::Harness;
 use pdfcraft_engine::ocr::{MergeStrategy, OcrSettings};
 use pdfcraft_engine::{Session, export};
-use pdfcraft_ui_egui::PdfCraftApp;
+use pdfcraft_ui_egui::VisionPDFApp;
 
 /// Build a one-page PDF that is only a picture of a sentence (as a scanner would produce),
 /// recognize it with the engines named in `settings` and open the OCR Verify screen on the
 /// result — the same path the review tests use, with a real recognition behind it. The toolbar
 /// dropdowns are seeded to the ensemble the shot ran.
-fn load_ocr_verify(app: &mut PdfCraftApp) -> Result<(), String> {
+fn load_ocr_verify(app: &mut VisionPDFApp) -> Result<(), String> {
     let mut s = Session::new();
     let text = s
         .create_from_text(
@@ -82,7 +82,7 @@ fn main() -> Result<(), String> {
         }
     }
     let mut harness = Harness::builder().with_size(size).with_pixels_per_point(scale).build_eframe(move |_cc| {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         if ocr_verify {
             if let Err(e) = load_ocr_verify(&mut app) {
                 eprintln!("shot: --ocr-verify: {e}");

@@ -1,5 +1,5 @@
 //! Script prompts suspend the document worker, never the egui event loop.
-use crate::PdfCraftApp;
+use crate::VisionPDFApp;
 use pdfcraft_engine::{
     DocId,
     js::{InteractiveEvent, JsOutput, MenuItem, PendingScript, Prompt},
@@ -66,7 +66,7 @@ fn reply_to_prompt(ctx: &egui::Context, pending: &mut Pending, answer: Option<St
     ctx.request_repaint();
 }
 
-impl PdfCraftApp {
+impl VisionPDFApp {
     /// Start one explicit button interaction with captured document/view state and leave egui responsive.
     pub(crate) fn start_ui_script(&mut self, id: DocId, script: &str, field: Option<&str>, identity: Option<u64>) {
         self.start_script_with(id, |s| s.start_javascript_target(id, script, field, identity));
@@ -214,7 +214,7 @@ impl PdfCraftApp {
                 }
                 Prompt::Text { title, question, password, label, .. } => {
                     if *password {
-                        ui.label(tl!("This request comes from the document, not PdfCraft. Only enter a password if you trust this document."));
+                        ui.label(tl!("This request comes from the document, not VisionPDF. Only enter a password if you trust this document."));
                     }
                     if !title.is_empty() {
                         ui.label(title);
@@ -272,7 +272,7 @@ mod review_tests {
     /// The central shortcut/page-input gate must see a real pending script prompt.
     #[test]
     fn a_script_prompt_blocks_document_input_until_answered() {
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         let bytes = app.session.create_blank(200.0, 300.0, 1).unwrap();
         app.open_bytes("synthetic.pdf", None, bytes.to_vec()).unwrap();
         let id = app.active_ids().unwrap().1;
@@ -305,8 +305,8 @@ mod review_tests {
 mod review13_ui_tests {
     use super::*;
     /// Create a native app with a visible synthetic blank document and no renderer.
-    fn app() -> (PdfCraftApp, DocId) {
-        let mut app = PdfCraftApp::new();
+    fn app() -> (VisionPDFApp, DocId) {
+        let mut app = VisionPDFApp::new();
         app.set_option("language", "en").unwrap();
         let bytes = app.session.create_blank(200.0, 300.0, 2).unwrap();
         app.open_bytes("synthetic.pdf", None, bytes.to_vec()).unwrap();
@@ -460,7 +460,7 @@ mod link_script_tests {
         // `/C/…` form, which reads as `C:/…`.
         let path = if cfg!(windows) { "/C/abs/other.pdf" } else { "/abs/other.pdf" };
         let script = format!("getField\\('log'\\).value = app.popUpMenuEx\\({{cName:'A', cReturn:'a'}}\\) + event.type; app.openDoc\\('{path}'\\);");
-        let mut app = PdfCraftApp::new();
+        let mut app = VisionPDFApp::new();
         app.open_bytes("link.pdf", None, linked(&script)).unwrap();
         let id = app.active_ids().unwrap().1;
         app.run_link_script(id, 0, 0);
