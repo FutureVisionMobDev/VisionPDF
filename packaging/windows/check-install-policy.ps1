@@ -87,8 +87,9 @@ try {
   foreach ($row in (Read-Rows $database 'SELECT `Directory`, `Directory_Parent`, `DefaultDir` FROM `Directory`' 3)) {
     $directories[$row[0]] = @($row[1], $row[2])
   }
+  $suiteFolderName = ($directories['CraftSuiteFolder'][1] -split '\|')[-1]
   if ($directories['INSTALLFOLDER'][0] -ne 'CraftSuiteFolder' -or
-      $directories['CraftSuiteFolder'][1] -ne 'VisionPDF') { throw 'Expected the app under the VisionPDF suite folder.' }
+      $suiteFolderName -ne 'VisionPDF') { throw 'Expected the app under the VisionPDF suite folder.' }
   $programs = $directories['CraftSuiteFolder'][0]
   if ($programs -eq 'ProgramFiles6432Folder') { $programs = $directories[$programs][0] }
   if ($programs -notin 'ProgramFilesFolder', 'ProgramFiles64Folder') {
