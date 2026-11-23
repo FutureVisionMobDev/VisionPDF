@@ -1,4 +1,4 @@
-//! Source and support links in the Help menu, About dialog and home screen point to this fork.
+//! Source and support links in the Help menu and About dialog point to this fork.
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
@@ -17,41 +17,19 @@ fn harness(setup: impl FnOnce(&mut VisionPDFApp) + 'static) -> Harness<'static, 
 }
 
 #[test]
-fn github_button_in_the_top_bar_opens_the_project_page() {
-    let mut h = harness(|_| {});
-    h.get_by_label("GitHub").click();
-    h.run_steps(2);
-    assert_eq!(h.state().last_opened_url.as_deref(), Some(links::ISSUES));
+fn github_button_is_not_in_the_top_bar() {
+    let h = harness(|_| {});
+    assert!(h.query_by_label("GitHub").is_none());
     assert_eq!(links::GITHUB, "https://github.com/FutureVisionMobDev/VisionPDF");
 }
 
 #[test]
-fn home_screen_links() {
-    for (label, url) in [
-        ("Get VisionPDF support", links::ISSUES),
-        ("VisionPDF downloads", links::RELEASES),
-        ("VisionPDF on GitHub", links::GITHUB),
-        ("VisionPDF project page", links::GITHUB),
-    ] {
-        let mut h = harness(|_| {});
-        h.get_by_label("VisionPDF is open source");
-        h.get_by_label(label).click();
-        h.run_steps(2);
-        assert_eq!(h.state().last_opened_url.as_deref(), Some(url), "{label}");
-    }
-}
-
-#[test]
-fn home_community_card_closes_for_this_run() {
-    let mut h = harness(|_| {});
-    h.get_by_label("VisionPDF is open source");
-    h.get_by_label("Close").click();
-    h.run_steps(2);
-    assert!(h.state().community_card_closed);
+fn home_has_no_source_promotion_card() {
+    let h = harness(|_| {});
     assert!(h.query_by_label("VisionPDF is open source").is_none());
     assert!(h.query_by_label("Get VisionPDF support").is_none());
-    // Not remembered: a fresh app shows the card again.
-    assert!(!VisionPDFApp::new().community_card_closed);
+    assert!(h.query_by_label("VisionPDF downloads").is_none());
+    assert!(h.query_by_label("VisionPDF on GitHub").is_none());
 }
 
 #[test]
