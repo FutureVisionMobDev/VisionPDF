@@ -1692,7 +1692,7 @@ fn dialog_about(ui: &mut egui::Ui, req: &mut Pending) -> bool {
                 });
             });
             ui.add_space(6.0);
-            ui.label(tl!("A clean-room, open-source PDF application written in Rust. MIT OR Apache-2.0."));
+            ui.label(tl!("A local PDF application written in Rust. MIT OR Apache-2.0."));
             ui.label(
                 egui::RichText::new(
                     "Rendering: hayro (bootstrap) · UI: egui · Icons: Lucide (ISC) · Fonts: Inter, JetBrains Mono, Dancing Script (OFL)",
@@ -1701,9 +1701,6 @@ fn dialog_about(ui: &mut egui::Ui, req: &mut Pending) -> bool {
                 .small(),
             );
             ui.add_space(12.0);
-            if let Some(cmd) = widgets::community_links(ui) {
-                req.link_command = Some(cmd);
-            }
         }
     }
     true

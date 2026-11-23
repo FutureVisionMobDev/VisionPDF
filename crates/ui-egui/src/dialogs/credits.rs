@@ -1,4 +1,4 @@
-//! The About window's credits: every contributor (GitHub login always; display and real names only
+//! The About window's credits: every contributor (account name always; display and real names only
 //! with recorded consent) and the AI models that helped. The tables are baked into the binary by
 //! build.rs from contributors/contributors.json; nothing is
 //! read at run time.
@@ -282,7 +282,7 @@ pub fn contributors_ui(ui: &mut egui::Ui) {
                     if i > 0 {
                         ui.label(RichText::new("·").color(t.text_faint));
                     }
-                    ui.hyperlink_to(c.name(v.names), format!("https://github.com/{}", c.login)).on_hover_text(c.summary());
+                    ui.label(c.name(v.names)).on_hover_text(c.summary());
                 }
             });
         });
@@ -422,7 +422,7 @@ fn table(ui: &mut egui::Ui, list: &[&Contributor], v: &mut View) {
             for (c, cells) in list.iter().zip(rows) {
                 body.row(h, |mut row| {
                     row.col(|ui| {
-                        aligned(ui, false, |ui| ui.hyperlink_to(c.name(v.names), format!("https://github.com/{}", c.login)))
+                        aligned(ui, false, |ui| ui.label(c.name(v.names)))
                             .on_hover_text(c.summary());
                     });
                     for text in cells {

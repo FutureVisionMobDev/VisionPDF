@@ -436,9 +436,6 @@ pub const COMMANDS: &[CommandSpec] = &[
     c("prepress.hairlines", "Fix hairlines…", None, None, Modification, "minus"),
     c("page.properties", "Page properties…", PAGES, None, Modification, "info"),
     c("help.shortcuts", "Keyboard shortcuts", HELP, None, Nothing, "circle-help"),
-    c("help.discord", "VisionPDF support and issues", HELP, None, Nothing, "messages-square"),
-    c("help.app_page", "VisionPDF downloads", HELP, None, Nothing, "download"),
-    c("help.github", "VisionPDF on GitHub", HELP, None, Nothing, "code-xml"),
     c("help.check_updates", "Check for updates…", HELP, None, Nothing, "cloud"),
     c("help.about", "About VisionPDF", HELP, None, Nothing, "info"),
 ];

@@ -1,8 +1,7 @@
-//! Source and support links in the Help menu and About dialog point to this fork.
+//! The app UI does not expose repository hosting links.
 
 use egui_kittest::Harness;
 use egui_kittest::kittest::Queryable;
-use visionpdf_engine::links;
 use visionpdf_ui_egui::{Dialog, VisionPDFApp};
 
 fn harness(setup: impl FnOnce(&mut VisionPDFApp) + 'static) -> Harness<'static, VisionPDFApp> {
@@ -17,10 +16,12 @@ fn harness(setup: impl FnOnce(&mut VisionPDFApp) + 'static) -> Harness<'static, 
 }
 
 #[test]
-fn github_button_is_not_in_the_top_bar() {
+fn project_link_is_not_in_the_top_bar_or_help_menu() {
     let h = harness(|_| {});
     assert!(h.query_by_label("GitHub").is_none());
-    assert_eq!(links::GITHUB, "https://github.com/FutureVisionMobDev/VisionPDF");
+    assert!(visionpdf_engine::commands::command("help.github").is_none());
+    assert!(visionpdf_engine::commands::command("help.discord").is_none());
+    assert!(visionpdf_engine::commands::command("help.app_page").is_none());
 }
 
 #[test]
@@ -29,11 +30,10 @@ fn home_has_no_source_promotion_card() {
     assert!(h.query_by_label("VisionPDF is open source").is_none());
     assert!(h.query_by_label("Get VisionPDF support").is_none());
     assert!(h.query_by_label("VisionPDF downloads").is_none());
-    assert!(h.query_by_label("VisionPDF on GitHub").is_none());
 }
 
 #[test]
-fn about_dialog_shows_visionpdf_branding_and_links() {
+fn about_dialog_shows_visionpdf_branding_without_repository_links() {
     let pdf = b"%PDF-1.7\n1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj\n3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 200 200] >> endobj\ntrailer << /Root 1 0 R >>\n%%EOF";
     // With a document open, so the home screen's own links are not on screen.
     let mut h = harness(move |app| {
@@ -41,19 +41,8 @@ fn about_dialog_shows_visionpdf_branding_and_links() {
         app.dialog = Some(Dialog::About);
     });
     assert!(h.query_all_by_label("VisionPDF").count() >= 2, "the mark and the wordmark (alt text)");
-    h.get_by_label("Get VisionPDF support").click();
-    h.run_steps(2);
-    assert_eq!(h.state().last_opened_url.as_deref(), Some(links::ISSUES));
-}
-
-#[test]
-fn help_commands_open_each_link() {
-    for l in links::LINKS {
-        let mut h = harness(|_| {});
-        assert!(h.state_mut().execute(l.command), "{}", l.command);
-        assert_eq!(h.state().last_opened_url.as_deref(), Some(l.url));
-        assert_eq!(visionpdf_engine::commands::command(l.command).unwrap().menu, Some("Help"));
-    }
+    assert!(h.query_by_label("Get VisionPDF support").is_none());
+    assert!(h.query_by_label("VisionPDF downloads").is_none());
 }
 
 /// Runs frames until the node labelled `label` exists and has stopped moving, then returns it.

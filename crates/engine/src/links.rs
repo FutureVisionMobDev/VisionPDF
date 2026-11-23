@@ -1,33 +1,7 @@
-//! Where VisionPDF lives on the web. One table, so the Help menu, the
-//! About dialog, the home screen, the CLI and the README agree.
+//! URL validation for links found in user documents.
 
 use icu_properties::props::Script;
 use std::path::{Path, PathBuf};
-
-pub const GITHUB: &str = "https://github.com/FutureVisionMobDev/VisionPDF";
-pub const ISSUES: &str = "https://github.com/FutureVisionMobDev/VisionPDF/issues";
-pub const RELEASES: &str = "https://github.com/FutureVisionMobDev/VisionPDF/releases";
-
-/// A link and the registry command that opens it.
-#[derive(Clone, Copy, Debug)]
-pub struct Link {
-    pub command: &'static str,
-    pub label: &'static str,
-    pub url: &'static str,
-    /// Lucide icon name.
-    pub icon: &'static str,
-}
-
-/// Links to this fork's source, support, and releases.
-pub const LINKS: &[Link] = &[
-    Link { command: "help.discord", label: "VisionPDF support and issues", url: ISSUES, icon: "messages-square" },
-    Link { command: "help.app_page", label: "VisionPDF downloads", url: RELEASES, icon: "download" },
-    Link { command: "help.github", label: "VisionPDF on GitHub", url: GITHUB, icon: "code-xml" },
-];
-
-pub fn for_command(id: &str) -> Option<&'static Link> {
-    LINKS.iter().find(|l| l.command == id)
-}
 
 /// The kinds of address a document may ask VisionPDF to open: web pages and email. Anything
 /// else (`file:`, `javascript:`, `data:`, `smb:`, app handlers such as `ms-settings:`) is refused,

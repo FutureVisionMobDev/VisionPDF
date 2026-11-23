@@ -229,11 +229,6 @@ impl VisionPDFApp {
                     self.notify_tr("Security will be removed when you save");
                 }
             }
-            link if visionpdf_engine::links::for_command(link).is_some() => {
-                if let Some(l) = visionpdf_engine::links::for_command(link) {
-                    self.open_url(l.url);
-                }
-            }
             "app.preferences" => self.dialog = Some(Dialog::Preferences),
             "protect.remove_hidden" => self.open_remove_hidden(),
             "print.dialog" => self.open_print(),

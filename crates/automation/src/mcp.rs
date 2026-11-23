@@ -136,7 +136,7 @@ impl McpServer {
                 Ok(json!({
                     "protocolVersion": version,
                     "capabilities": { "tools": { "listChanged": false }, "resources": { "listChanged": false, "subscribe": false } },
-                    "serverInfo": { "name": "visionpdf", "title": "VisionPDF", "version": env!("CARGO_PKG_VERSION"), "websiteUrl": visionpdf_engine::links::GITHUB },
+                    "serverInfo": { "name": "visionpdf", "title": "VisionPDF", "version": env!("CARGO_PKG_VERSION") },
                     "instructions": if self.compact { format!("{INSTRUCTIONS}{COMPACT_INSTRUCTIONS}") } else { INSTRUCTIONS.to_string() },
                 }))
             }

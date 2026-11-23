@@ -93,8 +93,7 @@ visionpdf-cli run    --script steps.json [--root DIR] [--report]
     mcp_usage!(),
     "\
 visionpdf-cli ui     --control FILE <method> [key=value …] [--out shot.png]
-                                                           drive a running app started with --control FILE
-help and feedback: https://github.com/FutureVisionMobDev/VisionPDF/issues"
+                                                           drive a running app started with --control FILE"
 );
 
 fn main() -> ExitCode {
@@ -197,8 +196,5 @@ fn stdout_line(line: std::fmt::Arguments<'_>) -> Result<(), CliError> {
 
 fn version() -> Result<(), CliError> {
     stdout_line(format_args!("visionpdf-cli {}", visionpdf_engine::build_info::version()))?;
-    stdout_line(format_args!("Support: {}", visionpdf_engine::links::ISSUES))?;
-    stdout_line(format_args!("Releases: {}", visionpdf_engine::links::RELEASES))?;
-    stdout_line(format_args!("Source:  {}", visionpdf_engine::links::GITHUB))?;
     Ok(())
 }
